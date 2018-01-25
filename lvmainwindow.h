@@ -8,6 +8,7 @@
 
 #include "image_type.h"
 #include "frameworker.h"
+#include "framethread.h"
 #include "frameview_widget.h"
 
 class LVMainWindow : public QMainWindow

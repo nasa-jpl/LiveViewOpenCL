@@ -8,8 +8,10 @@
 
 #include "image_type.h"
 #include "lvframe.h"
+#include "framethread.h"
 #include "cameramodel.h"
 #include "debugcamera.h"
+#include "ssdcamera.h"
 #include "constants.h"
 
 class LVFrameBuffer;
@@ -19,7 +21,7 @@ class FrameWorker : public QObject
     Q_OBJECT
 
 public:
-    explicit FrameWorker(QObject *parent = nullptr);
+    explicit FrameWorker(FrameThread *worker, QObject *parent = nullptr);
     virtual ~FrameWorker();
     void stop();
     bool running();
@@ -39,6 +41,7 @@ public slots:
     void captureFrames();
 
 private:
+    FrameThread* thread;
     const uint16_t cpu_frame_buffer_size = CPU_FRAME_BUFFER_SIZE;
     LVFrameBuffer* lvframe_buffer;
     CameraModel* Camera;
