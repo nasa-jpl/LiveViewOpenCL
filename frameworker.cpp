@@ -30,9 +30,10 @@ private:
     inline uint16_t incIndex() { return fbIndex + 1 >= frame_vec.size() ? 0 : fbIndex + 1; }
 };
 
-FrameWorker::FrameWorker(QObject *parent) : QObject(parent)
+FrameWorker::FrameWorker(FrameThread *worker, QObject *parent) : thread(worker), QObject(parent)
 {
-    Camera = new DebugCamera();
+    const std::string search_dir = "/Users/jryan/aviris/20170916_DCSEFM_TVAC_LVDS_COLD_NOTCOMPRESS_ROIC_BLUESPHERE_LocalSum0_bits16_Ligth6High";
+    Camera = new SSDCamera(search_dir);
     bool cam_started = Camera->start();
     if (!cam_started) {
         emit error(QString("Unable to start camera stream! This is fatal."));
@@ -73,6 +74,7 @@ void FrameWorker::captureFrames()
     qDebug("About to start capturing frames");
     while (isRunning) {
         lvframe_buffer->current()->raw_data = Camera->getFrame();
+        thread->sleep(1);
 
     }
 }

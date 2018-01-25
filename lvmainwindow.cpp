@@ -7,8 +7,8 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     this->resize(1440, 900);
 
     // Load the worker thread
-    QThread* workerThread = new QThread();
-    fw = new FrameWorker();
+    FrameThread* workerThread = new FrameThread();
+    fw = new FrameWorker(workerThread);
     fw->moveToThread(workerThread);
     // Reserve proper take object error handling for later
     QObject::connect(fw, SIGNAL(error(QString)), this, SLOT(errorString(QString)));
