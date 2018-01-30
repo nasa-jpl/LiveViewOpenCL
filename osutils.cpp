@@ -37,5 +37,5 @@ std::string os::getext(const std::string &f)
     if (sz != std::string::npos)
         return (f.substr(sz + 1, f.length() - sz));
 
-    return("");
+    return ("");
 }

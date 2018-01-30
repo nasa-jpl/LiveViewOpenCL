@@ -21,11 +21,14 @@ LVMainWindow::LVMainWindow(QWidget *parent)
         workerThread->start();
     }
 
-    // QWidget* mainWidget = new QWidget();
-    // QVBoxLayout mainLayout(mainWidget);
-    frameview_widget* raw_display = new frameview_widget(BASE, fw);
-    // mainLayout.addWidget(raw_display);
-    this->setCentralWidget(raw_display);
+    QWidget* mainWidget = new QWidget();
+    QVBoxLayout* mainLayout = new QVBoxLayout();
+    raw_display = new frameview_widget(BASE, fw);
+    cbox = new ControlsBox(fw);
+    mainLayout->addWidget(raw_display);
+    mainLayout->addWidget(cbox);
+    mainWidget->setLayout(mainLayout);
+    this->setCentralWidget(mainWidget);
 
 }
 

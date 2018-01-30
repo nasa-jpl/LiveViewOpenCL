@@ -10,6 +10,7 @@
 #include "frameworker.h"
 #include "framethread.h"
 #include "frameview_widget.h"
+#include "controlsbox.h"
 
 class LVMainWindow : public QMainWindow
 {
@@ -24,6 +25,8 @@ public slots:
 
 private:
     FrameWorker* fw;
+    frameview_widget* raw_display;
+    ControlsBox* cbox;
 };
 
 #endif // LVMAINWINDOW_H

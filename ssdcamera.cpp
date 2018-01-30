@@ -20,8 +20,18 @@ SSDCamera::~SSDCamera()
 
 bool SSDCamera::start()
 {
-    readFile();
     return true;
+}
+
+void SSDCamera::setDir(const char* dirname)
+{
+    data_dir = dirname;
+    read_files.clear();
+    xio_files.clear();
+    dev_p.clear();
+    dev_p.close();
+    curIndex = -1;
+    readFile();
 }
 
 std::string SSDCamera::getFname()
@@ -58,6 +68,8 @@ void SSDCamera::readFile()
 {
     ifname = getFname();
     if (ifname.empty()) {
+        if (dev_p.is_open())
+            dev_p.close();
         nFrames = TIMEOUT_DURATION;
         frame_buf.reserve(nFrames);
         for (int n = 0; n < nFrames; ++n)
@@ -78,14 +90,15 @@ void SSDCamera::readFile()
         int filesize = dev_p.tellg();
         nFrames = (filesize - headsize) / framesize;
         dev_p.seekg(0, std::ios::beg);
-        qDebug() << "File size is " << filesize - headsize <<
-                    " bytes, which corresponds to " << nFrames << "frames.";
+        // qDebug() << "File size is " << filesize - headsize <<
+        //            " bytes, which corresponds to" << nFrames << "frames.";
 
         dev_p.read(reinterpret_cast<char*>(header.data()), headsize);
         frame_buf.reserve(nFrames);
         for (int n = 0; n < nFrames; ++n) {
             dev_p.read(reinterpret_cast<char*>(frame_buf[n].data()), framesize);
         }
+        frame_valid = true;
         dev_p.close();
     }
 }
@@ -95,9 +108,11 @@ uint16_t* SSDCamera::getFrame()
     curIndex++;
     if (curIndex >= nFrames) {
         readFile();
-        // qDebug() << ifname.data();
         curIndex = 0;
     }
-
-    return frame_buf[curIndex].data();
+    if (frame_valid) {
+        return frame_buf[curIndex].data();
+    } else {
+        return dummy.data();
+    }
 }

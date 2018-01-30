@@ -30,7 +30,7 @@ private:
     inline uint16_t incIndex() { return fbIndex + 1 >= frame_vec.size() ? 0 : fbIndex + 1; }
 };
 
-FrameWorker::FrameWorker(FrameThread *worker, QObject *parent) : thread(worker), QObject(parent)
+FrameWorker::FrameWorker(FrameThread *worker, QObject *parent) : QObject(parent), thread(worker)
 {
     const std::string search_dir = "/Users/jryan/aviris/20170916_DCSEFM_TVAC_LVDS_COLD_NOTCOMPRESS_ROIC_BLUESPHERE_LocalSum0_bits16_Ligth6High";
     Camera = new SSDCamera(search_dir);
@@ -74,8 +74,15 @@ void FrameWorker::captureFrames()
     qDebug("About to start capturing frames");
     while (isRunning) {
         lvframe_buffer->current()->raw_data = Camera->getFrame();
-        thread->sleep(1);
+        thread->sleep(10);
 
+    }
+}
+
+void FrameWorker::resetDir(const char *dirname)
+{
+    if (cam_type == ITB) {
+        Camera->setDir(dirname);
     }
 }
 

@@ -3,10 +3,10 @@
 
 #include <QThread>
 
-class FrameThread : public QThread {
-    public:
-        void sleep(int ms) { QThread::msleep(ms); }
+class FrameThread : public QThread
+{
+public:
+    void sleep(int ms) { QThread::msleep(ms); }
 };
-
 
 #endif // FRAMETHREAD_H

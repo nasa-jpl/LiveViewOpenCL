@@ -13,6 +13,7 @@ public:
 
     virtual bool start() = 0;
     virtual uint16_t* getFrame() = 0;
+    virtual void setDir(const char *dirname) = 0;
 
     uint16_t getFrameWidth() const { return frame_width; }
     uint16_t getFrameHeight() const { return frame_height; }

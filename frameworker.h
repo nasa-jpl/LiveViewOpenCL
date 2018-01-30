@@ -39,6 +39,7 @@ signals:
 
 public slots:
     void captureFrames();
+    void resetDir(const char *dirname);
 
 private:
     FrameThread* thread;

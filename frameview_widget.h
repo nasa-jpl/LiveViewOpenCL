@@ -40,7 +40,7 @@ private:
     QCPColorMapData *colorMapData;
     QCPColorScale* colorScale;
 
-    QVBoxLayout layout;
+    // QVBoxLayout* layout;
 
     uint16_t frHeight;
     uint16_t frWidth;

@@ -14,6 +14,8 @@
 #include "constants.h"
 #include "lvframe.h"
 
+#include <atomic>
+
 #define TIMEOUT_DURATION 1000
 
 class SSDCamera : public CameraModel
@@ -23,12 +25,14 @@ public:
     virtual ~SSDCamera();
 
     virtual bool start();
+    virtual void setDir(const char* dirname);
 
     std::string getFname();
     void readFile();
     virtual uint16_t *getFrame();
 
 private:
+    std::atomic<bool> frame_valid;
     std::ifstream dev_p;
     std::string ifname;
     std::string data_dir;
@@ -38,8 +42,9 @@ private:
     std::vector<std::string> read_files;
     std::vector<std::string> xio_files;
     std::vector<std::array<uint16_t, 640*480> > frame_buf;
-    uint16_t curIndex;
-    uint16_t nFrames;
+    std::array<uint16_t, 640*480> dummy;
+    std::atomic<uint16_t> curIndex;
+    std::atomic<uint16_t> nFrames;
 };
 
 #endif // SSDCAMERA_H

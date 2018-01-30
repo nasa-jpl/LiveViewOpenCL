@@ -48,8 +48,9 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     qcp->rescaleAxes();
     qcp->axisRect()->setBackgroundScaled(false);
 
-    layout.addWidget(qcp);
-    this->setLayout(&layout);
+    QVBoxLayout* layout = new QVBoxLayout();
+    layout->addWidget(qcp);
+    this->setLayout(layout);
 
     connect(&rendertimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(colorMapScrolledY(QCPRange)));
