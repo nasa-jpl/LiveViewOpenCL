@@ -32,7 +32,7 @@ private:
 
 FrameWorker::FrameWorker(FrameThread *worker, QObject *parent) : QObject(parent), thread(worker)
 {
-    const std::string search_dir = "/Users/jryan/aviris/20170916_DCSEFM_TVAC_LVDS_COLD_NOTCOMPRESS_ROIC_BLUESPHERE_LocalSum0_bits16_Ligth6High";
+    const std::string search_dir = "/";
     Camera = new SSDCamera(search_dir);
     bool cam_started = Camera->start();
     if (!cam_started) {
@@ -72,10 +72,16 @@ bool FrameWorker::running()
 void FrameWorker::captureFrames()
 {
     qDebug("About to start capturing frames");
+    high_resolution_clock::time_point beg, end;
+    uint32_t duration;
     while (isRunning) {
+        beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
-        thread->sleep(10);
+        end = high_resolution_clock::now();
 
+        duration = duration_cast<microseconds>(end - beg).count();
+        if (duration < 10)
+            thread->sleep(10);
     }
 }
 

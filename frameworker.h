@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <chrono>
 
 #include <QObject>
 
@@ -15,6 +16,8 @@
 #include "constants.h"
 
 class LVFrameBuffer;
+
+using namespace std::chrono;
 
 class FrameWorker : public QObject
 {
