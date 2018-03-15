@@ -41,7 +41,7 @@ void SSDCamera::setDir(const char* dirname)
     for (auto f = fname_list.begin(); f != fname_list.end(); ++f) {
         if (f->empty() or os::getext(*f) != "xio")
             continue;
-        qDebug() << "Filename: " << f->data();
+
         xio_files.push_back(*f);
     }
     readFile();
