@@ -16,6 +16,16 @@ public:
         frame_vec.clear();
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
     }
+    void reset(const uint16_t num_frames, const uint16_t width, const uint16_t height)
+    {
+        frame_vec.clear();
+        std::vector<LVFrame*>(frame_vec).swap(frame_vec);
+        for (int f = 0; f < num_frames; ++f) {
+            LVFrame* pFrame = new LVFrame(width, height);
+            frame_vec.push_back(pFrame);
+        }
+        fbIndex = 0;
+    }
 
     uint16_t size() const { return frame_vec.size(); }
 

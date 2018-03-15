@@ -48,7 +48,5 @@ HEADERS += \
     ssdcamera.h \
     osutils.h \
     framethread.h \
-    controlsbox.h
-
-DISTFILES += \
-    stdev.cl
+    controlsbox.h \
+    alphanum.hpp

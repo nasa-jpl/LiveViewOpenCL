@@ -13,7 +13,7 @@ class ControlsBox : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ControlsBox(FrameWorker* fw, QWidget* parent=nullptr);
+    explicit ControlsBox(FrameWorker* fw, QWidget* parent=NULL);
     ~ControlsBox();
 
 public slots:

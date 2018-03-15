@@ -3,7 +3,7 @@
 
 #include <QtGlobal>
 
-#define MAX_SIZE 1500*1500
+#include "constants.h"
 
 struct LVFrame
 {

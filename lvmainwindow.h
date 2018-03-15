@@ -7,7 +7,6 @@
 #include <QDebug>
 
 #include "image_type.h"
-#include "frameworker.h"
 #include "framethread.h"
 #include "frameview_widget.h"
 #include "controlsbox.h"
@@ -17,7 +16,7 @@ class LVMainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    LVMainWindow(QWidget *parent = nullptr);
+    LVMainWindow(QWidget *parent = NULL);
     ~LVMainWindow();
 
 public slots:

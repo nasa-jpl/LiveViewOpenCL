@@ -16,7 +16,7 @@ class frameview_widget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit frameview_widget(image_t image_type, FrameWorker* fw, QWidget *parent = nullptr);
+    explicit frameview_widget(image_t image_type, FrameWorker* fw, QWidget *parent = NULL);
     ~frameview_widget();
 
     double getCeiling();

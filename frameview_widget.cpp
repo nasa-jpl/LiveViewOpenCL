@@ -26,7 +26,7 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     qcp->yAxis->setRangeReversed(true);
 
     colorMap = new QCPColorMap(qcp->xAxis, qcp->yAxis);
-    colorMapData = nullptr;
+    colorMapData = NULL;
 
     // qcp->addPlottable(colorMap);
 

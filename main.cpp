@@ -6,8 +6,6 @@
 #include <QTextStream>
 
 #include "lvmainwindow.h"
-#include "qcustomplot.h"
-#include "frameworker.h"
 
 #ifndef HOST
 #define HOST "unknown location"

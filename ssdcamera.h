@@ -9,6 +9,8 @@
 
 #include <QDebug>
 
+#include "alphanum.hpp"
+
 #include "osutils.h"
 #include "cameramodel.h"
 #include "constants.h"
@@ -16,7 +18,7 @@
 
 #include <atomic>
 
-#define TIMEOUT_DURATION 1000
+#define TIMEOUT_DURATION 100
 
 class SSDCamera : public CameraModel
 {
@@ -27,11 +29,12 @@ public:
     virtual bool start();
     virtual void setDir(const char* dirname);
 
-    std::string getFname();
-    void readFile();
     virtual uint16_t *getFrame();
 
 private:
+    std::string getFname();
+    void readFile();
+
     std::atomic<bool> frame_valid;
     std::ifstream dev_p;
     std::string ifname;
@@ -39,7 +42,7 @@ private:
     std::streampos bufsize;
     uint32_t framesize;
     const uint32_t headsize;
-    std::vector<std::string> read_files;
+    size_t image_no;
     std::vector<std::string> xio_files;
     std::vector<std::array<uint16_t, 640*480> > frame_buf;
     std::array<uint16_t, 640*480> dummy;
