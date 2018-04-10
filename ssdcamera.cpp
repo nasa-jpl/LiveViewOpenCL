@@ -5,9 +5,9 @@ SSDCamera::SSDCamera(const std::string search_dir,
         int dataHeight
 ) : CameraModel(),
     data_dir(search_dir),
-    framesize(frWidth * dataHeight * sizeof(uint16_t)),
     headsize(frWidth * sizeof(uint16_t)),
-    image_no(0)
+    image_no(0),
+    nFrames(32)
 {
     frame_width = frWidth;
     frame_height = frHeight;
@@ -82,11 +82,12 @@ void SSDCamera::readFile()
     if (ifname.empty()) {
         if (dev_p.is_open())
             dev_p.close();
-        nFrames = TIMEOUT_DURATION;
+        // nFrames = TIMEOUT_DURATION;
         frame_buf.reserve(nFrames);
         for (int n = 0; n < nFrames; ++n)
             std::fill(frame_buf[n].begin(), frame_buf[n].end(), 0);
     } else {
+        // get the filesize from the header - use the frame spec excel sheet
         std::vector<unsigned char> header(headsize);
         dev_p.open(ifname, std::ios::in | std::ios::binary);
         if (!dev_p.is_open()) {
@@ -97,14 +98,12 @@ void SSDCamera::readFile()
         }
         qDebug() << "Successfully opened " << ifname.data();
         dev_p.unsetf(std::ios::skipws);
-        dev_p.seekg(0, std::ios::end);
-        int filesize = dev_p.tellg();
-        nFrames = (filesize - headsize) / framesize;
-        dev_p.seekg(0, std::ios::beg);
-        // qDebug() << "File size is " << filesize - headsize <<
-        //            " bytes, which corresponds to" << nFrames << "frames.";
-
         dev_p.read(reinterpret_cast<char*>(header.data()), headsize);
+        int filesize = int(header[7]) * 16777216 + int(header[6]) * 65536 + int(header[5]) * 256 + int(header[4]);
+        framesize = filesize / int(nFrames);
+        dev_p.seekg(0, std::ios::beg);
+        qDebug() << "File size is" << filesize << "bytes, which corresponds to a framesize of" << framesize << "bytes.";
+
         frame_buf.reserve(nFrames);
         for (int n = 0; n < nFrames; ++n) {
             dev_p.read(reinterpret_cast<char*>(frame_buf[n].data()), framesize);
