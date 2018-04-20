@@ -33,7 +33,8 @@ SOURCES += \
     debugcamera.cpp \
     ssdcamera.cpp \
     osutils.cpp \
-    controlsbox.cpp
+    controlsbox.cpp \
+#    clcamera.cpp
 
 HEADERS += \
         lvmainwindow.h \
@@ -49,4 +50,5 @@ HEADERS += \
     osutils.h \
     framethread.h \
     controlsbox.h \
-    alphanum.hpp
+    alphanum.hpp \
+#    clcamera.h
