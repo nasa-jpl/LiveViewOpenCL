@@ -181,6 +181,7 @@ void frameview_widget::setScrollY(bool Xenabled) {
     scrollXenabled = !Xenabled;
     qcp->setInteraction(QCP::iRangeDrag, true);
     qcp->setInteraction(QCP::iRangeZoom, true);
+
     if (!scrollXenabled && scrollYenabled) {
         qcp->axisRect()->setRangeZoom(Qt::Vertical);
         qcp->axisRect()->setRangeDrag(Qt::Vertical);

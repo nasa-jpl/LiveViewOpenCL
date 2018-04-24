@@ -34,7 +34,8 @@ SOURCES += \
     debugcamera.cpp \
     ssdcamera.cpp \
     osutils.cpp \
-    controlsbox.cpp
+    controlsbox.cpp \
+    darksubfilter.cpp
 #    clcamera.cpp
 
 HEADERS += \
@@ -53,3 +54,4 @@ HEADERS += \
     controlsbox.h \
     alphanum.hpp \
 #    clcamera.h
+    darksubfilter.h

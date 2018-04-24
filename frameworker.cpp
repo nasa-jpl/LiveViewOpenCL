@@ -59,12 +59,14 @@ FrameWorker::FrameWorker(FrameThread *worker, QObject *parent) : QObject(parent)
         isRunning = true;    // now set up to enter the event loop
     }
     lvframe_buffer = new LVFrameBuffer(cpu_frame_buffer_size, frWidth, frHeight);
+    DSFilter = new DarkSubFilter(frWidth, frHeight);
 }
 
 FrameWorker::~FrameWorker()
 {
     delete Camera;
     delete lvframe_buffer;
+    delete DSFilter;
 }
 
 void FrameWorker::stop()
@@ -82,23 +84,19 @@ bool FrameWorker::running()
 void FrameWorker::captureFrames()
 {
     qDebug("About to start capturing frames");
-    size_t dsf_size = sizeof(lvframe_buffer->current()->dsf_data)/sizeof(*lvframe_buffer->current()->dsf_data);
     high_resolution_clock::time_point beg, end;
     uint32_t duration;
     while (isRunning) {
         beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
-        end = high_resolution_clock::now();
 
+        end = high_resolution_clock::now();
 
         duration = duration_cast<microseconds>(end - beg).count();
         if (duration < 10) {
             thread->sleep(10 - duration);
         }
-
-        for (unsigned int n = 0; n < dsf_size; n++) {
-            lvframe_buffer->current()->dsf_data[n] = 50;
-        }
+        DSFilter->dsf_callback(lvframe_buffer->current()->raw_data, lvframe_buffer->current()->dsf_data);
     }
 }
 

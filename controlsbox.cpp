@@ -1,7 +1,7 @@
 #include "controlsbox.h"
 
 ControlsBox::ControlsBox(FrameWorker *fw, QWidget *parent) :
-    QWidget(parent)
+    QWidget(parent), collecting_mask(false)
 {
     frame_handler = fw;
 
@@ -10,7 +10,11 @@ ControlsBox::ControlsBox(FrameWorker *fw, QWidget *parent) :
     QPushButton *resetButton = new QPushButton("&Reset");
     connect(resetButton, SIGNAL(released()), this, SLOT(resetDir()));
 
+    maskButton = new QPushButton("&Collect Mask Frames");
+    connect(maskButton, SIGNAL(released()), this, SLOT(collectDSFMask()));
+
     QHBoxLayout *cboxLayout = new QHBoxLayout;
+    cboxLayout->addWidget(maskButton);
     cboxLayout->addWidget(new QLabel("Input directory:"));
     cboxLayout->addWidget(dirEdit);
     cboxLayout->addWidget(resetButton);
@@ -20,7 +24,6 @@ ControlsBox::ControlsBox(FrameWorker *fw, QWidget *parent) :
 
 ControlsBox::~ControlsBox()
 {
-
 }
 
 void ControlsBox::resetDir()
@@ -29,4 +32,17 @@ void ControlsBox::resetDir()
     QByteArray ba = dirname.toLatin1();
     const char *dname = ba.data();
     frame_handler->resetDir(dname);
+}
+
+void ControlsBox::collectDSFMask()
+{
+    collecting_mask = !collecting_mask;
+    if (collecting_mask) {
+        maskButton->setText("&Stop Collecting Mask");
+        frame_handler->DSFilter->start_mask_collection();
+    } else {
+        maskButton->setText("&Collect Mask Frames");
+        frame_handler->DSFilter->finish_mask_collection();
+    }
+
 }

@@ -13,6 +13,7 @@
 #include "cameramodel.h"
 #include "debugcamera.h"
 #include "ssdcamera.h"
+#include "darksubfilter.h"
 #include "constants.h"
 
 class LVFrameBuffer;
@@ -30,6 +31,8 @@ public:
     bool running();
 
     uint16_t *getFrame();
+
+    DarkSubFilter* DSFilter;
     uint16_t *getDSFrame();
 
     uint16_t getFrameWidth() const { return frWidth; }
@@ -50,6 +53,7 @@ private:
     const uint16_t cpu_frame_buffer_size = CPU_FRAME_BUFFER_SIZE;
     LVFrameBuffer* lvframe_buffer;
     CameraModel* Camera;
+
     bool pixRemap;
     bool isRunning;
     uint16_t frWidth, frHeight, dataHeight;

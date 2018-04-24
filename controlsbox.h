@@ -18,12 +18,16 @@ public:
 
 public slots:
     void resetDir();
+    void collectDSFMask();
 
 private:
     FrameWorker* frame_handler;
 
     // QPushButton* resetButton;
     QLineEdit* dirEdit;
+
+    QPushButton* maskButton;
+    bool collecting_mask;
 };
 
 #endif // CONTROLSBOX_H
