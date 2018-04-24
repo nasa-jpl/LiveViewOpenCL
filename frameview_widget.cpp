@@ -177,6 +177,43 @@ void frameview_widget::colorMapScrolledX(const QCPRange &newRange)
     }
     qcp->xAxis->setRange(boundedRange);
 }
+void frameview_widget::setScrollY(bool Xenabled) {
+    scrollXenabled = !Xenabled;
+    qcp->setInteraction(QCP::iRangeDrag, true);
+    qcp->setInteraction(QCP::iRangeZoom, true);
+    if (!scrollXenabled && scrollYenabled) {
+        qcp->axisRect()->setRangeZoom(Qt::Vertical);
+        qcp->axisRect()->setRangeDrag(Qt::Vertical);
+    } else if (scrollXenabled && scrollYenabled) {
+        qcp->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+        qcp->axisRect()->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+    } else if (scrollXenabled && !scrollYenabled) {
+        qcp->axisRect()->setRangeZoom(Qt::Horizontal);
+        qcp->axisRect()->setRangeDrag(Qt::Horizontal);
+    } else {
+        qcp->setInteraction(QCP::iRangeDrag, false);
+        qcp->setInteraction(QCP::iRangeZoom, false);
+    }
+}
+void frameview_widget::setScrollX(bool Yenabled) {
+    scrollYenabled = !Yenabled;
+    qcp->setInteraction(QCP::iRangeDrag, true);
+    qcp->setInteraction(QCP::iRangeZoom, true);
+
+    if (!scrollYenabled && scrollXenabled) {
+        qcp->axisRect()->setRangeZoom(Qt::Horizontal);
+        qcp->axisRect()->setRangeDrag(Qt::Horizontal);
+    } else if (scrollXenabled && scrollYenabled) {
+        qcp->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+        qcp->axisRect()->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+    } else if (!scrollXenabled && scrollYenabled) {
+        qcp->axisRect()->setRangeZoom(Qt::Vertical);
+        qcp->axisRect()->setRangeDrag(Qt::Vertical);
+    } else {
+        qcp->setInteraction(QCP::iRangeDrag, false);
+        qcp->setInteraction(QCP::iRangeZoom, false);
+    }
+}
 void frameview_widget::updateCeiling(int c)
 {
     /*! \brief Change the value of the ceiling for this widget to the input parameter and replot the color scale. */

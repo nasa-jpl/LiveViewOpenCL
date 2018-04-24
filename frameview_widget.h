@@ -27,6 +27,8 @@ public slots:
     void handleNewFrame();
     void colorMapScrolledY(const QCPRange &newRange);
     void colorMapScrolledX(const QCPRange &newRange);
+    void setScrollY(bool Xenabled);
+    void setScrollX(bool Yenabled);
     void updateCeiling(int c);
     void updateFloor(int f);
     void rescaleRange();

@@ -17,7 +17,7 @@ SSDCamera::SSDCamera(const std::string search_dir,
     for (int n = 0; n < nFrames; n++) {
         frame_buf.push_back(std::vector<uint16_t>(frame_width*data_height, 0));
     }
-    qDebug() << frame_buf[0].data();
+
     camera_type = ITB;
 }
 
