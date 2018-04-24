@@ -7,8 +7,25 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     this->image_type = image_type;
     frame_handler = fw;
 
+    switch(image_type) {
+    case BASE:
+        ceiling = UINT16_MAX;
+        p_getFrame = &FrameWorker::getFrame;
+        break;
+    case DSF:
+        ceiling = 100;
+        p_getFrame = &FrameWorker::getDSFrame;
+        break;
+    case STD_DEV:
+        ceiling = 100;
+        p_getFrame = &FrameWorker::getDSFrame;
+        break;
+    default:
+        ceiling = UINT16_MAX;
+        p_getFrame = &FrameWorker::getFrame;
+    }
+
     floor = 0;
-    ceiling = UINT16_MAX;
 
     frHeight = frame_handler->getFrameHeight();
     frWidth = frame_handler->getFrameWidth();
@@ -48,13 +65,27 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     qcp->rescaleAxes();
     qcp->axisRect()->setBackgroundScaled(false);
 
-    QVBoxLayout* layout = new QVBoxLayout();
-    layout->addWidget(qcp);
+    fpsLabel = new QLabel("NaN");
+    zoomXCheck = new QCheckBox("Zoom on X axis only");
+    zoomYCheck = new QCheckBox("Zoom on Y axis only");
+    zoomXCheck->setChecked(false);
+    zoomYCheck->setChecked(false);
+
+    layout = new QGridLayout();
+    layout->addWidget(qcp, 0, 0, 8, 8);
+    layout->addWidget(fpsLabel, 8, 0, 1, 2);
+    layout->addWidget(zoomXCheck, 8, 2, 1, 2);
+    layout->addWidget(zoomYCheck, 8 ,4, 1, 2);
     this->setLayout(layout);
+
+    fps = 0;
+    fpsclock.start();
 
     connect(&rendertimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(colorMapScrolledY(QCPRange)));
     connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(colorMapScrolledX(QCPRange)));
+    connect(zoomXCheck, SIGNAL(toggled(bool)), this, SLOT(setScrollX(bool)));
+    connect(zoomYCheck, SIGNAL(toggled(bool)), this, SLOT(setScrollY(bool)));
 
     colorMapData = new QCPColorMapData(frWidth, frHeight, QCPRange(0, frWidth-1), QCPRange(0, frHeight-1));
     colorMap->setData(colorMapData);
@@ -81,17 +112,24 @@ double frameview_widget::getFloor()
 
 void frameview_widget::handleNewFrame()
 {
-    uint16_t* image_data;
-    if (frame_handler->running()) {
-        image_data = frame_handler->getFrame();
+    if (!this->isHidden() && (frame_handler->running())) {
+
+        uint16_t* image_data = (frame_handler->*p_getFrame)();
         for (int col = 0; col < frWidth; col++) {
             for (int row = 0; row < frHeight; row++ ) {
                 colorMap->data()->setCell(col, row, image_data[row * frWidth + col]); // y-axis NOT reversed
             }
         }
         qcp->replot();
+        count++;
+    }
+    if (count % 50 == 0 && count != 0) {
+        fps = 50.0 / fpsclock.restart() * 1000.0;
+        fps_string = QString::number(fps, 'f', 1);
+        fpsLabel->setText(QString("Display: %1 fps").arg(fps_string));
     }
 }
+
 void frameview_widget::colorMapScrolledY(const QCPRange &newRange)
 {
     /*! \brief Controls the behavior of zooming the plot.

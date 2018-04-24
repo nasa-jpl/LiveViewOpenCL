@@ -82,6 +82,7 @@ bool FrameWorker::running()
 void FrameWorker::captureFrames()
 {
     qDebug("About to start capturing frames");
+    size_t dsf_size = sizeof(lvframe_buffer->current()->dsf_data)/sizeof(*lvframe_buffer->current()->dsf_data);
     high_resolution_clock::time_point beg, end;
     uint32_t duration;
     while (isRunning) {
@@ -89,9 +90,15 @@ void FrameWorker::captureFrames()
         lvframe_buffer->current()->raw_data = Camera->getFrame();
         end = high_resolution_clock::now();
 
+
         duration = duration_cast<microseconds>(end - beg).count();
-        if (duration < 10)
-            thread->sleep(10);
+        if (duration < 10) {
+            thread->sleep(10 - duration);
+        }
+
+        for (unsigned int n = 0; n < dsf_size; n++) {
+            lvframe_buffer->current()->dsf_data[n] = 50;
+        }
     }
 }
 
@@ -105,4 +112,9 @@ void FrameWorker::resetDir(const char *dirname)
 uint16_t* FrameWorker::getFrame()
 {
     return lvframe_buffer->current()->raw_data;
+}
+
+uint16_t* FrameWorker::getDSFrame()
+{
+    return lvframe_buffer->current()->dsf_data;
 }

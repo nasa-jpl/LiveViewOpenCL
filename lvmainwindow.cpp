@@ -2,7 +2,7 @@
 
 LVMainWindow::LVMainWindow(QWidget *parent)
     : QMainWindow(parent)
-{
+{   
     // Hardcoded default window size
     this->resize(1440, 900);
 
@@ -22,11 +22,20 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     }
 
     QWidget* mainWidget = new QWidget();
-    QVBoxLayout* mainLayout = new QVBoxLayout();
+    tab_widget = new QTabWidget();
+
     raw_display = new frameview_widget(BASE, fw);
+    dsf_display = new frameview_widget(DSF, fw);
+
+    tab_widget->addTab(raw_display, QString("Live View"));
+    tab_widget->addTab(dsf_display, QString("Dark Subtraction"));
+
     cbox = new ControlsBox(fw);
-    mainLayout->addWidget(raw_display);
+
+    QVBoxLayout* mainLayout = new QVBoxLayout();
+    mainLayout->addWidget(tab_widget);
     mainLayout->addWidget(cbox);
+
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
 

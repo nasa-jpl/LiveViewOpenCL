@@ -30,6 +30,7 @@ public:
     bool running();
 
     uint16_t *getFrame();
+    uint16_t *getDSFrame();
 
     uint16_t getFrameWidth() const { return frWidth; }
     uint16_t getFrameHeight() const { return frHeight; }

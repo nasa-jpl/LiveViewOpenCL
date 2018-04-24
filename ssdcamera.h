@@ -7,7 +7,11 @@
 #include <vector>
 #include <array>
 #include <algorithm>
-#include <atomic>
+#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 4 || __APPLE__
+    #include <atomic>
+#else
+    #include <cstdatomic>
+#endif
 
 #include <QDebug>
 
@@ -40,14 +44,14 @@ private:
     std::string ifname;
     std::string data_dir;
     std::streampos bufsize;
+    const uint16_t nFrames;
     std::atomic<uint32_t> framesize;
     const uint32_t headsize;
     size_t image_no;
     std::vector<std::string> xio_files;
-    std::vector<std::array<uint16_t, 640*480> > frame_buf;
-    std::array<uint16_t, 640*480> dummy;
+    std::vector< std::vector<uint16_t> > frame_buf;
+    std::vector<uint16_t> dummy;
     std::atomic<uint16_t> curIndex;
-    const uint16_t nFrames;
 };
 
 #endif // SSDCAMERA_H

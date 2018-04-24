@@ -24,7 +24,9 @@ public slots:
 
 private:
     FrameWorker* fw;
+    QTabWidget* tab_widget;
     frameview_widget* raw_display;
+    frameview_widget* dsf_display;
     ControlsBox* cbox;
 };
 

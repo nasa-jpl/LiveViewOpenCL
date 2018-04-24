@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 
 #include <stdint.h>
+#include <functional>
 
 #include "image_type.h"
 #include "frameworker.h"
@@ -31,6 +32,7 @@ public slots:
     void rescaleRange();
 
 private:
+    uint16_t* (FrameWorker::*p_getFrame)();
     image_t image_type;
     QTimer rendertimer;
     FrameWorker* frame_handler;
@@ -40,7 +42,18 @@ private:
     QCPColorMapData *colorMapData;
     QCPColorScale* colorScale;
 
-    // QVBoxLayout* layout;
+    QLabel* fpsLabel;
+    QTime fpsclock;
+    unsigned int count;
+    volatile double fps;
+    QString fps_string;
+
+    QCheckBox* zoomXCheck;
+    QCheckBox* zoomYCheck;
+    bool scrollXenabled;
+    bool scrollYenabled;
+
+    QGridLayout* layout;
 
     uint16_t frHeight;
     uint16_t frWidth;
