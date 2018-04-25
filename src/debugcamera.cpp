@@ -1,10 +1,9 @@
 #include "debugcamera.h"
 
-DebugCamera::DebugCamera(
-        const std::string fname,
+DebugCamera::DebugCamera(const std::string fname,
         int frWidth, int frHeight,
         int dataHeight
-) : CameraModel(),
+, QObject *_parent) : CameraModel(_parent),
     ifname(fname),
     framesize(frWidth * dataHeight * sizeof(uint16_t))
 {

@@ -65,6 +65,6 @@ HEADERS += \
         alphanum.hpp \
         darksubfilter.h \
         ctkrangeslider.h \
-    include/lvtabapplication.h
+        lvtabapplication.h
 #       clcamera.h
 

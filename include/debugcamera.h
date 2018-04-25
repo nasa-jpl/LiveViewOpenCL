@@ -14,8 +14,10 @@
 
 class DebugCamera : public CameraModel
 {
+    Q_OBJECT
+
 public:
-    DebugCamera(const std::string fname = "./file1.raw", int frWidth = 640, int frHeight = 480, int dataHeight = 481);
+    DebugCamera(const std::string fname = "./file1.raw", int frWidth = 640, int frHeight = 480, int dataHeight = 481, QObject *_parent = NULL);
     virtual ~DebugCamera();
 
     virtual bool start();
@@ -23,6 +25,7 @@ public:
     virtual uint16_t *getFrame();
 
 private:
+    QObject *parent;
     std::ifstream dev_p;
     std::string ifname;
     std::streampos bufsize;

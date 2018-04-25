@@ -2,8 +2,9 @@
 
 SSDCamera::SSDCamera(const std::string search_dir,
         int frWidth, int frHeight,
-        int dataHeight
-) : CameraModel(),
+        int dataHeight,
+        QObject *_parent
+) : CameraModel(_parent),
     data_dir(search_dir),
     nFrames(32),
     headsize(frWidth * sizeof(uint16_t)),
@@ -89,8 +90,13 @@ void SSDCamera::readFile()
         if (dev_p.is_open()) {
             dev_p.close();
         }
-        for (int n = 0; n < nFrames; ++n) {
+        /* for (int n = 0; n < nFrames; ++n) {
             std::fill(frame_buf[n].begin(), frame_buf[n].end(), 0);
+        } */
+
+        if (running) {
+            running = false;
+            emit timeout();
         }
     } else {
         // get the filesize from the header - use the frame spec excel sheet
@@ -114,7 +120,7 @@ void SSDCamera::readFile()
         for (int n = 0; n < nFrames; ++n) {
             dev_p.read(reinterpret_cast<char*>(frame_buf[n].data()), framesize);
         }
-        frame_valid = true;
+        running = true;
         dev_p.close();
     }
 }
@@ -126,7 +132,7 @@ uint16_t* SSDCamera::getFrame()
         readFile();
         curIndex = 0;
     }
-    if (frame_valid) {
+    if (running) {
         return frame_buf[curIndex].data();
     } else {
         return dummy.data();

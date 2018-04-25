@@ -4,9 +4,12 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
     QWidget(parent), collecting_mask(false)
 {
     frame_handler = fw;
+    connect(frame_handler, SIGNAL(updateFPS(float)), this, SLOT(updateFPS(float)));
     tab_handler = tw;
     connect(tab_handler, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
     viewWidget = getCurrentTab();
+
+    fpsLabel = new QLabel("Warning: No Frames Received");
 
     rangeSlider = new ctkRangeSlider();
     rangeSlider->setOrientation(Qt::Horizontal);
@@ -22,6 +25,7 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
     connect(maskButton, SIGNAL(released()), this, SLOT(collectDSFMask()));
 
     QGridLayout *cboxLayout = new QGridLayout();
+    cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Range:"), 0, 1, 1, 1);
     cboxLayout->addWidget(rangeSlider, 0, 2, 1, 6);
     cboxLayout->addWidget(maskButton, 1, 0, 1, 1);
@@ -73,6 +77,15 @@ void ControlsBox::collectDSFMask()
         frame_handler->DSFilter->finish_mask_collection();
     }
 
+}
+
+void ControlsBox::updateFPS(float frameRate)
+{
+    if ((int)frameRate == -1) {
+        fpsLabel->setText(QString("Warning: No Frames Received"));
+    } else {
+        fpsLabel->setText(QString("FPS @ backend: %1").arg(QString::number(frameRate, 'f', 1)));
+    }
 }
 
 LVTabApplication* ControlsBox::getCurrentTab()

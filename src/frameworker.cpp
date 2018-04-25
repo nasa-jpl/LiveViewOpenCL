@@ -56,6 +56,7 @@ FrameWorker::FrameWorker(FrameThread *worker, QObject *parent) : QObject(parent)
         frHeight = Camera->getFrameHeight();
         dataHeight = Camera->getDataHeight();
         cam_type = Camera->getCameraType();
+        connect(Camera, SIGNAL(timeout()), this, SLOT(timeout()));
         isRunning = true;    // now set up to enter the event loop
     }
     lvframe_buffer = new LVFrameBuffer(cpu_frame_buffer_size, frWidth, frHeight);
@@ -81,15 +82,21 @@ bool FrameWorker::running()
     return isRunning;
 }
 
+void FrameWorker::timeout()
+{
+    emit updateFPS(-1.0);
+}
+
 void FrameWorker::captureFrames()
 {
     qDebug("About to start capturing frames");
     high_resolution_clock::time_point beg, end;
     uint32_t duration;
+    count = 0;
+    clock.start();
     while (isRunning) {
         beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
-
         end = high_resolution_clock::now();
 
         duration = duration_cast<microseconds>(end - beg).count();
@@ -97,6 +104,13 @@ void FrameWorker::captureFrames()
             thread->sleep(10 - duration);
         }
         DSFilter->dsf_callback(lvframe_buffer->current()->raw_data, lvframe_buffer->current()->dsf_data);
+
+        count++;
+        if (count % 100 == 0) {
+            if (Camera->isRunning()) {
+                emit updateFPS(100.0 / clock.restart() * 1000.0);
+            }
+        }
     }
 }
 

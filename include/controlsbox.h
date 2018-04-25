@@ -24,8 +24,13 @@ public slots:
     void collectDSFMask();
     void tabChanged(int);
 
+private slots:
+    void updateFPS(float frameRate);
+
 private:
     FrameWorker* frame_handler;
+    QLabel* fpsLabel;
+
     QTabWidget* tab_handler;
 
     LVTabApplication* getCurrentTab();

@@ -6,6 +6,7 @@
 #include <chrono>
 
 #include <QObject>
+#include <QTime>
 
 #include "image_type.h"
 #include "lvframe.h"
@@ -43,8 +44,10 @@ public:
 signals:
     void finished();
     void error(const QString &error);
+    void updateFPS(float fps);
 
 public slots:
+    void timeout();
     void captureFrames();
     void resetDir(const char *dirname);
 
@@ -56,6 +59,9 @@ private:
 
     bool pixRemap;
     bool isRunning;
+    std::atomic<bool> isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
+    QTime clock;
+    unsigned int count;
     uint16_t frWidth, frHeight, dataHeight;
     camera_t cam_type;
 

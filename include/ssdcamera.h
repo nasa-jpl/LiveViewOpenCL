@@ -7,11 +7,6 @@
 #include <vector>
 #include <array>
 #include <algorithm>
-#if __GNUC__ >= 4 && __GNUC_MINOR__ >= 4 || __APPLE__
-    #include <atomic>
-#else
-    #include <cstdatomic>
-#endif
 
 #include <QDebug>
 
@@ -26,8 +21,10 @@
 
 class SSDCamera : public CameraModel
 {
+    Q_OBJECT
+
 public:
-    SSDCamera(const std::string search_dir, int frWidth = 640, int frHeight = 480, int dataHeight = 480);
+    SSDCamera(const std::string search_dir, int frWidth = 640, int frHeight = 480, int dataHeight = 480, QObject *_parent = NULL);
     virtual ~SSDCamera();
 
     virtual bool start();
@@ -39,7 +36,6 @@ private:
     std::string getFname();
     void readFile();
 
-    std::atomic<bool> frame_valid;
     std::ifstream dev_p;
     std::string ifname;
     std::string data_dir;
