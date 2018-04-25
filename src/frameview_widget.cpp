@@ -1,7 +1,7 @@
 #include "frameview_widget.h"
 
 frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget *parent) :
-        QWidget(parent),
+        LVTabApplication(parent),
         image_type(image_type)
 {
     this->image_type = image_type;
@@ -97,17 +97,6 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
 frameview_widget::~frameview_widget()
 {
     delete qcp;
-}
-
-double frameview_widget::getCeiling()
-{
-    /*! \brief Return the value of the ceiling for this widget as a double */
-    return ceiling;
-}
-double frameview_widget::getFloor()
-{
-    /*! \brief Return the value of the floor for this widget as a double */
-    return floor;
 }
 
 void frameview_widget::handleNewFrame()
@@ -215,21 +204,10 @@ void frameview_widget::setScrollX(bool Yenabled) {
         qcp->setInteraction(QCP::iRangeZoom, false);
     }
 }
-void frameview_widget::updateCeiling(int c)
-{
-    /*! \brief Change the value of the ceiling for this widget to the input parameter and replot the color scale. */
-    ceiling = (double)c;
-    rescaleRange();
-}
-void frameview_widget::updateFloor(int f)
-{
-    /*! \brief Change the value of the floor for this widget to the input parameter and replot the color scale. */
-    floor = (double)f;
-    rescaleRange();
-}
+
 void frameview_widget::rescaleRange()
 {
     /*! \brief Set the color scale of the display to the last used values for this widget */
-    colorScale->setDataRange(QCPRange(floor,ceiling));
+    colorScale->setDataRange(QCPRange(floor, ceiling));
 }
 

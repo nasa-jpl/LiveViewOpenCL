@@ -8,20 +8,18 @@
 #include <stdint.h>
 #include <functional>
 
+#include "lvtabapplication.h"
 #include "image_type.h"
 #include "frameworker.h"
-#include "qcustomplot.h"
+#include "qcustomplot/qcustomplot.h"
 #include "constants.h"
 
-class frameview_widget : public QWidget
+class frameview_widget : public LVTabApplication
 {
     Q_OBJECT
 public:
     explicit frameview_widget(image_t image_type, FrameWorker* fw, QWidget *parent = NULL);
     ~frameview_widget();
-
-    double getCeiling();
-    double getFloor();
 
 public slots:
     void handleNewFrame();
@@ -29,9 +27,7 @@ public slots:
     void colorMapScrolledX(const QCPRange &newRange);
     void setScrollY(bool Xenabled);
     void setScrollX(bool Yenabled);
-    void updateCeiling(int c);
-    void updateFloor(int f);
-    void rescaleRange();
+    virtual void rescaleRange();
 
 private:
     uint16_t* (FrameWorker::*p_getFrame)();
@@ -59,9 +55,6 @@ private:
 
     uint16_t frHeight;
     uint16_t frWidth;
-    volatile double ceiling;
-    volatile double floor;
-
 };
 
 #endif // FRAMEVIEW_WIDGET_H

@@ -30,7 +30,11 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     tab_widget->addTab(raw_display, QString("Live View"));
     tab_widget->addTab(dsf_display, QString("Dark Subtraction"));
 
-    cbox = new ControlsBox(fw);
+    /*
+     * It's pretty bizarre to send the tab widget into the ControlsBox, but the reference is
+     * preserved so that the ControlsBox GUI elements will control the current tab in context.
+     */
+    cbox = new ControlsBox(fw, tab_widget);
 
     QVBoxLayout* mainLayout = new QVBoxLayout();
     mainLayout->addWidget(tab_widget);

@@ -23,35 +23,48 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-QMAKE_CXXFLAGS += -std=c++0x
+QMAKE_CXXFLAGS += -std=c++0x -Wno-inconsistent-missing-override
+
+OBJECTS_DIR = ./obj
+MOC_DIR = ./obj
+
+INCLUDEPATH += ./include \
+               ./include/qcustomplot
+
+VPATH += ./include \
+         ./src
 
 SOURCES += \
         main.cpp \
         lvmainwindow.cpp \
-    frameview_widget.cpp \
-    frameworker.cpp \
-    qcustomplot.cpp \
-    debugcamera.cpp \
-    ssdcamera.cpp \
-    osutils.cpp \
-    controlsbox.cpp \
-    darksubfilter.cpp
-#    clcamera.cpp
+        frameview_widget.cpp \
+        frameworker.cpp \
+        qcustomplot.cpp \
+        debugcamera.cpp \
+        ssdcamera.cpp \
+        osutils.cpp \
+        controlsbox.cpp \
+        darksubfilter.cpp \
+        ctkrangeslider.cpp
+#       clcamera.cpp
 
 HEADERS += \
         lvmainwindow.h \
-    frameview_widget.h \
-    image_type.h \
-    lvframe.h \
-    frameworker.h \
-    qcustomplot.h \
-    cameramodel.h \
-    debugcamera.h \
-    constants.h \
-    ssdcamera.h \
-    osutils.h \
-    framethread.h \
-    controlsbox.h \
-    alphanum.hpp \
-#    clcamera.h
-    darksubfilter.h
+        frameview_widget.h \
+        image_type.h \
+        lvframe.h \
+        frameworker.h \
+        qcustomplot/qcustomplot.h \
+        cameramodel.h \
+        debugcamera.h \
+        constants.h \
+        ssdcamera.h \
+        osutils.h \
+        framethread.h \
+        controlsbox.h \
+        alphanum.hpp \
+        darksubfilter.h \
+        ctkrangeslider.h \
+    include/lvtabapplication.h
+#       clcamera.h
+

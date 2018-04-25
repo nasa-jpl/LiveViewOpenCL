@@ -4,26 +4,35 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QPushButton>
-#include <QHBoxLayout>
+#include <QGridLayout>
 #include <QByteArray>
+#include <QTabWidget>
 
 #include "frameworker.h"
+#include "lvtabapplication.h"
+#include "ctkrangeslider.h"
 
 class ControlsBox : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ControlsBox(FrameWorker* fw, QWidget* parent=NULL);
+    explicit ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent = NULL);
     ~ControlsBox();
 
 public slots:
     void resetDir();
     void collectDSFMask();
+    void tabChanged(int);
 
 private:
     FrameWorker* frame_handler;
+    QTabWidget* tab_handler;
 
-    // QPushButton* resetButton;
+    LVTabApplication* getCurrentTab();
+    LVTabApplication* viewWidget;
+
+    ctkRangeSlider* rangeSlider;
+
     QLineEdit* dirEdit;
 
     QPushButton* maskButton;
