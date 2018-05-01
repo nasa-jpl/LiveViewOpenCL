@@ -6,7 +6,7 @@
 #include <mutex>
 #include <vector>
 
-#include <QtGlobal>
+#include <QDebug>
 
 class DarkSubFilter
 {

@@ -4,6 +4,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QGridLayout>
 #include <QByteArray>
 #include <QTabWidget>
@@ -26,6 +27,7 @@ public slots:
 
 private slots:
     void updateFPS(float frameRate);
+    void setPrecision(bool isPrecise);
 
 private:
     FrameWorker* frame_handler;
@@ -37,6 +39,7 @@ private:
     LVTabApplication* viewWidget;
 
     ctkRangeSlider* rangeSlider;
+    QCheckBox* precisionBox;
 
     QLineEdit* dirEdit;
 

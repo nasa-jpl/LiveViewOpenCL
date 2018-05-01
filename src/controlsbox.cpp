@@ -10,11 +10,15 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
     viewWidget = getCurrentTab();
 
     fpsLabel = new QLabel("Warning: No Frames Received");
+    fpsLabel->setFixedWidth(200);
 
     rangeSlider = new ctkRangeSlider();
     rangeSlider->setOrientation(Qt::Horizontal);
     connect(rangeSlider, SIGNAL(minimumPositionChanged(int)), viewWidget, SLOT(setFloorPos(int)));
     connect(rangeSlider, SIGNAL(maximumPositionChanged(int)), viewWidget, SLOT(setCeilingPos(int)));
+
+    precisionBox = new QCheckBox("Precision Slider");
+    connect(precisionBox, SIGNAL(toggled(bool)), this, SLOT(setPrecision(bool)));
 
     dirEdit = new QLineEdit();
     dirEdit->setFixedWidth(750);
@@ -27,10 +31,11 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
     QGridLayout *cboxLayout = new QGridLayout();
     cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Range:"), 0, 1, 1, 1);
-    cboxLayout->addWidget(rangeSlider, 0, 2, 1, 6);
+    cboxLayout->addWidget(rangeSlider, 0, 2, 1, 5);
+    cboxLayout->addWidget(precisionBox, 0, 7, 1, 2);
     cboxLayout->addWidget(maskButton, 1, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Input directory:"), 1, 1, 1, 1);
-    cboxLayout->addWidget(dirEdit, 1, 2, 1, 6);
+    cboxLayout->addWidget(dirEdit, 1, 2, 1, 5);
     cboxLayout->addWidget(resetButton, 1, 7, 1, 1);
     this->setLayout(cboxLayout);
     this->setMaximumHeight(100);
@@ -53,9 +58,27 @@ void ControlsBox::tabChanged(int index)
     connect(rangeSlider, SIGNAL(minimumPositionChanged(int)), viewWidget, SLOT(setFloorPos(int)));
     connect(rangeSlider, SIGNAL(maximumPositionChanged(int)),  viewWidget, SLOT(setCeilingPos(int)));
 
+    precisionBox->setChecked(viewWidget->isPrecisionMode());
+
     // update the range slider positions
-    rangeSlider->setMinimumPosition((int)(viewWidget->getFloor() / viewWidget->getDataMax() * 100.0));
-    rangeSlider->setMaximumPosition((int)(viewWidget->getCeiling() / viewWidget->getDataMax() * 100));
+    rangeSlider->setPositions((int)(viewWidget->getFloor() / viewWidget->getDataMax() * 100.0),
+                              (int)(viewWidget->getCeiling() / viewWidget->getDataMax() * 100.0));
+}
+
+void ControlsBox::setPrecision(bool isPrecise)
+{
+    viewWidget->setPrecision(isPrecise);
+
+    if (isPrecise) {
+        // Set the minimum position out of 100, so the slider can go as low as -dataMax
+        rangeSlider->setMinimum(-100);
+    } else {
+        rangeSlider->setMinimum(0);
+    }
+
+    // update the range slider positions
+    rangeSlider->setPositions(viewWidget->getFloor() / viewWidget->getDataMax() * 100,
+                              viewWidget->getCeiling() / viewWidget->getDataMax() * 100);
 }
 
 void ControlsBox::resetDir()

@@ -1,7 +1,7 @@
 #include "darksubfilter.h"
 
 DarkSubFilter::DarkSubFilter(unsigned int frame_size) :
-    mask_collected(false), frSize(frame_size)
+    mask_collected(true), frSize(frame_size)
 {
     mask.reserve(frSize);
     mask_accum.reserve(frSize);
