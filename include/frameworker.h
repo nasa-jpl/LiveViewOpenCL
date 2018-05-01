@@ -31,10 +31,10 @@ public:
     void stop();
     bool running();
 
-    uint16_t *getFrame();
+    float *getFrame();
 
     DarkSubFilter* DSFilter;
-    uint16_t *getDSFrame();
+    float *getDSFrame();
 
     uint16_t getFrameWidth() const { return frWidth; }
     uint16_t getFrameHeight() const { return frHeight; }
@@ -62,7 +62,7 @@ private:
     std::atomic<bool> isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
     QTime clock;
     unsigned int count;
-    uint16_t frWidth, frHeight, dataHeight;
+    unsigned int frWidth, frHeight, dataHeight, frSize;
     camera_t cam_type;
 
 };

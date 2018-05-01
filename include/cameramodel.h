@@ -17,29 +17,29 @@ class CameraModel : public QObject
     Q_OBJECT
 
 public:
-    CameraModel(QObject *_parent = NULL) : QObject(_parent), running(false) {}
+    CameraModel(QObject *parent = NULL) : QObject(parent), running(false) {}
     virtual ~CameraModel() {}
 
 
     virtual bool start() = 0;
-    virtual uint16_t* getFrame() = 0;
+    virtual uint16_t *getFrame() = 0;
 
-    virtual void setDir(const char* filename) = 0;
+    virtual void setDir(const char *filename) = 0;
 
     virtual bool isRunning() { return running; }
 
-    uint16_t getFrameWidth() const { return frame_width; }
-    uint16_t getFrameHeight() const { return frame_height; }
-    uint16_t getDataHeight() const { return data_height; }
+    unsigned int getFrameWidth() const { return frame_width; }
+    unsigned int getFrameHeight() const { return frame_height; }
+    unsigned int getDataHeight() const { return data_height; }
     camera_t getCameraType() const { return camera_type; }
 
 signals:
     void timeout();
 
 protected:
-    uint16_t frame_width;
-    uint16_t frame_height;
-    uint16_t data_height;
+    unsigned int frame_width;
+    unsigned int frame_height;
+    unsigned int data_height;
     camera_t camera_type;
 
     std::atomic<bool> running;

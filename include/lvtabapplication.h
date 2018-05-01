@@ -10,7 +10,7 @@ class LVTabApplication : public QWidget
     Q_OBJECT
 
 public:
-    LVTabApplication(QWidget *_parent = NULL) : parent(_parent), dataMax(UINT16_MAX), dataMin(0) {}
+    LVTabApplication(QWidget *_parent = NULL) : parent(_parent), dataMax(float(UINT16_MAX)), dataMin(0.0) {}
     double getCeiling() { return ceiling; }
     double getFloor() { return floor; }
     double getDataMax() { return dataMax; }

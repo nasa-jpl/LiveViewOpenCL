@@ -1,9 +1,8 @@
 #include "darksubfilter.h"
 
-DarkSubFilter::DarkSubFilter(int frame_width, int frame_height) :
-    mask_collected(false), frWidth(frame_width), frHeight(frame_height)
+DarkSubFilter::DarkSubFilter(unsigned int frame_size) :
+    mask_collected(false), frSize(frame_size)
 {
-    frSize = frWidth * frHeight;
     mask.reserve(frSize);
     mask_accum.reserve(frSize);
 }
@@ -40,21 +39,21 @@ void DarkSubFilter::collect_mask(uint16_t* in_frame)
     nSamples++;
 }
 
-void DarkSubFilter::dark_subtract(uint16_t* in_frame, uint16_t* out_frame)
+void DarkSubFilter::dark_subtract(uint16_t* in_frame, float* out_frame)
 {
     for (unsigned int i = 0; i < frSize; i++) {
-        out_frame[i] = (uint16_t)((float)in_frame[i] - mask[i]);
+        out_frame[i] = (float)in_frame[i] - mask[i];
     }
 }
 
-void DarkSubFilter::dsf_callback(uint16_t *in_frame, uint16_t *out_frame)
+void DarkSubFilter::dsf_callback(uint16_t *in_frame, float *out_frame)
 {
     if (mask_collected) {
         dark_subtract(in_frame, out_frame);
     } else {
         mask_mutex.lock();
         for (unsigned int i = 0; i < frSize; i++) {
-            out_frame[i] = in_frame[i];
+            out_frame[i] = (float)in_frame[i];
         }
         collect_mask(in_frame);
         mask_mutex.unlock();

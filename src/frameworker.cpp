@@ -3,10 +3,10 @@
 class LVFrameBuffer
 {
 public:
-    LVFrameBuffer(const uint16_t num_frames, const uint16_t width, const uint16_t height)
+    LVFrameBuffer(const unsigned int num_frames, const unsigned int frame_size)
     {
-        for (int f = 0; f < num_frames; ++f) {
-            LVFrame* pFrame = new LVFrame(width, height);
+        for (unsigned int f = 0; f < num_frames; ++f) {
+            LVFrame* pFrame = new LVFrame(frame_size);
             frame_vec.push_back(pFrame);
         }
         fbIndex = 0;
@@ -16,12 +16,12 @@ public:
         frame_vec.clear();
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
     }
-    void reset(const uint16_t num_frames, const uint16_t width, const uint16_t height)
+    void reset(const unsigned int num_frames, const unsigned int frame_size)
     {
         frame_vec.clear();
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
-        for (int f = 0; f < num_frames; ++f) {
-            LVFrame* pFrame = new LVFrame(width, height);
+        for (unsigned int f = 0; f < num_frames; ++f) {
+            LVFrame* pFrame = new LVFrame(frame_size);
             frame_vec.push_back(pFrame);
         }
         fbIndex = 0;
@@ -59,8 +59,9 @@ FrameWorker::FrameWorker(FrameThread *worker, QObject *parent) : QObject(parent)
         connect(Camera, SIGNAL(timeout()), this, SLOT(timeout()));
         isRunning = true;    // now set up to enter the event loop
     }
-    lvframe_buffer = new LVFrameBuffer(cpu_frame_buffer_size, frWidth, frHeight);
-    DSFilter = new DarkSubFilter(frWidth, frHeight);
+    frSize = frWidth * dataHeight;
+    lvframe_buffer = new LVFrameBuffer(cpu_frame_buffer_size, frSize);
+    DSFilter = new DarkSubFilter(frSize);
 }
 
 FrameWorker::~FrameWorker()
@@ -121,12 +122,16 @@ void FrameWorker::resetDir(const char *dirname)
     }
 }
 
-uint16_t* FrameWorker::getFrame()
+float* FrameWorker::getFrame()
 {
-    return lvframe_buffer->current()->raw_data;
+    std::vector<float> raw_data(frSize);
+    for (unsigned int i = 0; i < frSize; i++) {
+        raw_data[i] = (float)lvframe_buffer->current()->raw_data[i];
+    }
+    return raw_data.data();
 }
 
-uint16_t* FrameWorker::getDSFrame()
+float* FrameWorker::getDSFrame()
 {
     return lvframe_buffer->current()->dsf_data;
 }

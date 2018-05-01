@@ -9,15 +9,15 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
 
     switch(image_type) {
     case BASE:
-        ceiling = UINT16_MAX;
+        ceiling = float(UINT16_MAX);
         p_getFrame = &FrameWorker::getFrame;
         break;
     case DSF:
-        ceiling = 100;
+        ceiling = 100.0;
         p_getFrame = &FrameWorker::getDSFrame;
         break;
     case STD_DEV:
-        ceiling = 100;
+        ceiling = 100.0;
         p_getFrame = &FrameWorker::getDSFrame;
         break;
     default:
@@ -25,7 +25,7 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
         p_getFrame = &FrameWorker::getFrame;
     }
 
-    floor = 0;
+    floor = 0.0;
 
     frHeight = frame_handler->getFrameHeight();
     frWidth = frame_handler->getFrameWidth();
@@ -65,18 +65,33 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     qcp->rescaleAxes();
     qcp->axisRect()->setBackgroundScaled(false);
 
-    fpsLabel = new QLabel("NaN");
-    zoomXCheck = new QCheckBox("Zoom on X axis only");
-    zoomYCheck = new QCheckBox("Zoom on Y axis only");
-    zoomXCheck->setChecked(false);
-    zoomYCheck->setChecked(false);
+    fpsLabel = new QLabel("Starting...");
+    fpsLabel->setFixedWidth(150);
 
-    layout = new QGridLayout();
-    layout->addWidget(qcp, 0, 0, 8, 8);
-    layout->addWidget(fpsLabel, 8, 0, 1, 2);
-    layout->addWidget(zoomXCheck, 8, 2, 1, 2);
-    layout->addWidget(zoomYCheck, 8 ,4, 1, 2);
-    this->setLayout(layout);
+    QGroupBox* zoomButtons = new QGroupBox("Zoom Controls");
+    QRadioButton* zoomXButton = new QRadioButton("Zoom on &X axis only");
+    connect(zoomXButton, SIGNAL(released()), this, SLOT(setScrollX()));
+    QRadioButton* zoomYButton = new QRadioButton("Zoom on &Y axis only");
+    connect(zoomYButton, SIGNAL(released()), this, SLOT(setScrollY()));
+    QRadioButton* zoomBothButton = new QRadioButton("Zoom on &Both axes");
+    connect(zoomBothButton, SIGNAL(released()), this, SLOT(setScrollBoth()));
+    zoomBothButton->setChecked(true);
+
+    QHBoxLayout* boxLayout = new QHBoxLayout;
+    boxLayout->addWidget(zoomBothButton);
+    boxLayout->addWidget(zoomXButton);
+    boxLayout->addWidget(zoomYButton);
+    // boxLayout->addStretch(1);
+    zoomButtons->setLayout(boxLayout);
+
+    QVBoxLayout* vbox = new QVBoxLayout;
+    QHBoxLayout* bottomControls = new QHBoxLayout;
+    bottomControls->addWidget(fpsLabel);
+    bottomControls->addWidget(zoomButtons);
+    vbox->addWidget(qcp, 10);
+    vbox->addLayout(bottomControls, 1);
+
+    this->setLayout(vbox);
 
     fps = 0;
     fpsclock.start();
@@ -84,8 +99,6 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     connect(&rendertimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(colorMapScrolledY(QCPRange)));
     connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(colorMapScrolledX(QCPRange)));
-    connect(zoomXCheck, SIGNAL(toggled(bool)), this, SLOT(setScrollX(bool)));
-    connect(zoomYCheck, SIGNAL(toggled(bool)), this, SLOT(setScrollY(bool)));
 
     colorMapData = new QCPColorMapData(frWidth, frHeight, QCPRange(0, frWidth-1), QCPRange(0, frHeight-1));
     colorMap->setData(colorMapData);
@@ -103,9 +116,9 @@ void frameview_widget::handleNewFrame()
 {
     if (!this->isHidden() && (frame_handler->running())) {
 
-        uint16_t* image_data = (frame_handler->*p_getFrame)();
-        for (int col = 0; col < frWidth; col++) {
-            for (int row = 0; row < frHeight; row++ ) {
+        float* image_data = (frame_handler->*p_getFrame)();
+        for (unsigned int col = 0; col < frWidth; col++) {
+            for (unsigned int row = 0; row < frHeight; row++ ) {
                 colorMap->data()->setCell(col, row, image_data[row * frWidth + col]); // y-axis NOT reversed
             }
         }
@@ -166,43 +179,23 @@ void frameview_widget::colorMapScrolledX(const QCPRange &newRange)
     }
     qcp->xAxis->setRange(boundedRange);
 }
-void frameview_widget::setScrollY(bool Xenabled) {
-    scrollXenabled = !Xenabled;
-    qcp->setInteraction(QCP::iRangeDrag, true);
-    qcp->setInteraction(QCP::iRangeZoom, true);
 
-    if (!scrollXenabled && scrollYenabled) {
-        qcp->axisRect()->setRangeZoom(Qt::Vertical);
-        qcp->axisRect()->setRangeDrag(Qt::Vertical);
-    } else if (scrollXenabled && scrollYenabled) {
-        qcp->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-        qcp->axisRect()->setRangeDrag(Qt::Horizontal | Qt::Vertical);
-    } else if (scrollXenabled && !scrollYenabled) {
-        qcp->axisRect()->setRangeZoom(Qt::Horizontal);
-        qcp->axisRect()->setRangeDrag(Qt::Horizontal);
-    } else {
-        qcp->setInteraction(QCP::iRangeDrag, false);
-        qcp->setInteraction(QCP::iRangeZoom, false);
-    }
+void frameview_widget::setScrollBoth()
+{
+    qcp->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+    qcp->axisRect()->setRangeDrag(Qt::Horizontal | Qt::Vertical);
 }
-void frameview_widget::setScrollX(bool Yenabled) {
-    scrollYenabled = !Yenabled;
-    qcp->setInteraction(QCP::iRangeDrag, true);
-    qcp->setInteraction(QCP::iRangeZoom, true);
 
-    if (!scrollYenabled && scrollXenabled) {
-        qcp->axisRect()->setRangeZoom(Qt::Horizontal);
-        qcp->axisRect()->setRangeDrag(Qt::Horizontal);
-    } else if (scrollXenabled && scrollYenabled) {
-        qcp->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-        qcp->axisRect()->setRangeDrag(Qt::Horizontal | Qt::Vertical);
-    } else if (!scrollXenabled && scrollYenabled) {
-        qcp->axisRect()->setRangeZoom(Qt::Vertical);
-        qcp->axisRect()->setRangeDrag(Qt::Vertical);
-    } else {
-        qcp->setInteraction(QCP::iRangeDrag, false);
-        qcp->setInteraction(QCP::iRangeZoom, false);
-    }
+void frameview_widget::setScrollX()
+{
+    qcp->axisRect()->setRangeZoom(Qt::Horizontal);
+    qcp->axisRect()->setRangeDrag(Qt::Horizontal);
+}
+
+void frameview_widget::setScrollY()
+{
+    qcp->axisRect()->setRangeZoom(Qt::Vertical);
+    qcp->axisRect()->setRangeDrag(Qt::Vertical);
 }
 
 void frameview_widget::rescaleRange()

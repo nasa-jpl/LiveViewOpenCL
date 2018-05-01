@@ -11,12 +11,12 @@
 class DarkSubFilter
 {
 public:
-    DarkSubFilter(int frame_width, int frame_height);
+    DarkSubFilter(unsigned int frame_size);
     virtual ~DarkSubFilter();
 
-    void dsf_callback(uint16_t* in_frame, uint16_t* out_frame);
+    void dsf_callback(uint16_t* in_frame, float* out_frame);
     void collect_mask(uint16_t* in_frame);
-    void dark_subtract(uint16_t* in_frame, uint16_t* out_frame);
+    void dark_subtract(uint16_t* in_frame, float *out_frame);
 
     void start_mask_collection();
     void finish_mask_collection();
@@ -25,9 +25,7 @@ public:
 
 private:
     bool mask_collected;
-    unsigned int frWidth;
-    unsigned int frHeight;
-    size_t frSize;
+    unsigned int frSize;
     unsigned int nSamples;
 
     std::vector<double> mask_accum;

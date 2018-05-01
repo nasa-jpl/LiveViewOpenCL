@@ -42,10 +42,10 @@ SOURCES += \
         qcustomplot.cpp \
         debugcamera.cpp \
         ssdcamera.cpp \
-        osutils.cpp \
         controlsbox.cpp \
         darksubfilter.cpp \
-        ctkrangeslider.cpp
+        ctkrangeslider.cpp \
+        osutils.cpp
 #       clcamera.cpp
 
 HEADERS += \
