@@ -15,6 +15,7 @@
 #include "debugcamera.h"
 #include "ssdcamera.h"
 #include "darksubfilter.h"
+#include "stddevfilter.h"
 #include "constants.h"
 
 class LVFrameBuffer;
@@ -34,6 +35,7 @@ public:
     float *getFrame();
 
     DarkSubFilter* DSFilter;
+    StdDevFilter* STDFilter;
     float *getDSFrame();
 
     uint16_t getFrameWidth() const { return frWidth; }

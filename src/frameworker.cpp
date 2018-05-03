@@ -62,6 +62,9 @@ FrameWorker::FrameWorker(FrameThread *worker, QObject *parent) : QObject(parent)
     frSize = frWidth * dataHeight;
     lvframe_buffer = new LVFrameBuffer(cpu_frame_buffer_size, frSize);
     DSFilter = new DarkSubFilter(frSize);
+    STDFilter = new StdDevFilter(frWidth, dataHeight);
+    bool opencl_OK = STDFilter->start();
+    qDebug() << "OpenCL status:" << opencl_OK;
 }
 
 FrameWorker::~FrameWorker()

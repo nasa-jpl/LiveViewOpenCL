@@ -99,7 +99,6 @@ void ControlsBox::collectDSFMask()
         maskButton->setText("&Collect Mask Frames");
         frame_handler->DSFilter->finish_mask_collection();
     }
-
 }
 
 void ControlsBox::updateFPS(float frameRate)

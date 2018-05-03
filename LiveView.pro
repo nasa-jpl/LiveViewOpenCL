@@ -45,7 +45,8 @@ SOURCES += \
         controlsbox.cpp \
         darksubfilter.cpp \
         ctkrangeslider.cpp \
-        osutils.cpp
+        osutils.cpp \
+        stddevfilter.cpp
 #       clcamera.cpp
 
 HEADERS += \
@@ -65,6 +66,10 @@ HEADERS += \
         alphanum.hpp \
         darksubfilter.h \
         ctkrangeslider.h \
-        lvtabapplication.h
+        lvtabapplication.h \
+        stddevfilter.h
 #       clcamera.h
 
+
+mac: LIBS += -framework OpenCL
+else:unix|win32: LIBS += -lOpenCL
