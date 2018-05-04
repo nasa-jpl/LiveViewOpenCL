@@ -32,11 +32,12 @@ public:
     void stop();
     bool running();
 
-    float *getFrame();
+    float* getFrame();
 
     DarkSubFilter* DSFilter;
     StdDevFilter* STDFilter;
-    float *getDSFrame();
+    float* getDSFrame();
+    float* getSDFrame();
 
     uint16_t getFrameWidth() const { return frWidth; }
     uint16_t getFrameHeight() const { return frHeight; }
@@ -54,10 +55,10 @@ public slots:
     void resetDir(const char *dirname);
 
 private:
-    FrameThread* thread;
+    FrameThread *thread;
     const uint16_t cpu_frame_buffer_size = CPU_FRAME_BUFFER_SIZE;
-    LVFrameBuffer* lvframe_buffer;
-    CameraModel* Camera;
+    LVFrameBuffer *lvframe_buffer;
+    CameraModel *Camera;
 
     bool pixRemap;
     bool isRunning;
@@ -66,6 +67,8 @@ private:
     unsigned int count;
     unsigned int frWidth, frHeight, dataHeight, frSize;
     camera_t cam_type;
+
+    uint32_t stddev_N; // controls standard deviation history window
 
 };
 

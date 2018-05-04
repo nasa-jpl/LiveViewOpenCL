@@ -27,6 +27,7 @@ private:
     QTabWidget* tab_widget;
     frameview_widget* raw_display;
     frameview_widget* dsf_display;
+    frameview_widget* sdv_display;
     ControlsBox* cbox;
 };
 

@@ -18,11 +18,11 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
         break;
     case STD_DEV:
         ceiling = 100.0;
-        p_getFrame = &FrameWorker::getDSFrame;
+        p_getFrame = &FrameWorker::getSDFrame;
         break;
     default:
         ceiling = UINT16_MAX;
-        p_getFrame = &FrameWorker::getFrame;
+        p_getFrame = &FrameWorker::getDSFrame;
     }
 
     floor = 0.0;

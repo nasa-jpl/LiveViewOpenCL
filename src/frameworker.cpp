@@ -62,9 +62,12 @@ FrameWorker::FrameWorker(FrameThread *worker, QObject *parent) : QObject(parent)
     frSize = frWidth * dataHeight;
     lvframe_buffer = new LVFrameBuffer(cpu_frame_buffer_size, frSize);
     DSFilter = new DarkSubFilter(frSize);
-    STDFilter = new StdDevFilter(frWidth, dataHeight);
-    bool opencl_OK = STDFilter->start();
-    qDebug() << "OpenCL status:" << opencl_OK;
+    stddev_N = MAX_N;
+    STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
+    if (!STDFilter->start()) {
+        qWarning("Unable to start OpenCL kernel.");
+        qWarning("Standard Deviation and Histogram computation will be disabled.");
+    }
 }
 
 FrameWorker::~FrameWorker()
@@ -72,6 +75,7 @@ FrameWorker::~FrameWorker()
     delete Camera;
     delete lvframe_buffer;
     delete DSFilter;
+    delete STDFilter;
 }
 
 void FrameWorker::stop()
@@ -108,6 +112,7 @@ void FrameWorker::captureFrames()
             thread->sleep(10 - duration);
         }
         DSFilter->dsf_callback(lvframe_buffer->current()->raw_data, lvframe_buffer->current()->dsf_data);
+        STDFilter->compute_stddev(lvframe_buffer->current(), stddev_N);
 
         count++;
         if (count % 100 == 0) {
@@ -137,4 +142,9 @@ float* FrameWorker::getFrame()
 float* FrameWorker::getDSFrame()
 {
     return lvframe_buffer->current()->dsf_data;
+}
+
+float* FrameWorker::getSDFrame()
+{
+    return lvframe_buffer->current()->sdv_data;
 }

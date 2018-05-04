@@ -73,3 +73,6 @@ HEADERS += \
 
 mac: LIBS += -framework OpenCL
 else:unix|win32: LIBS += -lOpenCL
+
+DISTFILES += \
+    kernel/stddev.cl

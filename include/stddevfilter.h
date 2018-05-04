@@ -1,11 +1,13 @@
 #ifndef STDDEVFILTER_H
 #define STDDEVFILTER_H
 
-#include <QDebug>
-#include <QtGlobal>
+#include <math.h>
 #include <fstream>
 #include <vector>
 #include <string>
+
+#include <QDebug>
+#include <QtGlobal>
 
 #ifdef __APPLE__
     #include "OpenCL/opencl.h"
@@ -14,45 +16,44 @@
 #endif
 
 #include "constants.h"
+#include "lvframe.h"
 
 class StdDevFilter
 {
 public:
-    StdDevFilter(int frame_width, int frame_height) :
+    StdDevFilter(unsigned int frame_width, unsigned int frame_height, cl_uint _N) :
         gpu_buffer_head(0), frWidth(frame_width),
-        frHeight(frame_height), N(MAX_N) {}
+        frHeight(frame_height), N(_N) {}
     virtual ~StdDevFilter();
 
     bool start();
 
+    void compute_stddev(LVFrame *new_frame, cl_uint new_N);
+
 private:
     std::string GetPlatformName(cl_platform_id id);
     std::string GetDeviceName(cl_device_id id);
-    void CheckError(cl_int error);
+    void CheckError(cl_int error, int line);
+    const char* getOpenCLErrorString(cl_int error);
     std::string LoadKernel(const char *name);
     cl_program CreateProgram(const std::string &source,
                              cl_context context);
 
-    unsigned int gpu_buffer_head;
-    cl_int frWidth;
-    cl_int frHeight;
-    cl_int N;
-    cl_ushort **in_frameset;
-    cl_ushort *in_frame;
-    cl_float *out_frame;
-    cl_float *bins_histogram;
-    uint *out_histogram;
+    cl_int gpu_buffer_head;
+    cl_uint frWidth;
+    cl_uint frHeight;
+    cl_uint N;
+    cl_uint currentN;
+    // cl_ushort **in_frameset;
+    // cl_ushort *in_frame;
+    // cl_float *out_frame;
     cl_context context;
-    cl_device_id *devices;
-    cl_mem inputBuffer;
-    cl_mem outputBuffer;
+    std::vector<cl_device_id> deviceIds;
+    cl_mem devInputBuffer;
+    cl_mem devOutputBuffer;
     cl_command_queue commandQueue;
     cl_program program;
     cl_kernel kernel;
-    cl_ulong availableLocalMem;
-    cl_ulong neededLocalMem;
-
-
 
 };
 

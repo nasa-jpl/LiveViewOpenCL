@@ -26,9 +26,11 @@ LVMainWindow::LVMainWindow(QWidget *parent)
 
     raw_display = new frameview_widget(BASE, fw);
     dsf_display = new frameview_widget(DSF, fw);
+    sdv_display = new frameview_widget(STD_DEV, fw);
 
     tab_widget->addTab(raw_display, QString("Live View"));
     tab_widget->addTab(dsf_display, QString("Dark Subtraction"));
+    tab_widget->addTab(sdv_display, QString("Standard Deviation"));
 
     /*
      * It's pretty bizarre to send the tab widget into the ControlsBox, but the reference is
