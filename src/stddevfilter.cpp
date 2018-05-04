@@ -24,29 +24,21 @@ bool StdDevFilter::start()
     }
 
     cl_uint deviceIdCount = 0;
-    cl_uint devicesOnPlatform = 0;
-    for (cl_uint i = 0; i < platformIdCount; i++) {
-        clGetDeviceIDs(platformIds[i], CL_DEVICE_TYPE_GPU, 0, NULL,
-                &(devicesOnPlatform));
-        deviceIdCount += devicesOnPlatform;
-        if (devicesOnPlatform > 0) {
-            std::vector<cl_device_id> deviceIdsOnPlatform(devicesOnPlatform);
-            clGetDeviceIDs(platformIds[i], CL_DEVICE_TYPE_GPU, devicesOnPlatform,
-                           deviceIdsOnPlatform.data(), NULL);
-            for (size_t ndx = 0; ndx < deviceIdsOnPlatform.size(); ndx++) {
-                deviceIds.push_back(deviceIdsOnPlatform[i]);
-            }
-        }
-    }
+    clGetDeviceIDs(platformIds[0], CL_DEVICE_TYPE_ALL, 0, NULL,
+                &deviceIdCount);
 
     if (deviceIdCount == 0) {
-        qFatal("No OpenCL-compatible GPU devices found on any platform.");
+        qFatal("No OpenCL-compatible devices found");
         return false;
     } else {
-        qDebug() << "Found" << (int)deviceIdCount << "device(s) across all platforms.";
+        qDebug() << "Found" << deviceIdCount << "device(s) across all platforms";
     }
 
-    for (cl_uint i = 0; i < deviceIdCount; ++i) {
+    deviceIds.reserve(deviceIdCount);
+    clGetDeviceIDs(platformIds[0], CL_DEVICE_TYPE_ALL, deviceIdCount,
+            deviceIds.data(), NULL);
+
+    for (cl_uint i = 0; i < deviceIdCount; i++) {
         qDebug() << "\t (" << (i+1) << ") :" << GetDeviceName(deviceIds[i]).data();
     }
 
@@ -61,12 +53,12 @@ bool StdDevFilter::start()
             deviceIds.data(), NULL, NULL, &error);
 
     program = CreateProgram(LoadKernel("/Users/jryan/aviris/LiveView/kernel/stddev.cl"), context);
-    error = clBuildProgram(program, 1, &(deviceIds[0]),
+    error = clBuildProgram(program, 1, &(deviceIds[1]),
                   "-I/Users/jryan/aviris/LiveView/include/", 0, NULL);
     if (error != CL_SUCCESS) {
         cl_int errcode;
         size_t build_log_len;
-        errcode = clGetProgramBuildInfo(program, deviceIds[0],
+        errcode = clGetProgramBuildInfo(program, deviceIds[1],
                 CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_len);
         if (errcode) {
             qDebug("clGetProgramBuildInfo failed at line %d", __LINE__);
@@ -75,7 +67,7 @@ bool StdDevFilter::start()
 
         std::vector<char> buff_erro(build_log_len);
 
-        errcode = clGetProgramBuildInfo(program, deviceIds[0],
+        errcode = clGetProgramBuildInfo(program, deviceIds[1],
                 CL_PROGRAM_BUILD_LOG, build_log_len, buff_erro.data(), NULL);
         if (errcode) {
             qDebug("clGetProgramBuildInfo failed at line %d", __LINE__);
@@ -106,7 +98,7 @@ bool StdDevFilter::start()
     clSetKernelArg(kernel, 4, sizeof(cl_int), &gpu_buffer_head);
     clSetKernelArg(kernel, 5, sizeof(cl_uint), &N);
 
-    commandQueue = clCreateCommandQueue(context, deviceIds[0], 0, &error);
+    commandQueue = clCreateCommandQueue(context, deviceIds[1], 0, &error);
     CheckError(error, __LINE__);
 
     return true;
@@ -259,10 +251,9 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
     size_t offset[3] = { 0 };
     size_t work_size[3] = { frWidth, frHeight, N };
     size_t max_work_size;
-    CheckError(clGetDeviceInfo(deviceIds[0], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
-    double work_dim = sqrt(max_work_size);
-    size_t local_size = BLOCK_SIZE > (size_t)work_dim ? (size_t)(work_dim) : BLOCK_SIZE;
-    size_t local_work_size[2] = { local_size, local_size };
+    CheckError(clGetDeviceInfo(deviceIds[1], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
+    double work_dim = sqrt(max_work_size) - 1;
+    size_t local_work_size[2] = { 16, 16 };
     CheckError(clEnqueueNDRangeKernel(commandQueue, kernel, 2,
                                       offset, work_size, local_work_size,
                                       0, NULL, NULL), __LINE__);
