@@ -9,12 +9,12 @@ std_dev_filter_kernel(__global const ushort *d_ipic,
 	uint col = get_global_id(0);
 	uint row = get_global_id(1);
 	uint offset = col + row * width;
-        uint fr_size = height * width;
+    uint fr_size = height * width;
 
 	double sum = 0;
 	double sq_sum = 0;
 	double mean = 0;
-        float std_dev;
+    float std_dev;
 	int value = 0;
 	int c = 0;
 

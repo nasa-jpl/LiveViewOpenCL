@@ -70,11 +70,14 @@ std::string SSDCamera::getFname()
         /* if necessary, there may need to be code to sort the "frames" in the data directory
         * by product name, as mtime is unreliable.
         */
-        std::sort(fname_list.begin(), fname_list.end(), doj::alphanum_less<std::string>());
-        for (auto f = fname_list.begin(); f != fname_list.end(); ++f) {
+        // std::sort(fname_list.begin(), fname_list.end(), doj::alphanum_less<std::string>());
+        for (auto f = fname_list.end() - 1; f != fname_list.begin(); --f) {
             has_file = std::find(xio_files.begin(), xio_files.end(), *f) != xio_files.end();
-            if ((*f).empty() or os::getext(*f) != "xio" or has_file)
+            if ((*f).empty() or os::getext(*f) != "xio")
                 continue;
+            else if (has_file) {
+                break;
+            }
 
             xio_files.push_back(*f);
         }
@@ -108,7 +111,7 @@ void SSDCamera::readFile()
             return;
         }
 
-        qDebug() << "Successfully opened " << ifname.data();
+        // qDebug() << "Successfully opened " << ifname.data();
         dev_p.unsetf(std::ios::skipws);
 
         dev_p.read(reinterpret_cast<char*>(header.data()), headsize);
@@ -119,7 +122,7 @@ void SSDCamera::readFile()
         framesize = filesize / int(nFrames);
         dev_p.seekg(headsize, std::ios::beg);
 
-        qDebug() << "File size is" << filesize << "bytes, which corresponds to a framesize of" << framesize << "bytes.";
+        // qDebug() << "File size is" << filesize << "bytes, which corresponds to a framesize of" << framesize << "bytes.";
 
         for (unsigned int n = 0; n < nFrames; ++n) {
             dev_p.read(reinterpret_cast<char*>(frame_buf[n].data()), framesize);

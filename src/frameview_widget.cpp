@@ -21,8 +21,8 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
         p_getFrame = &FrameWorker::getSDFrame;
         break;
     default:
-        ceiling = UINT16_MAX;
-        p_getFrame = &FrameWorker::getDSFrame;
+        ceiling = float(UINT16_MAX);
+        p_getFrame = &FrameWorker::getFrame;
     }
 
     floor = 0.0;
@@ -31,6 +31,12 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     frWidth = frame_handler->getFrameWidth();
 
     qcp = new QCustomPlot(this);
+    // OpenGL does not provide reliable rendering so it will be disabled
+    /* qcp->setOpenGl(true, 8);
+    bool renderSuccess = qcp->openGl();
+    if (renderSuccess) {
+        qDebug("Now redering with OpenGL");
+    } */
     qcp->setNotAntialiasedElement(QCP::aeAll);
     QSizePolicy qsp(QSizePolicy::Preferred, QSizePolicy::Preferred);
     qsp.setHeightForWidth(true);

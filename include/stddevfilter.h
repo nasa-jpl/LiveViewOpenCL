@@ -44,9 +44,6 @@ private:
     cl_uint frHeight;
     cl_uint N;
     cl_uint currentN;
-    // cl_ushort **in_frameset;
-    // cl_ushort *in_frame;
-    // cl_float *out_frame;
     cl_context context;
     std::vector<cl_device_id> deviceIds;
     cl_mem devInputBuffer;

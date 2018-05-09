@@ -53,12 +53,12 @@ bool StdDevFilter::start()
             deviceIds.data(), NULL, NULL, &error);
 
     program = CreateProgram(LoadKernel("/Users/jryan/aviris/LiveView/kernel/stddev.cl"), context);
-    error = clBuildProgram(program, 1, &(deviceIds[1]),
+    error = clBuildProgram(program, 1, &(deviceIds[2]),
                   "-I/Users/jryan/aviris/LiveView/include/", 0, NULL);
     if (error != CL_SUCCESS) {
         cl_int errcode;
         size_t build_log_len;
-        errcode = clGetProgramBuildInfo(program, deviceIds[1],
+        errcode = clGetProgramBuildInfo(program, deviceIds[2],
                 CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_len);
         if (errcode) {
             qDebug("clGetProgramBuildInfo failed at line %d", __LINE__);
@@ -67,7 +67,7 @@ bool StdDevFilter::start()
 
         std::vector<char> buff_erro(build_log_len);
 
-        errcode = clGetProgramBuildInfo(program, deviceIds[1],
+        errcode = clGetProgramBuildInfo(program, deviceIds[2],
                 CL_PROGRAM_BUILD_LOG, build_log_len, buff_erro.data(), NULL);
         if (errcode) {
             qDebug("clGetProgramBuildInfo failed at line %d", __LINE__);
@@ -98,7 +98,7 @@ bool StdDevFilter::start()
     clSetKernelArg(kernel, 4, sizeof(cl_int), &gpu_buffer_head);
     clSetKernelArg(kernel, 5, sizeof(cl_uint), &N);
 
-    commandQueue = clCreateCommandQueue(context, deviceIds[1], 0, &error);
+    commandQueue = clCreateCommandQueue(context, deviceIds[2], 0, &error);
     CheckError(error, __LINE__);
 
     return true;
@@ -251,9 +251,9 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
     size_t offset[3] = { 0 };
     size_t work_size[3] = { frWidth, frHeight, N };
     size_t max_work_size;
-    CheckError(clGetDeviceInfo(deviceIds[1], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
-    double work_dim = sqrt(max_work_size) - 1;
-    size_t local_work_size[2] = { 16, 16 };
+    CheckError(clGetDeviceInfo(deviceIds[2], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
+    double work_dim = sqrt(max_work_size);
+    size_t local_work_size[2] = { (size_t)work_dim, (size_t)work_dim };
     CheckError(clEnqueueNDRangeKernel(commandQueue, kernel, 2,
                                       offset, work_size, local_work_size,
                                       0, NULL, NULL), __LINE__);

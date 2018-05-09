@@ -16,8 +16,14 @@ void DarkSubFilter::start_mask_collection()
 {
     mask_collected = false;
     nSamples = 0;
-    std::fill(mask.begin(), mask.end(), 0.0);
-    std::fill(mask_accum.begin(), mask_accum.end(), 0.0);
+    // Did not work for some unknown reason
+    // std::fill (mask.begin(), mask.end(), 0.0);
+    // std::fill (mask_accum.begin(), mask_accum.end(), 0.0);
+    for (unsigned int i = 0; i < frSize; i++) {
+        mask[i] = 0.0;
+        mask_accum[i] = 0.0;
+    }
+
 }
 
 void DarkSubFilter::finish_mask_collection()

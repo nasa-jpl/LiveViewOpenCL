@@ -7,8 +7,10 @@
 #include <vector>
 #include <array>
 #include <algorithm>
+#include <chrono>
 
 #include <QDebug>
+#include <QDir>
 
 #include "alphanum.hpp"
 
@@ -18,6 +20,8 @@
 #include "lvframe.h"
 
 #define TIMEOUT_DURATION 100
+
+using namespace std::chrono;
 
 class SSDCamera : public CameraModel
 {
@@ -34,7 +38,7 @@ public:
     virtual bool start();
     virtual void setDir(const char *dirname);
 
-    virtual uint16_t *getFrame();
+    virtual uint16_t* getFrame();
 
 private:
     std::string getFname();

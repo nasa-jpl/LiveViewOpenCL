@@ -26,9 +26,9 @@ void os::listdir(std::vector<std::string> &out, const std::string &directory)
         }
         closedir(dir);
     } else {
+        out.push_back("");
         perror("");
     }
-
 }
 
 std::string os::getext(const std::string &f)
