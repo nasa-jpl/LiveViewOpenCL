@@ -34,7 +34,8 @@ INCLUDEPATH += ./include \
                ./include/qcustomplot
 
 VPATH += ./include \
-         ./src
+         ./src \
+         ./kernel
 
 SOURCES += \
         main.cpp \
@@ -71,6 +72,16 @@ HEADERS += \
         lvtabapplication.h \
         stddevfilter.h
 #       clcamera.h
+
+OTHER_FILES += \
+    resources/aviris-ng-logo.png \
+    resources/aviris-logo-transparent.png \
+    resources/icon.png \
+    resources/liveview.rc \
+    kernel/stddev.cl
+
+RESOURCES += \
+    resources/images.qrc
 
 
 mac: LIBS += -framework OpenCL

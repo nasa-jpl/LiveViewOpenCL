@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>icon.png</file>
+        <file>aviris-logo-transparent.png</file>
+        <file>aviris-ng-logo.png</file>
+    </qresource>
+</RCC>

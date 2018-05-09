@@ -33,8 +33,6 @@ int main(int argc, char* argv[])
                              w.size(),
                              a.desktop()->availableGeometry()
                              ));
-    QPixmap icon_pixmap(":images/icon.png");
-    w.setWindowIcon(QIcon(icon_pixmap));
     w.show();
     splash.finish(&w);
 

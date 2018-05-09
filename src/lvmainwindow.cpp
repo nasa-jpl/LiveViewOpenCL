@@ -6,6 +6,10 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     // Hardcoded default window size
     this->resize(1440, 900);
 
+    QPixmap icon_pixmap(":images/icon.png");
+    this->setWindowIcon(QIcon(icon_pixmap));
+    this->setWindowTitle("LiveView 4.0");
+
     // Load the worker thread
     FrameThread* workerThread = new FrameThread();
     fw = new FrameWorker(workerThread);
