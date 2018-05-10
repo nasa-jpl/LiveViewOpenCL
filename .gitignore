@@ -3,4 +3,5 @@ moc_*
 *.app/
 .qmake.stash
 *.pro.user
+*.iconset
 Makefile

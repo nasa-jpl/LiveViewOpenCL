@@ -17,7 +17,7 @@ class DebugCamera : public CameraModel
     Q_OBJECT
 
 public:
-    DebugCamera(const std::string fname = "./file1.raw",
+    DebugCamera(const std::string fname,
                 unsigned int frWidth = 640,
                 unsigned int frHeight = 480,
                 unsigned int dataHeight = 481,

@@ -41,6 +41,25 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     QSizePolicy qsp(QSizePolicy::Preferred, QSizePolicy::Preferred);
     qsp.setHeightForWidth(true);
     qcp->setSizePolicy(qsp);
+    qcp->setBackground(QBrush(QColor("#31363B")));
+    qcp->xAxis->setTickLabelColor(Qt::white);
+    qcp->xAxis->setBasePen(QPen(Qt::white));
+    qcp->xAxis->setLabelColor(Qt::white);
+    qcp->xAxis->setTickPen(QPen(Qt::white));
+    qcp->xAxis->setSubTickPen(QPen(Qt::white));
+    qcp->yAxis->setTickLabelColor(Qt::white);
+    qcp->yAxis->setBasePen(QPen(Qt::white));
+    qcp->yAxis->setLabelColor(Qt::white);
+    qcp->yAxis->setTickPen(QPen(Qt::white));
+    qcp->yAxis->setSubTickPen(QPen(Qt::white));
+    qcp->xAxis2->setTickLabelColor(Qt::white);
+    qcp->xAxis2->setBasePen(QPen(Qt::white));
+    qcp->xAxis2->setTickPen(QPen(Qt::white));
+    qcp->xAxis2->setSubTickPen(QPen(Qt::white));
+    qcp->yAxis2->setTickLabelColor(Qt::white);
+    qcp->yAxis2->setBasePen(QPen(Qt::white));
+    qcp->yAxis2->setTickPen(QPen(Qt::white));
+    qcp->yAxis2->setSubTickPen(QPen(Qt::white));
     qcp->heightForWidth(200);
     qcp->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     qcp->axisRect()->setupFullAxesBox(true);
@@ -55,6 +74,11 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
 
     colorScale = new QCPColorScale(qcp);
     qcp->plotLayout()->addElement(0, 1, colorScale);
+    colorScale->axis()->setTickLabelColor(Qt::white);
+    colorScale->axis()->setBasePen(QPen(Qt::white));
+    colorScale->axis()->setLabelColor(Qt::white);
+    colorScale->axis()->setTickPen(QPen(Qt::white));
+    colorScale->axis()->setSubTickPen(QPen(Qt::white));
     colorScale->setType(QCPAxis::atRight);
     colorMap->setColorScale(colorScale);
     colorMap->data()->setValueRange(QCPRange(0, frHeight-1));

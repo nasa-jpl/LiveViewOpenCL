@@ -30,6 +30,9 @@ QMAKE_CXXFLAGS += -Ofast -std=c++0x -Wno-inconsistent-missing-override
 OBJECTS_DIR = ./obj
 MOC_DIR = ./obj
 
+RC_FILE = liveview.rc
+ICON = liveview.icns
+
 INCLUDEPATH += ./include \
                ./include/qcustomplot
 
@@ -75,7 +78,8 @@ HEADERS += \
 
 RESOURCES += \
     images/images.qrc \
-    kernel/kernel.qrc
+    kernel/kernel.qrc \
+    qdarkstyle/style.qrc
 
 DISTFILES += \
     kernel/stddev.cl

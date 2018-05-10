@@ -32,6 +32,10 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     dsf_display = new frameview_widget(DSF, fw);
     sdv_display = new frameview_widget(STD_DEV, fw);
 
+    // Set these two to be in the precision slider by default
+    dsf_display->setPrecision(true);
+    sdv_display->setPrecision(true);
+
     tab_widget->addTab(raw_display, QString("Live View"));
     tab_widget->addTab(dsf_display, QString("Dark Subtraction"));
     tab_widget->addTab(sdv_display, QString("Standard Deviation"));
