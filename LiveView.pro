@@ -73,19 +73,12 @@ HEADERS += \
         stddevfilter.h
 #       clcamera.h
 
-OTHER_FILES += \
-    resources/aviris-ng-logo.png \
-    resources/aviris-logo-transparent.png \
-    resources/icon.png \
-    resources/liveview.rc \
-    kernel/stddev.cl
-
 RESOURCES += \
-    resources/images.qrc
-
-
-mac: LIBS += -framework OpenCL
-else:unix|win32: LIBS += -lOpenCL
+    images/images.qrc \
+    kernel/kernel.qrc
 
 DISTFILES += \
     kernel/stddev.cl
+
+mac: LIBS += -framework OpenCL
+else:unix|win32: LIBS += -lOpenCL

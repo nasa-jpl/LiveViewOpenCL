@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/kernel">
+        <file>stddev.cl</file>
+    </qresource>
+</RCC>

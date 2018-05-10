@@ -52,9 +52,12 @@ bool StdDevFilter::start()
     context = clCreateContext(contextProperties, deviceIdCount,
             deviceIds.data(), NULL, NULL, &error);
 
-    program = CreateProgram(LoadKernel("/Users/jryan/aviris/LiveView/kernel/stddev.cl"), context);
+    QString build_options("-DGPU_FRAME_BUFFER_SIZE=");
+    int fsize = GPU_FRAME_BUFFER_SIZE;
+    build_options.append(QString::number(fsize));
+    program = CreateProgram(LoadKernel(":kernel/stddev.cl"), context);
     error = clBuildProgram(program, 1, &(deviceIds[2]),
-                  "-I/Users/jryan/aviris/LiveView/include/", 0, NULL);
+                  build_options.toStdString().data(), 0, NULL);
     if (error != CL_SUCCESS) {
         cl_int errcode;
         size_t build_log_len;
@@ -216,17 +219,16 @@ const char* StdDevFilter::getOpenCLErrorString(cl_int error)
     }
 }
 
-std::string StdDevFilter::LoadKernel(const char *name)
+const std::string StdDevFilter::LoadKernel(const char *name)
 {
-    std::ifstream in(name);
-    if (!in.is_open()) {
-        qDebug("Failed to open: %s", name);
-        std::string result("");
-        return result;
+    QFile kernel(name);
+    if (!kernel.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qWarning("Failed to open kernel");
     }
-    std::string result( (std::istreambuf_iterator<char>(in)),
-                       std::istreambuf_iterator<char>() );
-    return result;
+
+    QTextStream in(&kernel);
+    QString result(in.readAll());
+    return result.toStdString();
 }
 
 cl_program StdDevFilter::CreateProgram(const std::string &source, cl_context context)

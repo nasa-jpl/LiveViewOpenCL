@@ -8,12 +8,15 @@
 
 #include <QDebug>
 #include <QtGlobal>
+#include <QFile>
 
 #ifdef __APPLE__
     #include "OpenCL/opencl.h"
 #else
     #include "CL/cl.h"
 #endif
+
+#include <QFile>
 
 #include "constants.h"
 #include "lvframe.h"
@@ -35,7 +38,7 @@ private:
     std::string GetDeviceName(cl_device_id id);
     void CheckError(cl_int error, int line);
     const char* getOpenCLErrorString(cl_int error);
-    std::string LoadKernel(const char *name);
+    const std::string LoadKernel(const char *name);
     cl_program CreateProgram(const std::string &source,
                              cl_context context);
 
