@@ -5,6 +5,9 @@
 #include <QWidget>
 #include <QDebug>
 
+#include "frameworker.h"
+#include "qcustomplot/qcustomplot.h"
+
 class LVTabApplication : public QWidget
 {
     Q_OBJECT

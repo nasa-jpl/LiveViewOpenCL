@@ -25,6 +25,7 @@ TEMPLATE = app
 
 #DEFINES += QCUSTOMPLOT_USE_OPENGL
 
+QMAKE_CXXFLAGS -= -std=gnu++11
 QMAKE_CXXFLAGS += -std=c++0x -Wno-inconsistent-missing-override
 
 OBJECTS_DIR = ./obj
@@ -52,7 +53,8 @@ SOURCES += \
         darksubfilter.cpp \
         ctkrangeslider.cpp \
         osutils.cpp \
-        stddevfilter.cpp
+        stddevfilter.cpp \
+        histogram_widget.cpp
 #       clcamera.cpp
 
 HEADERS += \
@@ -73,7 +75,8 @@ HEADERS += \
         darksubfilter.h \
         ctkrangeslider.h \
         lvtabapplication.h \
-        stddevfilter.h
+        stddevfilter.h \
+        histogram_widget.h
 #       clcamera.h
 
 RESOURCES += \

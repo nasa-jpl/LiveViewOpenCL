@@ -9,6 +9,7 @@
 #include "image_type.h"
 #include "framethread.h"
 #include "frameview_widget.h"
+#include "histogram_widget.h"
 #include "controlsbox.h"
 
 class LVMainWindow : public QMainWindow
@@ -28,6 +29,7 @@ private:
     frameview_widget* raw_display;
     frameview_widget* dsf_display;
     frameview_widget* sdv_display;
+    histogram_widget* hst_display;
     ControlsBox* cbox;
 };
 

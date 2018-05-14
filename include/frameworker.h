@@ -38,6 +38,7 @@ public:
     StdDevFilter* STDFilter;
     float* getDSFrame();
     float* getSDFrame();
+    uint32_t* getHistData();
 
     uint16_t getFrameWidth() const { return frWidth; }
     uint16_t getFrameHeight() const { return frHeight; }

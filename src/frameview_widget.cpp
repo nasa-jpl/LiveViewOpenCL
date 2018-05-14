@@ -70,6 +70,7 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     colorScale->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
 
     if (USE_DARK_STYLE) {
+        qcp->setBackground(QBrush(QColor("#31363B")));
         qcp->xAxis->setTickLabelColor(Qt::white);
         qcp->xAxis->setBasePen(QPen(Qt::white));
         qcp->xAxis->setLabelColor(Qt::white);

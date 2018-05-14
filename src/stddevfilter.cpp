@@ -2,7 +2,14 @@
 
 StdDevFilter::~StdDevFilter()
 {
-
+    clReleaseMemObject(devInputBuffer);
+    clReleaseMemObject(devOutputBuffer);
+    clReleaseMemObject(hist_bins);
+    clReleaseMemObject(devOutputHist);
+    clReleaseCommandQueue(commandQueue);
+    clReleaseKernel(kernel);
+    clReleaseProgram(program);
+    clReleaseContext(context);
 }
 
 bool StdDevFilter::start()
@@ -53,8 +60,10 @@ bool StdDevFilter::start()
             deviceIds.data(), NULL, NULL, &error);
 
     QString build_options("-DGPU_FRAME_BUFFER_SIZE=");
-    int fsize = GPU_FRAME_BUFFER_SIZE;
-    build_options.append(QString::number(fsize));
+    build_options.append(QString::number(GPU_FRAME_BUFFER_SIZE));
+    build_options.append(" -DNUMBER_OF_BINS="); // The space at the beginning of this string is important!
+    build_options.append(QString::number(NUMBER_OF_BINS));
+
     program = CreateProgram(LoadKernel(":kernel/stddev.cl"), context);
     error = clBuildProgram(program, 1, &(deviceIds[2]),
                   build_options.toStdString().data(), 0, NULL);
@@ -94,15 +103,33 @@ bool StdDevFilter::start()
             frWidth * frHeight * sizeof(cl_float), NULL, &error);
     CheckError(error, __LINE__);
 
+    hist_bins = clCreateBuffer(context, CL_MEM_READ_ONLY,
+             NUMBER_OF_BINS * sizeof(cl_float), NULL, &error);
+     CheckError(error, __LINE__);
+
+     devOutputHist = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
+             NUMBER_OF_BINS * sizeof(cl_uint), NULL, &error);
+     CheckError(error, __LINE__);
+
     clSetKernelArg(kernel, 0, sizeof(cl_mem), &devInputBuffer);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), &devOutputBuffer);
-    clSetKernelArg(kernel, 2, sizeof(cl_uint), &frWidth);
-    clSetKernelArg(kernel, 3, sizeof(cl_uint), &frHeight);
-    clSetKernelArg(kernel, 4, sizeof(cl_int), &gpu_buffer_head);
-    clSetKernelArg(kernel, 5, sizeof(cl_uint), &N);
+    clSetKernelArg(kernel, 2, sizeof(cl_mem), &hist_bins);
+    clSetKernelArg(kernel, 3, sizeof(cl_mem), &devOutputHist);
+    clSetKernelArg(kernel, 4, sizeof(cl_uint), &frWidth);
+    clSetKernelArg(kernel, 5, sizeof(cl_uint), &frHeight);
+    clSetKernelArg(kernel, 6, sizeof(cl_int), &gpu_buffer_head);
+    clSetKernelArg(kernel, 7, sizeof(cl_uint), &N);
 
     commandQueue = clCreateCommandQueue(context, deviceIds[2], 0, &error);
     CheckError(error, __LINE__);
+
+    CheckError(clEnqueueWriteBuffer(commandQueue, hist_bins, CL_TRUE, 0, NUMBER_OF_BINS * sizeof(cl_float),
+            getHistBinValues().data(), 0, NULL, NULL), __LINE__);
+    CheckError(error, __LINE__);
+
+    for (size_t i = 0; i < zero_buf.size(); i++) {
+        zero_buf[i] = 0;
+    }
 
     return true;
 }
@@ -250,6 +277,9 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
     size_t devMemOffset = gpu_buffer_head * frWidth * frHeight * sizeof(cl_ushort);
     CheckError(clEnqueueWriteBuffer(commandQueue, devInputBuffer, CL_FALSE, devMemOffset, frWidth * frHeight * sizeof(cl_ushort),
                          new_frame->raw_data, 0, NULL, NULL), __LINE__);
+    CheckError(clEnqueueWriteBuffer(commandQueue, devOutputHist, CL_FALSE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
+                zero_buf.data(), 0, NULL, NULL), __LINE__);
+
     size_t offset[3] = { 0 };
     size_t work_size[3] = { frWidth, frHeight, N };
     size_t max_work_size;
@@ -261,6 +291,8 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
                                       0, NULL, NULL), __LINE__);
     CheckError(clEnqueueReadBuffer(commandQueue, devOutputBuffer, CL_FALSE, 0, frWidth * frHeight * sizeof(cl_float),
                                    new_frame->sdv_data, 0, NULL, NULL), __LINE__);
+    CheckError(clEnqueueReadBuffer(commandQueue, devOutputHist, CL_FALSE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
+                                       new_frame->hist_data, 0, NULL, NULL), __LINE__);
 
     if (++gpu_buffer_head == GPU_FRAME_BUFFER_SIZE) {
         gpu_buffer_head = 0;

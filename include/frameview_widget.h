@@ -11,8 +11,6 @@
 
 #include "lvtabapplication.h"
 #include "image_type.h"
-#include "frameworker.h"
-#include "qcustomplot/qcustomplot.h"
 #include "constants.h"
 
 class frameview_widget : public LVTabApplication

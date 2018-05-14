@@ -148,3 +148,8 @@ float* FrameWorker::getSDFrame()
 {
     return lvframe_buffer->current()->sdv_data;
 }
+
+uint32_t* FrameWorker::getHistData()
+{
+    return lvframe_buffer->current()->hist_data;
+}
