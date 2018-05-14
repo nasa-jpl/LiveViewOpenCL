@@ -18,16 +18,19 @@
 int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
-    QFile f(":qdarkstyle/style.qss");
-    if (!f.exists())
-    {
-        printf("Unable to set stylesheet, file not found\n");
-    }
-    else
-    {
-        f.open(QFile::ReadOnly | QFile::Text);
-        QTextStream ts(&f);
-        qApp->setStyleSheet(ts.readAll());
+
+    if (USE_DARK_STYLE) {
+        QFile f(":qdarkstyle/style.qss");
+        if (!f.exists())
+        {
+            printf("Unable to set stylesheet, file not found\n");
+        }
+        else
+        {
+            f.open(QFile::ReadOnly | QFile::Text);
+            QTextStream ts(&f);
+            qApp->setStyleSheet(ts.readAll());
+        }
     }
 
     QPixmap logo_pixmap(":images/aviris-logo-transparent.png");

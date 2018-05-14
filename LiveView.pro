@@ -25,10 +25,7 @@ TEMPLATE = app
 
 #DEFINES += QCUSTOMPLOT_USE_OPENGL
 
-QMAKE_CXXFLAGS -= -O2
-QMAKE_CFLAGS -= -O2
-QMAKE_CFLAGS += -O3
-QMAKE_CXXFLAGS += -O3 -std=c++0x -Wno-inconsistent-missing-override
+QMAKE_CXXFLAGS += -std=c++0x -Wno-inconsistent-missing-override
 
 OBJECTS_DIR = ./obj
 MOC_DIR = ./obj
