@@ -6,6 +6,7 @@
 #include <chrono>
 
 #include <QObject>
+#include <QPointF>
 #include <QTime>
 
 #include "image_type.h"
@@ -40,6 +41,9 @@ public:
     float* getSDFrame();
     uint32_t* getHistData();
 
+    void setCenter(double Xcoord, double Ycoord);
+    QPointF* getCenter();
+
     uint16_t getFrameWidth() const { return frWidth; }
     uint16_t getFrameHeight() const { return frHeight; }
     uint16_t getDataHeight() const { return dataHeight; }
@@ -49,6 +53,7 @@ signals:
     void finished();
     void error(const QString &error);
     void updateFPS(float fps);
+    void crosshairChanged(const QPointF &coord);
 
 public slots:
     void timeout();
@@ -70,6 +75,8 @@ private:
     camera_t cam_type;
 
     uint32_t stddev_N; // controls standard deviation history window
+
+    QPointF centerVal;
 
 };
 

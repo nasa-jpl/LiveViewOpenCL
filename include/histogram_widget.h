@@ -16,26 +16,15 @@ public:
 
 public slots:
     void handleNewFrame();
-    void histogramScrolledX(const QCPRange &newRange);
     void histogramScrolledY(const QCPRange &newRange);
     virtual void rescaleRange();
     void resetRange();
 
 private:
-    FrameWorker *frame_handler;
-    QTimer renderTimer;
-
-    QVBoxLayout *qvbl;
-
-    QCustomPlot *qcp;
     QCPBars *histogram;
 
     QVector<double> hist_bins;
     QVector<double> hist_data;
-    unsigned int count = 0;
-
-    unsigned int frHeight;
-    unsigned int frWidth;
 };
 
 #endif // HISTOGRAM_WIDGET_H

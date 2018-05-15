@@ -17,13 +17,11 @@ class frameview_widget : public LVTabApplication
 {
     Q_OBJECT
 public:
-    explicit frameview_widget(image_t image_type, FrameWorker* fw, QWidget* parent = NULL);
+    explicit frameview_widget(FrameWorker *fw, image_t image_type, QWidget *parent = NULL);
     ~frameview_widget();
 
 public slots:
     void handleNewFrame();
-    void colorMapScrolledY(const QCPRange &newRange);
-    void colorMapScrolledX(const QCPRange &newRange);
     void setScrollBoth();
     void setScrollX();
     void setScrollY();
@@ -34,13 +32,10 @@ public slots:
 private:
     float* (FrameWorker::*p_getFrame)();
     image_t image_type;
-    QTimer rendertimer;
-    FrameWorker* frame_handler;
 
-    QCustomPlot* qcp;
-    QCPColorMap* colorMap;
-    QCPColorMapData* colorMapData;
-    QCPColorScale* colorScale;
+    QCPColorMap *colorMap;
+    QCPColorMapData *colorMapData;
+    QCPColorScale *colorScale;
 
     QCPItemRect *crosshairX;
     QCPItemRect *crosshairY;
@@ -50,9 +45,6 @@ private:
     unsigned int count;
     volatile double fps;
     QString fps_string;
-
-    unsigned int frHeight;
-    unsigned int frWidth;
 };
 
 #endif // FRAMEVIEW_WIDGET_H

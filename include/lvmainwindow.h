@@ -10,6 +10,7 @@
 #include "framethread.h"
 #include "frameview_widget.h"
 #include "histogram_widget.h"
+#include "line_widget.h"
 #include "controlsbox.h"
 
 class LVMainWindow : public QMainWindow
@@ -30,6 +31,8 @@ private:
     frameview_widget* dsf_display;
     frameview_widget* sdv_display;
     histogram_widget* hst_display;
+    line_widget* spec_display;
+    line_widget* spat_display;
     ControlsBox* cbox;
 };
 

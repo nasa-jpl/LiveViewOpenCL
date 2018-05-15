@@ -1,12 +1,9 @@
 #include "frameview_widget.h"
 
-frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget *parent) :
-        LVTabApplication(parent),
+frameview_widget::frameview_widget(FrameWorker* fw, image_t image_type, QWidget *parent) :
+        LVTabApplication(fw, parent),
         image_type(image_type)
 {
-    this->image_type = image_type;
-    frame_handler = fw;
-
     switch(image_type) {
     case BASE:
         ceiling = float(UINT16_MAX);
@@ -27,17 +24,9 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
 
     floor = 0.0;
 
-    frHeight = frame_handler->getFrameHeight();
-    frWidth = frame_handler->getFrameWidth();
+    upperRangeBoundX = frWidth - 1;
+    upperRangeBoundY = frHeight - 1;
 
-    qcp = new QCustomPlot(this);
-    // OpenGL does not provide reliable rendering so it will be disabled
-    /* qcp->setOpenGl(true, 8);
-    bool renderSuccess = qcp->openGl();
-    if (renderSuccess) {
-        qDebug("Now redering with OpenGL");
-    } */
-    qcp->setNotAntialiasedElement(QCP::aeAll);
     QSizePolicy qsp(QSizePolicy::Preferred, QSizePolicy::Preferred);
     qsp.setHeightForWidth(true);
     qcp->setSizePolicy(qsp);
@@ -50,8 +39,6 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
 
     colorMap = new QCPColorMap(qcp->xAxis, qcp->yAxis);
     colorMapData = NULL;
-
-    // qcp->addPlottable(colorMap);
 
     colorScale = new QCPColorScale(qcp);
     qcp->plotLayout()->addElement(0, 1, colorScale);
@@ -118,43 +105,43 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
 
     QCheckBox *hideXbox = new QCheckBox("Hide Crosshair");
     connect(hideXbox, SIGNAL(toggled(bool)), this, SLOT(hideCrosshair(bool)));
+    hideXbox->setFixedWidth(150);
 
-    QHBoxLayout* boxLayout = new QHBoxLayout;
+    QHBoxLayout *boxLayout = new QHBoxLayout;
     boxLayout->addWidget(zoomBothButton);
     boxLayout->addWidget(zoomXButton);
     boxLayout->addWidget(zoomYButton);
-    // boxLayout->addStretch(1);
     zoomButtons->setLayout(boxLayout);
 
-    QVBoxLayout* vbox = new QVBoxLayout;
-    QHBoxLayout* bottomControls = new QHBoxLayout;
+    QVBoxLayout *qvbl = new QVBoxLayout;
+    QHBoxLayout *bottomControls = new QHBoxLayout;
     bottomControls->addWidget(fpsLabel);
     bottomControls->addWidget(hideXbox);
     bottomControls->addWidget(zoomButtons);
-    vbox->addWidget(qcp, 10);
-    vbox->addLayout(bottomControls, 1);
+    qvbl->addWidget(qcp, 10);
+    qvbl->addLayout(bottomControls, 1);
 
-    this->setLayout(vbox);
+    this->setLayout(qvbl);
 
     fps = 0;
     fpsclock.start();
 
-    connect(&rendertimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
-    connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(colorMapScrolledY(QCPRange)));
-    connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(colorMapScrolledX(QCPRange)));
-    connect(qcp, SIGNAL(plottableDoubleClick(QCPAbstractPlottable*,int,QMouseEvent*)),
-            this, SLOT(drawCrosshair(QCPAbstractPlottable*,int,QMouseEvent*)));
-
+    connect(&renderTimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
+    connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledY(QCPRange)));
+    connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledX(QCPRange)));
+    if (image_type == BASE) {
+        connect(qcp, SIGNAL(plottableDoubleClick(QCPAbstractPlottable*, int, QMouseEvent*)),
+                this, SLOT(drawCrosshair(QCPAbstractPlottable*, int, QMouseEvent*)));
+    }
     colorMapData = new QCPColorMapData(frWidth, frHeight, QCPRange(0, frWidth-1), QCPRange(0, frHeight-1));
     colorMap->setData(colorMapData);
     if (frame_handler->running()) {
-        rendertimer.start(FRAME_DISPLAY_PERIOD_MSECS);
+        renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
     }
 }
 
 frameview_widget::~frameview_widget()
 {
-    delete qcp;
 }
 
 void frameview_widget::handleNewFrame()
@@ -177,55 +164,6 @@ void frameview_widget::handleNewFrame()
     }
 }
 
-void frameview_widget::colorMapScrolledY(const QCPRange &newRange)
-{
-    /*! \brief Controls the behavior of zooming the plot.
-     * \param newRange Mouse wheel scrolled range.
-     * Color Maps must not allow the user to zoom past the dimensions of the frame.
-     */
-
-    QCPRange boundedRange = newRange;
-    double lowerRangeBound = 0;
-    double upperRangeBound = frHeight-1;
-    if (boundedRange.size() > upperRangeBound - lowerRangeBound) {
-        boundedRange = QCPRange(lowerRangeBound, upperRangeBound);
-    } else {
-        double oldSize = boundedRange.size();
-        if (boundedRange.lower < lowerRangeBound) {
-            boundedRange.lower = lowerRangeBound;
-            boundedRange.upper = lowerRangeBound+oldSize;
-        } if (boundedRange.upper > upperRangeBound) {
-            boundedRange.lower = upperRangeBound - oldSize;
-            boundedRange.upper = upperRangeBound;
-        }
-    }
-    qcp->yAxis->setRange(boundedRange);
-}
-void frameview_widget::colorMapScrolledX(const QCPRange &newRange)
-{
-    /*! \brief Controls the behavior of zooming the plot.
-     * \param newRange Mouse wheel scrolled range.
-     * Color Maps must not allow the user to zoom past the dimensions of the frame.
-     */
-    QCPRange boundedRange = newRange;
-    double lowerRangeBound = 0;
-    double upperRangeBound = frWidth-1;
-    if (boundedRange.size() > upperRangeBound - lowerRangeBound) {
-        boundedRange = QCPRange(lowerRangeBound, upperRangeBound);
-    } else {
-        double oldSize = boundedRange.size();
-        if (boundedRange.lower < lowerRangeBound) {
-            boundedRange.lower = lowerRangeBound;
-            boundedRange.upper = lowerRangeBound + oldSize;
-        }
-        if (boundedRange.upper > upperRangeBound) {
-            boundedRange.lower = upperRangeBound - oldSize;
-            boundedRange.upper = upperRangeBound;
-        }
-    }
-    qcp->xAxis->setRange(boundedRange);
-}
-
 void frameview_widget::setScrollBoth()
 {
     qcp->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
@@ -246,7 +184,6 @@ void frameview_widget::setScrollY()
 
 void frameview_widget::rescaleRange()
 {
-    /*! \brief Set the color scale of the display to the last used values for this widget */
     colorScale->setDataRange(QCPRange(floor, ceiling));
 }
 
@@ -254,10 +191,13 @@ void frameview_widget::drawCrosshair(QCPAbstractPlottable *plottable, int dataIn
 {
     Q_UNUSED(plottable);
     Q_UNUSED(dataIndex);
-    crosshairX->bottomRight->setCoords(qcp->xAxis->pixelToCoord(event->pos().x()), 0);
-    crosshairX->topLeft->setCoords(qcp->xAxis->pixelToCoord(event->pos().x()), frHeight);
-    crosshairY->bottomRight->setCoords(0, qcp->yAxis->pixelToCoord(event->pos().y()));
-    crosshairY->topLeft->setCoords(frWidth, qcp->yAxis->pixelToCoord(event->pos().y()));
+    double dataX = qcp->xAxis->pixelToCoord(event->pos().x());
+    double dataY = qcp->yAxis->pixelToCoord(event->pos().y());
+    crosshairX->bottomRight->setCoords(dataX, 0);
+    crosshairX->topLeft->setCoords(dataX, frHeight);
+    crosshairY->bottomRight->setCoords(0, dataY);
+    crosshairY->topLeft->setCoords(frWidth, dataY);
+    frame_handler->setCenter(dataX, dataY);
 }
 
 void frameview_widget::hideCrosshair(bool hide)

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <QWidget>
+#include <QTimer>
 #include <QDebug>
 
 #include "frameworker.h"
@@ -11,9 +12,24 @@
 class LVTabApplication : public QWidget
 {
     Q_OBJECT
-
 public:
-    LVTabApplication(QWidget *_parent = NULL) : parent(_parent), dataMax(float(UINT16_MAX)), dataMin(0.0), isPrecise(false) {}
+    LVTabApplication(FrameWorker *fw, QWidget *parent = NULL) :
+        QWidget(parent), dataMax(float(UINT16_MAX)), dataMin(0.0),
+        isPrecise(false), frame_handler(fw)
+    {
+        frHeight = frame_handler->getFrameHeight();
+        frWidth = frame_handler->getFrameWidth();
+        qcp = new QCustomPlot(this);
+        qcp->setNotAntialiasedElement(QCP::aeAll);
+
+        lowerRangeBoundX = 0;
+        lowerRangeBoundY = 0;
+    }
+
+    virtual ~LVTabApplication()
+    {
+    }
+
     double getCeiling() { return ceiling; }
     double getFloor() { return floor; }
     double getDataMax() { return dataMax; }
@@ -28,6 +44,7 @@ public:
         floor = (double)f;
         rescaleRange();
     }
+
     virtual void setPrecision(bool precise) {
         isPrecise = precise;
         if (isPrecise) {
@@ -47,19 +64,55 @@ public:
         }
     }
 
-
-    QWidget* parent;
-
 public slots:
     virtual void setFloorPos(int minPos) {
         double f = dataMax * ((double)minPos / 100.0);
         setFloor((int)f);
     }
+
     virtual void setCeilingPos(int maxPos) {
         double c = dataMax * ((double)maxPos / 100.0);
         setCeiling((int)c);
     }
+
     virtual void rescaleRange() = 0;
+
+    virtual void graphScrolledX(const QCPRange &newRange)
+    {
+        QCPRange boundedRange = newRange;
+        if (boundedRange.size() > upperRangeBoundX - lowerRangeBoundX) {
+            boundedRange = QCPRange(lowerRangeBoundX, upperRangeBoundX);
+        } else {
+            double oldSize = boundedRange.size();
+            if (boundedRange.lower < lowerRangeBoundX) {
+                boundedRange.lower = lowerRangeBoundX;
+                boundedRange.upper = lowerRangeBoundX + oldSize;
+            }
+            if (boundedRange.upper > upperRangeBoundX) {
+                boundedRange.lower = upperRangeBoundX - oldSize;
+                boundedRange.upper = upperRangeBoundX;
+            }
+        }
+        qcp->xAxis->setRange(boundedRange);
+    }
+
+    virtual void graphScrolledY(const QCPRange &newRange)
+    {
+        QCPRange boundedRange = newRange;
+        if (boundedRange.size() > upperRangeBoundY - lowerRangeBoundY) {
+            boundedRange = QCPRange(lowerRangeBoundY, upperRangeBoundY);
+        } else {
+            double oldSize = boundedRange.size();
+            if (boundedRange.lower < lowerRangeBoundY) {
+                boundedRange.lower = lowerRangeBoundY;
+                boundedRange.upper = lowerRangeBoundY + oldSize;
+            } if (boundedRange.upper > upperRangeBoundY) {
+                boundedRange.lower = upperRangeBoundY - oldSize;
+                boundedRange.upper = upperRangeBoundY;
+            }
+        }
+        qcp->yAxis->setRange(boundedRange);
+    }
 
 protected:
     double dataMax;
@@ -69,6 +122,19 @@ protected:
     volatile double floor;
 
     bool isPrecise;
+
+    FrameWorker *frame_handler;
+    QTimer renderTimer;
+
+    QCustomPlot *qcp;
+
+    unsigned int frWidth;
+    unsigned int frHeight;
+
+    double lowerRangeBoundX;
+    double upperRangeBoundX;
+    double lowerRangeBoundY;
+    double upperRangeBoundY;
 };
 
 

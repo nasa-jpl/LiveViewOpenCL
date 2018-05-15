@@ -1,20 +1,11 @@
 #include "histogram_widget.h"
 
 histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
-    LVTabApplication(parent), frame_handler(fw)
+    LVTabApplication(fw, parent)
 {
-    frHeight = frame_handler->getFrameHeight();
-    frWidth = frame_handler->getFrameWidth();
-    qcp = new QCustomPlot(this);
-    qcp->setNotAntialiasedElement(QCP::aeAll);
-
     histogram = new QCPBars(qcp->xAxis, qcp->yAxis);
     qcp->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 
-    // qcp->addPlottable(histogram);
-
-    // double penWidth = 64;
-    // histogram->setWidth(penWidth);
     histogram->setName("Histogram of Standard Deviation Image");
     const uint16_t sigma = 0x03C3;
     qcp->xAxis->setLabel(QString::fromUtf16(&sigma, 1));
@@ -25,10 +16,10 @@ histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
 
     std::array<cl_float, NUMBER_OF_BINS> hist_bin_vals = StdDevFilter::getHistBinValues();
     hist_bins = QVector<double>(NUMBER_OF_BINS);
-
     for (unsigned int i = 0; i < NUMBER_OF_BINS; i++) {
         hist_bins[i] = hist_bin_vals[i];
     }
+    upperRangeBoundX = hist_bins[hist_bins.size() - 1];
 
     hist_data = QVector<double>(NUMBER_OF_BINS);
 
@@ -59,10 +50,10 @@ histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
         qcp->yAxis2->setSubTickPen(QPen(Qt::white));
     }
 
-    connect(histogram->keyAxis(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(histogramScrolledX(QCPRange)));
+    connect(histogram->keyAxis(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledX(QCPRange)));
     connect(histogram->valueAxis(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(histogramScrolledY(QCPRange)));
 
-    qvbl = new QVBoxLayout(this);
+    QVBoxLayout *qvbl = new QVBoxLayout(this);
     qvbl->addWidget(qcp);
     this->setLayout(qvbl);
 
@@ -84,34 +75,12 @@ void histogram_widget::handleNewFrame()
         histogram->setData(hist_bins, hist_data);
         qcp->replot();
     }
-    count++;
 }
 
 void histogram_widget::histogramScrolledY(const QCPRange &newRange)
 {
     Q_UNUSED(newRange);
     rescaleRange();
-}
-void histogram_widget::histogramScrolledX(const QCPRange &newRange)
-{
-    QCPRange boundedRange = newRange;
-    double lowerRangeBound = 0;
-    double upperRangeBound = hist_bins[hist_bins.size() - 1];
-
-    if (boundedRange.size() > upperRangeBound - lowerRangeBound) {
-        boundedRange = QCPRange(lowerRangeBound, upperRangeBound);
-    } else {
-        double oldSize = boundedRange.size();
-        if (boundedRange.lower < lowerRangeBound) {
-            boundedRange.lower = lowerRangeBound;
-            boundedRange.upper = lowerRangeBound+oldSize;
-        }
-        if (boundedRange.upper > upperRangeBound) {
-            boundedRange.lower = upperRangeBound-oldSize;
-            boundedRange.upper = upperRangeBound;
-        }
-    }
-    histogram->keyAxis()->setRange(boundedRange);
 }
 
 void histogram_widget::rescaleRange()

@@ -68,6 +68,8 @@ FrameWorker::FrameWorker(FrameThread *worker, QObject *parent) : QObject(parent)
         qWarning("Unable to start OpenCL kernel.");
         qWarning("Standard Deviation and Histogram computation will be disabled.");
     }
+
+    centerVal += QPointF(-1.0, -1.0);
 }
 
 FrameWorker::~FrameWorker()
@@ -152,4 +154,16 @@ float* FrameWorker::getSDFrame()
 uint32_t* FrameWorker::getHistData()
 {
     return lvframe_buffer->current()->hist_data;
+}
+
+void FrameWorker::setCenter(double Xcoord, double Ycoord)
+{
+    centerVal.setX(Xcoord);
+    centerVal.setY(Ycoord);
+    emit crosshairChanged(QPointF(Xcoord, Ycoord));
+}
+
+QPointF* FrameWorker::getCenter()
+{
+    return &centerVal;
 }
