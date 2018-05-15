@@ -111,6 +111,14 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     connect(zoomBothButton, SIGNAL(released()), this, SLOT(setScrollBoth()));
     zoomBothButton->setChecked(true);
 
+    crosshairX = new QCPItemRect(qcp);
+    crosshairX->setPen(QPen(Qt::white));
+    crosshairY = new QCPItemRect(qcp);
+    crosshairY->setPen(QPen(Qt::white));
+
+    QCheckBox *hideXbox = new QCheckBox("Hide Crosshair");
+    connect(hideXbox, SIGNAL(toggled(bool)), this, SLOT(hideCrosshair(bool)));
+
     QHBoxLayout* boxLayout = new QHBoxLayout;
     boxLayout->addWidget(zoomBothButton);
     boxLayout->addWidget(zoomXButton);
@@ -121,6 +129,7 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     QVBoxLayout* vbox = new QVBoxLayout;
     QHBoxLayout* bottomControls = new QHBoxLayout;
     bottomControls->addWidget(fpsLabel);
+    bottomControls->addWidget(hideXbox);
     bottomControls->addWidget(zoomButtons);
     vbox->addWidget(qcp, 10);
     vbox->addLayout(bottomControls, 1);
@@ -133,6 +142,8 @@ frameview_widget::frameview_widget(image_t image_type, FrameWorker* fw, QWidget 
     connect(&rendertimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(colorMapScrolledY(QCPRange)));
     connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(colorMapScrolledX(QCPRange)));
+    connect(qcp, SIGNAL(plottableDoubleClick(QCPAbstractPlottable*,int,QMouseEvent*)),
+            this, SLOT(drawCrosshair(QCPAbstractPlottable*,int,QMouseEvent*)));
 
     colorMapData = new QCPColorMapData(frWidth, frHeight, QCPRange(0, frWidth-1), QCPRange(0, frHeight-1));
     colorMap->setData(colorMapData);
@@ -172,6 +183,7 @@ void frameview_widget::colorMapScrolledY(const QCPRange &newRange)
      * \param newRange Mouse wheel scrolled range.
      * Color Maps must not allow the user to zoom past the dimensions of the frame.
      */
+
     QCPRange boundedRange = newRange;
     double lowerRangeBound = 0;
     double upperRangeBound = frHeight-1;
@@ -238,3 +250,18 @@ void frameview_widget::rescaleRange()
     colorScale->setDataRange(QCPRange(floor, ceiling));
 }
 
+void frameview_widget::drawCrosshair(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event)
+{
+    Q_UNUSED(plottable);
+    Q_UNUSED(dataIndex);
+    crosshairX->bottomRight->setCoords(qcp->xAxis->pixelToCoord(event->pos().x()), 0);
+    crosshairX->topLeft->setCoords(qcp->xAxis->pixelToCoord(event->pos().x()), frHeight);
+    crosshairY->bottomRight->setCoords(0, qcp->yAxis->pixelToCoord(event->pos().y()));
+    crosshairY->topLeft->setCoords(frWidth, qcp->yAxis->pixelToCoord(event->pos().y()));
+}
+
+void frameview_widget::hideCrosshair(bool hide)
+{
+    crosshairX->setVisible(!hide);
+    crosshairY->setVisible(!hide);
+}

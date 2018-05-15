@@ -27,6 +27,8 @@ public slots:
     void setScrollBoth();
     void setScrollX();
     void setScrollY();
+    void drawCrosshair(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
+    void hideCrosshair(bool hide);
     virtual void rescaleRange();
 
 private:
@@ -39,6 +41,9 @@ private:
     QCPColorMap* colorMap;
     QCPColorMapData* colorMapData;
     QCPColorScale* colorScale;
+
+    QCPItemRect *crosshairX;
+    QCPItemRect *crosshairY;
 
     QLabel* fpsLabel;
     QTime fpsclock;

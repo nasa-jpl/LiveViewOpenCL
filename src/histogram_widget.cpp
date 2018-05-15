@@ -7,10 +7,6 @@ histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
     frWidth = frame_handler->getFrameWidth();
     qcp = new QCustomPlot(this);
     qcp->setNotAntialiasedElement(QCP::aeAll);
-    QSizePolicy qsp(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    qsp.setHeightForWidth(true);
-    qcp->setSizePolicy(qsp);
-    qcp->heightForWidth(200);
 
     histogram = new QCPBars(qcp->xAxis, qcp->yAxis);
     qcp->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
