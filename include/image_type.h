@@ -3,6 +3,6 @@
 
 enum image_t {BASE, DSF, STD_DEV, SPATIAL_PROFILE, SPECTRAL_PROFILE};
 
-enum camera_t {DEFAULT, ITB, CAMERALINK};
+enum camera_t {DEFAULT, ITB, CL_6604A, CL_6604B};
 
 #endif // IMAGE_TYPE_H

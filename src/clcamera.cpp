@@ -28,8 +28,8 @@ bool CLCamera::start()
     pdv_flush_fifo(dev_p);
 
     int size = pdv_get_dmasize(dev_p);
-    char* cameratype = pdv_get_cameratype(dev_p);
-    std::cout << "Hardware Type (as reported by driver): " << cameratype << std::endl;
+    char *cameratype = pdv_get_cameratype(dev_p);
+    qDebug() << "Hardware Type (as reported by driver): " << cameratype;
 
     frame_width = pdv_get_width(dev_p);
     data_height = pdv_get_height(dev_p);
@@ -49,12 +49,12 @@ bool CLCamera::start()
     return true;
 }
 
-bool EDTCamera::isRunning()
+bool CLCamera::isRunning()
 {
     return !(bool)recovering_timeout;
 }
 
-uint16_t* EDTCamera::getFrame()
+uint16_t* CLCamera::getFrame()
 {
     pdv_start_image(dev_p);
     image_p = (uint16_t*)pdv_wait_image(dev_p);

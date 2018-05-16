@@ -14,7 +14,7 @@ histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
     setCeiling(20000);
     setFloor(0);
 
-    std::array<cl_float, NUMBER_OF_BINS> hist_bin_vals = StdDevFilter::getHistBinValues();
+    std::array<float, NUMBER_OF_BINS> hist_bin_vals = StdDevFilter::getHistBinValues();
     hist_bins = QVector<double>(NUMBER_OF_BINS);
     for (unsigned int i = 0; i < NUMBER_OF_BINS; i++) {
         hist_bins[i] = hist_bin_vals[i];

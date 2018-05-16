@@ -203,7 +203,6 @@ void line_widget::setTracer(QCPAbstractPlottable *plottable, int dataIndex, QMou
     double dataX = qcp->xAxis->pixelToCoord(event->pos().x());
     double dataY = qcp->yAxis->pixelToCoord(event->pos().y());
     tracer->setGraphKey(dataX);
-    qDebug() << "Set Graph Key to " << dataX;
     callout->setText(QString("x: %1 \n y: %2 ").arg((int)dataX).arg((int)dataY));
     if (callout->position->coords().y() > getCeiling() || callout->position->coords().y() < getFloor()) {
         callout->position->setCoords(callout->position->coords().x(), (getCeiling() - getFloor()) * 0.9 + getFloor());

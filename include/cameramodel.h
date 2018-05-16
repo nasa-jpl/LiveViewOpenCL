@@ -6,7 +6,7 @@
 #include <QDebug>
 #include "image_type.h"
 
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 4) || (__APPLE__ && __MACH__)
+#if (__GNUC__ >= 4) || (__APPLE__ && __MACH__)
     #include <atomic>
 #else
     #include <cstdatomic>
@@ -24,7 +24,7 @@ public:
     virtual bool start() = 0;
     virtual uint16_t *getFrame() = 0;
 
-    virtual void setDir(const char *filename) = 0;
+    virtual void setDir(const char *filename) { Q_UNUSED(filename); }
 
     virtual bool isRunning() { return running; }
 

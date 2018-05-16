@@ -2,7 +2,9 @@
 #define LVFRAME_H
 
 #include <errno.h>
+#include <sys/time.h>
 #include <sys/mman.h>
+#include <sys/resource.h>
 
 #include <QtGlobal>
 #include <QDebug>
@@ -28,6 +30,12 @@ struct LVFrame
             qFatal("Not enough memory to allocate frame buffer.");
             throw;
         }
+        /* rlimit cur_limit;
+        checkError(getrlimit(RLIMIT_MEMLOCK, &cur_limit));
+        if (cur_limit.rlim_cur != RLIM_INFINITY) {
+            rlimit new_limit = { RLIM_INFINITY, RLIM_INFINITY };
+            checkError(setrlimit(RLIMIT_MEMLOCK, &new_limit));
+        } */
         checkError(mlock(raw_data, frSize * sizeof(uint16_t)));
         checkError(mlock(sdv_data, frSize * sizeof(float)));
     }
@@ -51,7 +59,7 @@ struct LVFrame
             qWarning("[Errno %d]: %s: %d", errno, buffer, res);
 #else
             char* err;
-            err = strerror_r(errno, err, 256);
+            err = strerror_r(errno, buffer, 256);
             qWarning("[Errno %d]: %s", errno, err);
 #endif
         }
