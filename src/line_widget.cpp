@@ -9,6 +9,7 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
 
     qcp->plotLayout()->insertRow(0);
     plotTitle = new QCPTextElement(qcp, "No crosshair selected");
+    plotTitle->setFont(QFont(font().family(), 20));
     qcp->plotLayout()->addElement(0, 0, plotTitle);
 
     qcp->addGraph(0, 0);
@@ -49,25 +50,22 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
 
     qcp->addLayer("Box Layer", qcp->currentLayer());
     qcp->setCurrentLayer("Box Layer");
+
     callout = new QCPItemText(qcp);
     callout->setFont(QFont(font().family(), 16));
-    callout->setPen(QPen(Qt::black));
-    callout->setBrush(Qt::white);
-    callout->setSelectedBrush(Qt::white);
     callout->setSelectedFont(QFont(font().family(), 16));
-    callout->setSelectedPen(QPen(Qt::black));
-    callout->setSelectedColor(Qt::black);
     callout->setVisible(false);
     callout->position->setCoords(xAxisMax / 2, getCeiling() - 3000);
+
     tracer = new QCPItemTracer(qcp);
     tracer->setGraph(qcp->graph());
     tracer->setStyle(QCPItemTracer::tsNone);
     tracer->setInterpolating(true);
     tracer->setVisible(false);
 
-
     qcp->addLayer("Trace Layer", qcp->currentLayer(), QCustomPlot::limBelow);
     qcp->setCurrentLayer("Trace Layer");
+
     arrow = new QCPItemLine(qcp);
     arrow->end->setCoords(-1.0, -1.0);
     arrow->start->setParentAnchor(callout->bottom);
@@ -75,6 +73,46 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
     arrow->setHead(QCPLineEnding::esSpikeArrow);
     arrow->setSelectable(false);
     arrow->setVisible(false);
+
+    if (USE_DARK_STYLE) {
+        qcp->graph(0)->setPen(QPen(Qt::lightGray));
+        plotTitle->setTextColor(Qt::white);
+
+        qcp->setBackground(QBrush(QColor("#31363B")));
+        qcp->xAxis->setTickLabelColor(Qt::white);
+        qcp->xAxis->setBasePen(QPen(Qt::white));
+        qcp->xAxis->setLabelColor(Qt::white);
+        qcp->xAxis->setTickPen(QPen(Qt::white));
+        qcp->xAxis->setSubTickPen(QPen(Qt::white));
+        qcp->yAxis->setTickLabelColor(Qt::white);
+        qcp->yAxis->setBasePen(QPen(Qt::white));
+        qcp->yAxis->setLabelColor(Qt::white);
+        qcp->yAxis->setTickPen(QPen(Qt::white));
+        qcp->yAxis->setSubTickPen(QPen(Qt::white));
+        qcp->xAxis2->setTickLabelColor(Qt::white);
+        qcp->xAxis2->setBasePen(QPen(Qt::white));
+        qcp->xAxis2->setTickPen(QPen(Qt::white));
+        qcp->xAxis2->setSubTickPen(QPen(Qt::white));
+        qcp->yAxis2->setTickLabelColor(Qt::white);
+        qcp->yAxis2->setBasePen(QPen(Qt::white));
+        qcp->yAxis2->setTickPen(QPen(Qt::white));
+        qcp->yAxis2->setSubTickPen(QPen(Qt::white));
+
+        callout->setColor(Qt::white);
+        callout->setPen(QPen(Qt::white));
+        callout->setBrush(QBrush(QColor("#31363B")));
+        callout->setSelectedBrush(QBrush(QColor("#31363B")));
+        callout->setSelectedPen(QPen(Qt::white));
+        callout->setSelectedColor(Qt::white);
+
+        arrow->setPen(QPen(Qt::white));
+    } else {
+        callout->setPen(QPen(Qt::black));
+        callout->setBrush(Qt::white);
+        callout->setSelectedBrush(Qt::white);
+        callout->setSelectedPen(QPen(Qt::black));
+        callout->setSelectedColor(Qt::black);
+    }
 
     QVBoxLayout *qvbl = new QVBoxLayout;
     qvbl->addWidget(qcp);

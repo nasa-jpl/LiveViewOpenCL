@@ -29,6 +29,9 @@ histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
     histogram->valueAxis()->setRange(QCPRange(0, getCeiling()));
 
     if (USE_DARK_STYLE) {
+        histogram->setPen(QPen(Qt::lightGray));
+        histogram->setBrush(QBrush(QColor("#31363B")));
+
         qcp->setBackground(QBrush(QColor("#31363B")));
         qcp->xAxis->setTickLabelColor(Qt::white);
         qcp->xAxis->setBasePen(QPen(Qt::white));
