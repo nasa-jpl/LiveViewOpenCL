@@ -7,6 +7,7 @@
 * Indicator when fps display is stable/valid (issue: LiveView is currently showing the "real-time" results of the fps which take a time to stabilize)
 * Improve the reliablility of detection of no image data and when the frame is out of sync (issue: LiveView currenly shows, some time, first line is in the middle of the frame)
 * Install and Test Classic LiveView on CARBO GSE server Ubuntu computer (including standard deviation).
+* Add installation step: "Edit /etc/security/limits.conf to include the line: `rduce        hard       memlock    unlimited`". In general, rduce should be replaced with the user of LiveView... Add a line to setrlimit in the code. A restart or re-login is required. This should be included in an install script (which could also build LiveView itself)
 
 
 ## Medium priority items:
