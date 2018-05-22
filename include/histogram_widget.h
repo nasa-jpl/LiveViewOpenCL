@@ -17,7 +17,7 @@ public:
 public slots:
     void handleNewFrame();
     void histogramScrolledY(const QCPRange &newRange);
-    virtual void rescaleRange();
+    void rescaleRange();
     void resetRange();
 
 private:

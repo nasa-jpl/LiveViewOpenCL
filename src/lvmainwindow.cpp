@@ -11,18 +11,20 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     this->setWindowTitle("LiveView 4.0");
 
     // Load the worker thread
-    FrameThread* workerThread = new FrameThread();
+    QThread *workerThread = new QThread();
     fw = new FrameWorker(workerThread);
     fw->moveToThread(workerThread);
     // Reserve proper take object error handling for later
-    QObject::connect(fw, SIGNAL(error(QString)), this, SLOT(errorString(QString)));
-    QObject::connect(workerThread, SIGNAL(started()), fw, SLOT(captureFrames()));
-    QObject::connect(fw, SIGNAL(finished()), workerThread, SLOT(quit()));
-    QObject::connect(fw, SIGNAL(finished()), fw, SLOT(deleteLater()));
-    QObject::connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+    connect(fw, SIGNAL(error(QString)), this, SLOT(errorString(QString)));
+    connect(workerThread, SIGNAL(started()), fw, SLOT(captureFrames()));
+    connect(fw, SIGNAL(finished()), workerThread, SLOT(quit()));
+    connect(fw, SIGNAL(finished()), fw, SLOT(deleteLater()));
+    connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
 
     if (fw->running()) {
         workerThread->start();
+        DSLoop = QtConcurrent::run(fw, &FrameWorker::captureDSFrames);
+        SDLoop = QtConcurrent::run(fw, &FrameWorker::captureSDFrames);
     }
 
     QWidget* mainWidget = new QWidget();
@@ -64,6 +66,8 @@ LVMainWindow::LVMainWindow(QWidget *parent)
 LVMainWindow::~LVMainWindow()
 {
     fw->stop();
+    SDLoop.waitForFinished();
+    DSLoop.waitForFinished();
 }
 
 void LVMainWindow::errorString(const QString &errstr)

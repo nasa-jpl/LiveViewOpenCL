@@ -68,7 +68,6 @@ HEADERS += \
         constants.h \
         ssdcamera.h \
         osutils.h \
-        framethread.h \
         controlsbox.h \
         alphanum.hpp \
         darksubfilter.h \

@@ -289,9 +289,9 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
     CheckError(clEnqueueNDRangeKernel(commandQueue, kernel, 2,
                                       offset, work_size, local_work_size,
                                       0, NULL, NULL), __LINE__);
-    CheckError(clEnqueueReadBuffer(commandQueue, devOutputBuffer, CL_FALSE, 0, frWidth * frHeight * sizeof(cl_float),
+    CheckError(clEnqueueReadBuffer(commandQueue, devOutputBuffer, CL_TRUE, 0, frWidth * frHeight * sizeof(cl_float),
                                    new_frame->sdv_data, 0, NULL, NULL), __LINE__);
-    CheckError(clEnqueueReadBuffer(commandQueue, devOutputHist, CL_FALSE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
+    CheckError(clEnqueueReadBuffer(commandQueue, devOutputHist, CL_TRUE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
                                        new_frame->hist_data, 0, NULL, NULL), __LINE__);
 
     if (++gpu_buffer_head == GPU_FRAME_BUFFER_SIZE) {

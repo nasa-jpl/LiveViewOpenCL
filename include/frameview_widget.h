@@ -27,7 +27,8 @@ public slots:
     void setScrollY();
     void drawCrosshair(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
     void hideCrosshair(bool hide);
-    virtual void rescaleRange();
+    void rescaleRange();
+    void reportFPS();
 
 private:
     float* (FrameWorker::*p_getFrame)();
@@ -41,9 +42,10 @@ private:
     QCPItemRect *crosshairY;
 
     QLabel* fpsLabel;
-    QTime fpsclock;
-    unsigned int count;
-    volatile double fps;
+    QTimer fpsclock;
+    volatile unsigned int count;
+    unsigned int count_prev;
+    double fps;
     QString fps_string;
 };
 

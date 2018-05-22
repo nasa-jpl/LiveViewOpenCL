@@ -3,6 +3,8 @@
 
 #include <errno.h>
 #include <sys/mman.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #include <QtGlobal>
 #include <QDebug>
@@ -28,6 +30,10 @@ struct LVFrame
             qFatal("Not enough memory to allocate frame buffer.");
             throw;
         }
+        rlimit cur_lims;
+        checkError(getrlimit(RLIMIT_MEMLOCK, &cur_lims));
+        rlimit new_lims = { RLIM_INFINITY, RLIM_INFINITY };
+        checkError(setrlimit(RLIMIT_MEMLOCK, &new_lims));
         checkError(mlock(raw_data, frSize * sizeof(uint16_t)));
         checkError(mlock(sdv_data, frSize * sizeof(float)));
     }

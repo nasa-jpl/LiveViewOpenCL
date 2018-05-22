@@ -5,9 +5,10 @@
 #include <QThread>
 #include <QVBoxLayout>
 #include <QDebug>
+#include <QtConcurrent/QtConcurrent>
+#include <QFuture>
 
 #include "image_type.h"
-#include "framethread.h"
 #include "frameview_widget.h"
 #include "histogram_widget.h"
 #include "line_widget.h"
@@ -16,7 +17,6 @@
 class LVMainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     LVMainWindow(QWidget *parent = NULL);
     ~LVMainWindow();
@@ -26,6 +26,8 @@ public slots:
 
 private:
     FrameWorker* fw;
+    QFuture<void> DSLoop;
+    QFuture<void> SDLoop;
     QTabWidget* tab_widget;
     frameview_widget* raw_display;
     frameview_widget* dsf_display;

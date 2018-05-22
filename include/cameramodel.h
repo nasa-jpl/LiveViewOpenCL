@@ -6,7 +6,7 @@
 #include <QDebug>
 #include "image_type.h"
 
-#if (__GNUC__ >= 4 && __GNUC_MINOR__ >= 4) || (__APPLE__ && __MACH__)
+#if (__GNUC__ > 4) || (__APPLE__ && __MACH__)
     #include <atomic>
 #else
     #include <cstdatomic>

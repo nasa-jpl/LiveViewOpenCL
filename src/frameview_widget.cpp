@@ -2,7 +2,8 @@
 
 frameview_widget::frameview_widget(FrameWorker* fw, image_t image_type, QWidget *parent) :
         LVTabApplication(fw, parent),
-        image_type(image_type)
+        image_type(image_type),
+        count(0), count_prev(0), fps(0)
 {
     switch(image_type) {
     case BASE:
@@ -123,10 +124,8 @@ frameview_widget::frameview_widget(FrameWorker* fw, image_t image_type, QWidget 
 
     this->setLayout(qvbl);
 
-    fps = 0;
-    fpsclock.start();
-
     connect(&renderTimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
+    connect(&fpsclock, SIGNAL(timeout()), this, SLOT(reportFPS()));
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledY(QCPRange)));
     connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledX(QCPRange)));
     if (image_type == BASE) {
@@ -137,6 +136,7 @@ frameview_widget::frameview_widget(FrameWorker* fw, image_t image_type, QWidget 
     colorMap->setData(colorMapData);
     if (frame_handler->running()) {
         renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
+        fpsclock.start(1000); // 1 sec
     }
 }
 
@@ -157,11 +157,19 @@ void frameview_widget::handleNewFrame()
         qcp->replot();
         count++;
     }
-    if (count % 50 == 0 && count != 0) {
+    /* if (count % 50 == 0 && count != 0) {
         fps = 50.0 / fpsclock.restart() * 1000.0;
         fps_string = QString::number(fps, 'f', 1);
         fpsLabel->setText(QString("Display: %1 fps").arg(fps_string));
-    }
+    } */
+}
+
+void frameview_widget::reportFPS()
+{
+    fps = count - count_prev;
+    count_prev = count;
+    fps_string = QString::number(fps, 'f', 1);
+    fpsLabel->setText(QString("Display: %1 fps").arg(fps_string));
 }
 
 void frameview_widget::setScrollBoth()

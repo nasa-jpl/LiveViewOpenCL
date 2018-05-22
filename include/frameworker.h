@@ -1,17 +1,16 @@
 #ifndef FRAMEWORKER_H
 #define FRAMEWORKER_H
 
-#include <stdint.h>
-#include <vector>
 #include <chrono>
 
-#include <QObject>
 #include <QPointF>
 #include <QTime>
+#include <QTimer>
+#include <QCoreApplication>
+#include <QThread>
 
 #include "image_type.h"
 #include "lvframe.h"
-#include "framethread.h"
 #include "cameramodel.h"
 #include "debugcamera.h"
 #include "ssdcamera.h"
@@ -28,7 +27,7 @@ class FrameWorker : public QObject
     Q_OBJECT
 
 public:
-    explicit FrameWorker(FrameThread *worker, QObject *parent = NULL);
+    explicit FrameWorker(QThread *worker, QObject *parent = NULL);
     virtual ~FrameWorker();
     void stop();
     bool running();
@@ -56,21 +55,24 @@ signals:
     void crosshairChanged(const QPointF &coord);
 
 public slots:
-    void timeout();
+    void reportTimeout();
     void captureFrames();
+    void captureDSFrames();
+    void captureSDFrames();
     void resetDir(const char *dirname);
+    void reportFPS();
 
 private:
-    FrameThread *thread;
-    const uint16_t cpu_frame_buffer_size = CPU_FRAME_BUFFER_SIZE;
+    QThread *thread;
     LVFrameBuffer *lvframe_buffer;
     CameraModel *Camera;
+    void delay(int usecs);
 
     bool pixRemap;
     bool isRunning;
     std::atomic<bool> isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
-    QTime clock;
-    unsigned int count;
+    volatile unsigned int count;
+    unsigned int count_prev;
     unsigned int frWidth, frHeight, dataHeight, frSize;
     camera_t cam_type;
 
