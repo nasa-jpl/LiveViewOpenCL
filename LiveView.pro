@@ -37,7 +37,8 @@ INCLUDEPATH += ./include \
 
 VPATH += ./include \
          ./src \
-         ./kernel
+         ./kernel \
+         ./EDT_include
 
 SOURCES += \
         main.cpp \
@@ -53,8 +54,8 @@ SOURCES += \
         osutils.cpp \
         stddevfilter.cpp \
         histogram_widget.cpp \
-        line_widget.cpp
-#       clcamera.cpp
+        line_widget.cpp \
+        clcamera.cpp
 
 HEADERS += \
         lvmainwindow.h \
@@ -75,8 +76,8 @@ HEADERS += \
         lvtabapplication.h \
         stddevfilter.h \
         histogram_widget.h \
-        line_widget.h
-#       clcamera.h
+        line_widget.h \
+        clcamera.h
 
 RESOURCES += \
     images/images.qrc \
@@ -88,3 +89,4 @@ DISTFILES += \
 
 mac: LIBS += -framework OpenCL
 else:unix|win32: LIBS += -lOpenCL
+unix:LIBS += -L$$PWD/lib -lm -lpdv -ldl

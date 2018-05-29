@@ -289,7 +289,8 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
     size_t max_work_size;
     CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
     double work_dim = sqrt(max_work_size);
-    size_t local_work_size[2] = { (size_t)work_dim, (size_t)work_dim };
+    //size_t local_work_size[2] = { (size_t)work_dim, (size_t)work_dim };
+    size_t local_work_size[2] = { 160, 1 };
     CheckError(clEnqueueNDRangeKernel(commandQueue, kernel, 2,
                                       offset, work_size, local_work_size,
                                       0, NULL, NULL), __LINE__);

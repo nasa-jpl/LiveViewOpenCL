@@ -32,9 +32,9 @@ public:
 
     void compute_stddev(LVFrame *new_frame, cl_uint new_N);
 
-    static std::array<cl_float, NUMBER_OF_BINS> getHistBinValues()
+    static std::array<float, NUMBER_OF_BINS> getHistBinValues()
     {
-        std::array<cl_float, NUMBER_OF_BINS> values;
+        std::array<float, NUMBER_OF_BINS> values;
         cl_float max = log((1 << 16)); // ln 2^16
         cl_float increment = (max - 0) / NUMBER_OF_BINS;
         cl_float acc = 0;
@@ -63,7 +63,7 @@ private:
     cl_uint currentN;
     cl_context context;
     std::vector<cl_device_id> deviceIds;
-    std::array<cl_uint, NUMBER_OF_BINS> zero_buf;
+    std::array<unsigned int, NUMBER_OF_BINS> zero_buf;
     cl_mem devInputBuffer;
     cl_mem devOutputBuffer;
     cl_mem hist_bins;

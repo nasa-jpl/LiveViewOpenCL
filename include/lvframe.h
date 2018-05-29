@@ -2,8 +2,8 @@
 #define LVFRAME_H
 
 #include <errno.h>
-#include <sys/mman.h>
 #include <sys/time.h>
+#include <sys/mman.h>
 #include <sys/resource.h>
 
 #include <QtGlobal>
@@ -32,8 +32,10 @@ struct LVFrame
         }
         rlimit cur_lims;
         checkError(getrlimit(RLIMIT_MEMLOCK, &cur_lims));
-        rlimit new_lims = { RLIM_INFINITY, RLIM_INFINITY };
-        checkError(setrlimit(RLIMIT_MEMLOCK, &new_lims));
+        if (cur_limit.rlim_cur != RLIM_INFINITY) {
+            rlimit new_limit = { RLIM_INFINITY, RLIM_INFINITY };
+            checkError(setrlimit(RLIMIT_MEMLOCK, &new_limit));
+        }
         checkError(mlock(raw_data, frSize * sizeof(uint16_t)));
         checkError(mlock(sdv_data, frSize * sizeof(float)));
     }
@@ -57,7 +59,7 @@ struct LVFrame
             qWarning("[Errno %d]: %s: %d", errno, buffer, res);
 #else
             char* err;
-            err = strerror_r(errno, err, 256);
+            err = strerror_r(errno, buffer, 256);
             qWarning("[Errno %d]: %s", errno, err);
 #endif
         }

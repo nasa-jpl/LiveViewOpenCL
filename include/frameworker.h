@@ -14,6 +14,7 @@
 #include "cameramodel.h"
 #include "debugcamera.h"
 #include "ssdcamera.h"
+#include "clcamera.h"
 #include "darksubfilter.h"
 #include "stddevfilter.h"
 #include "constants.h"

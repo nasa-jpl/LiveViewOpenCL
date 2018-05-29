@@ -48,6 +48,8 @@ public slots:
 
 private:
     std::vector<LVFrame*> frame_vec;
+    uint16_t fbIndex;
+    inline uint16_t incIndex() { return (size_t)(fbIndex + 1) >= frame_vec.size() ? 0 : fbIndex + 1; }
 };
 
 FrameWorker::FrameWorker(QThread *worker, QObject *parent)
@@ -55,8 +57,8 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
       count(0), count_prev(0),
       save_framenum(0), save_count(0), save_num_avgs(1)
 {
-    Camera = new SSDCamera();
-
+    // const std::string search_dir = "/";
+    Camera = new CLCamera();
     bool cam_started = Camera->start();
 
     if (!cam_started) {
