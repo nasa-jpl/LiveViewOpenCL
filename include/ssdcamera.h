@@ -28,8 +28,7 @@ class SSDCamera : public CameraModel
     Q_OBJECT
 
 public:
-    SSDCamera(const std::string search_dir,
-              unsigned int frWidth = 640,
+    SSDCamera(unsigned int frWidth = 640,
               unsigned int frHeight = 480,
               unsigned int dataHeight = 480,
               QObject *parent = NULL);

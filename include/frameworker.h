@@ -40,6 +40,8 @@ public:
     float* getSDFrame();
     uint32_t* getHistData();
 
+    void saveFrames(std::string fname_out, unsigned int num_avgs, unsigned int num_frames);
+
     void setCenter(double Xcoord, double Ycoord);
     QPointF* getCenter();
 
@@ -52,6 +54,7 @@ signals:
     void finished();
     void error(const QString &error);
     void updateFPS(float fps);
+    void doneSaving();
     void crosshairChanged(const QPointF &coord);
 
 public slots:
@@ -66,7 +69,7 @@ private:
     QThread *thread;
     LVFrameBuffer *lvframe_buffer;
     CameraModel *Camera;
-    void delay(int usecs);
+    void delay(int msecs);
 
     bool pixRemap;
     bool isRunning;
@@ -77,6 +80,11 @@ private:
     camera_t cam_type;
 
     uint32_t stddev_N; // controls standard deviation history window
+
+    std::list<uint16_t*> saveframe_list;
+    std::atomic<uint_fast32_t> save_framenum;
+    std::atomic<uint_fast32_t> save_count;
+    unsigned int save_num_avgs;
 
     QPointF centerVal;
 

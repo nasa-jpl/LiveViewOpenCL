@@ -1,11 +1,9 @@
 #include "ssdcamera.h"
 
-SSDCamera::SSDCamera(const std::string search_dir,
-        unsigned int frWidth, unsigned int frHeight,
-        unsigned int dataHeight,
+SSDCamera::SSDCamera(unsigned int frWidth,
+        unsigned int frHeight, unsigned int dataHeight,
         QObject *parent
 ) : CameraModel(parent),
-    data_dir(search_dir),
     nFrames(32),
     headsize(frWidth * sizeof(uint16_t)),
     image_no(0)
@@ -38,6 +36,14 @@ bool SSDCamera::start()
 void SSDCamera::setDir(const char *dirname)
 {
     data_dir = dirname;
+    qDebug() << data_dir.data();
+    if (data_dir.empty()) {
+        if (running) {
+            running = false;
+            emit timeout();
+        }
+        return;
+    }
     xio_files.clear();
     dev_p.clear();
     dev_p.close();
@@ -63,6 +69,9 @@ std::string SSDCamera::getFname()
     std::string fname; // will return empty string if no unread files are found.
     std::vector<std::string> fname_list;
     bool has_file = false;
+    if (data_dir.empty()) {
+        return fname;
+    }
     if (image_no < xio_files.size()) {
         fname = xio_files[image_no++];
     } else {

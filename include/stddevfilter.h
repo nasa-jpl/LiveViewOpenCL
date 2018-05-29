@@ -55,6 +55,7 @@ private:
     cl_program CreateProgram(const std::string &source,
                              cl_context context);
 
+    cl_uint device_num;
     cl_int gpu_buffer_head;
     cl_uint frWidth;
     cl_uint frHeight;

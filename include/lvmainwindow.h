@@ -2,6 +2,7 @@
 #define LVMAINWINDOW_H
 
 #include <QMainWindow>
+#include <QMenu>
 #include <QThread>
 #include <QVBoxLayout>
 #include <QDebug>
@@ -17,6 +18,7 @@
 class LVMainWindow : public QMainWindow
 {
     Q_OBJECT
+
 public:
     LVMainWindow(QWidget *parent = NULL);
     ~LVMainWindow();
@@ -24,7 +26,21 @@ public:
 public slots:
     void errorString(const QString &);
 
+protected:
+#ifndef QT_NO_CONTEXTMENU
+    void contextMenuEvent(QContextMenuEvent *event) override;
+#endif // QT_NO_CONTEXTMENU
+
 private:
+    void createActions();
+    void createMenus();
+
+    QMenu *fileMenu;
+    QAction *openAct;
+    QAction *saveAct;
+    QAction *saveAsAct;
+    QAction *exitAct;
+
     FrameWorker* fw;
     QFuture<void> DSLoop;
     QFuture<void> SDLoop;
@@ -36,6 +52,14 @@ private:
     line_widget* spec_display;
     line_widget* spat_display;
     ControlsBox* cbox;
+
+    QString default_dir;
+    QString save_filename;
+
+private slots:
+    void open();
+    void save();
+    void saveAs();
 };
 
 #endif // LVMAINWINDOW_H

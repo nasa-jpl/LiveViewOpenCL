@@ -20,11 +20,6 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
     precisionBox = new QCheckBox("Precision Slider");
     connect(precisionBox, SIGNAL(toggled(bool)), this, SLOT(setPrecision(bool)));
 
-    dirEdit = new QLineEdit();
-    dirEdit->setFixedWidth(750);
-    QPushButton *resetButton = new QPushButton("&Reset");
-    connect(resetButton, SIGNAL(released()), this, SLOT(resetDir()));
-
     maskButton = new QPushButton("&Collect Mask Frames");
     connect(maskButton, SIGNAL(released()), this, SLOT(collectDSFMask()));
 
@@ -33,10 +28,7 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
     cboxLayout->addWidget(new QLabel("Range:"), 0, 1, 1, 1);
     cboxLayout->addWidget(rangeSlider, 0, 2, 1, 5);
     cboxLayout->addWidget(precisionBox, 0, 7, 1, 2);
-    cboxLayout->addWidget(maskButton, 1, 0, 1, 1);
-    cboxLayout->addWidget(new QLabel("Input directory:"), 1, 1, 1, 1);
-    cboxLayout->addWidget(dirEdit, 1, 2, 1, 5);
-    cboxLayout->addWidget(resetButton, 1, 7, 1, 1);
+    cboxLayout->addWidget(maskButton, 0, 8, 1, 1);
     this->setLayout(cboxLayout);
     this->setMaximumHeight(100);
 }
@@ -79,14 +71,6 @@ void ControlsBox::setPrecision(bool isPrecise)
     // update the range slider positions
     rangeSlider->setPositions(viewWidget->getFloor() / viewWidget->getDataMax() * 100,
                               viewWidget->getCeiling() / viewWidget->getDataMax() * 100);
-}
-
-void ControlsBox::resetDir()
-{
-    QString dirname = dirEdit->text();
-    QByteArray ba = dirname.toLatin1();
-    const char *dname = ba.data();
-    frame_handler->resetDir(dname);
 }
 
 void ControlsBox::collectDSFMask()

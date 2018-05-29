@@ -52,11 +52,13 @@ private:
 
 FrameWorker::FrameWorker(QThread *worker, QObject *parent)
     : QObject(parent), thread(worker),
-      count(0), count_prev(0)
+      count(0), count_prev(0),
+      save_framenum(0), save_count(0), save_num_avgs(1)
 {
-    const std::string search_dir = "/";
-    Camera = new SSDCamera(search_dir);
+    Camera = new SSDCamera();
+
     bool cam_started = Camera->start();
+
     if (!cam_started) {
         emit error(QString("Unable to start camera stream! This is fatal."));
         frWidth = 0;
@@ -71,6 +73,7 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
         connect(Camera, &CameraModel::timeout, this, &FrameWorker::reportTimeout);
         isRunning = true;    // now set up to enter the event loop
     }
+
     frSize = frWidth * dataHeight;
     lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frSize);
     DSFilter = new DarkSubFilter(frSize);
@@ -81,7 +84,10 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
         qWarning("Standard Deviation and Histogram computation will be disabled.");
     }
 
+    saveframe_list.clear();
+
     centerVal += QPointF(-1.0, -1.0);
+
 }
 
 FrameWorker::~FrameWorker()
@@ -114,22 +120,10 @@ void FrameWorker::captureFrames()
     qDebug("About to start capturing frames");
     high_resolution_clock::time_point beg, end;
     uint32_t duration;
-    // QTime clock;
-    // clock.start();
 
     QTimer *fpsclock = new QTimer(this);
-    connect(fpsclock, SIGNAL(timeout()), this, SLOT(reportFPS()));
+    connect(fpsclock, &QTimer::timeout, this, &FrameWorker::reportFPS);
     fpsclock->start(1000);
-
-    /* FutureManager *DSman = new FutureManager();
-    QFuture<void> DSCompute;
-    connect(DSman, &FutureManager::incIndex,
-            lvframe_buffer, &LVFrameBuffer::incDSF);
-    FutureManager *STDman = new FutureManager();
-    QFuture<void> STDCompute;
-    connect(STDman, &FutureManager::incIndex,
-            lvframe_buffer, &LVFrameBuffer::incSTD);
-    */
 
     while (isRunning) {
         beg = high_resolution_clock::now();
@@ -137,26 +131,13 @@ void FrameWorker::captureFrames()
         end = high_resolution_clock::now();
 
         duration = duration_cast<milliseconds>(end - beg).count();
-        if (duration < 100) {
-            delay(100 - duration);
-        } else {
-            qDebug() << duration;
+        if (duration < FRAME_PERIOD_MS) {
+            delay(FRAME_PERIOD_MS - duration);
         }
 
-        // DSCompute = QtConcurrent::run(DSFilter, &DarkSubFilter::dsf_callback, lvframe_buffer->current()->raw_data, lvframe_buffer->current()->dsf_data);
-        // DSman->addFuture(DSCompute);
-        // STDCompute = QtConcurrent::run(STDFilter, &StdDevFilter::compute_stddev, lvframe_buffer->current(), stddev_N);
-        // STDman->addFuture(STDCompute);
-        // DSFilter->dsf_callback(lvframe_buffer->current()->raw_data, lvframe_buffer->current()->dsf_data);
-        // STDFilter->compute_stddev(lvframe_buffer->current(), stddev_N);
         lvframe_buffer->incIndex();
 
         count++;
-        /* if (count % 100 == 0) {
-            if (Camera->isRunning()) {
-                emit updateFPS(100.0 / clock.restart() * 1000.0);
-            }
-        } */
     }
 }
 
@@ -187,6 +168,90 @@ void FrameWorker::captureSDFrames()
             last_complete = lvframe_buffer->lastIndex;
         }
     }
+}
+
+void FrameWorker::saveFrames(std::string fname_out, unsigned int num_avgs, unsigned int num_frames)
+{
+    save_framenum.store(0, std::memory_order_seq_cst);
+    save_count.store(0, std::memory_order_seq_cst);
+    save_framenum.store(num_frames, std::memory_order_seq_cst);
+    save_count.store(0, std::memory_order_seq_cst);
+
+    std::string hdr_fname = fname_out.substr(0, fname_out.size() - 3) + "hdr";
+    FILE *file_out = fopen(fname_out.c_str(), "wb");
+
+    int sv_count = 0;
+
+    while (save_framenum != 0 || !saveframe_list.empty()) {
+        if (!saveframe_list.empty()) {
+            if (num_avgs == 1) {
+                uint16_t *data = saveframe_list.back();
+                saveframe_list.pop_back();
+                fwrite(data, sizeof(uint16_t), frWidth * dataHeight, file_out);
+                delete[] data;
+                sv_count++;
+                if (sv_count == 1) {
+                    save_count.store(1, std::memory_order_seq_cst);
+                } else {
+                    save_count++;
+                }
+            } else if (saveframe_list.size() >= num_avgs && num_avgs != 1) {
+                float *data = new float[frWidth * dataHeight];
+                for (unsigned int i2 = 0; i2 < num_avgs; i2++) {
+                    uint16_t *data2 = saveframe_list.back();
+                    saveframe_list.pop_back();
+                    if (i2 == 0) {
+                        for (unsigned int i = 0; i < frWidth * dataHeight; i++) {
+                            data[i] = (float)data2[i];
+                        }
+                    } else if (i2 == num_avgs - 1) {
+                        for (unsigned int i = 0; i < frWidth * dataHeight; i++) {
+                            data[i] = (data[i] + (float)data2[i]) / num_avgs;
+                        }
+                    } else {
+                        for (unsigned int i = 0; i < frWidth * dataHeight; i++) {
+                            data[i] += (float)data2[i];
+                        }
+                    }
+                    delete[] data2;
+                }
+                fwrite(data, sizeof(float), frWidth * dataHeight, file_out);
+                delete[] data;
+                sv_count++;
+                if (sv_count == 1) {
+                    save_count.store(1, std::memory_order_seq_cst);
+                } else {
+                    save_count++;
+                }
+            } else if (save_framenum == 0 && saveframe_list.size() < num_avgs) {
+                saveframe_list.erase(saveframe_list.begin(), saveframe_list.end());
+            } else {
+                usleep(250);
+            }
+        } else {
+            usleep(250);
+        }
+    }
+    fclose(file_out);
+
+    std::string hdr_text = "ENVI\ndescription = {LIVEVIEW raw export file, " + std::to_string(num_avgs) + " frame mean per acquisition}\n";
+    hdr_text += "samples = " + std::to_string(frWidth) + "\n";
+    hdr_text += "lines   = " + std::to_string(sv_count) + "\n";
+    hdr_text += "bands   = " + std::to_string(dataHeight) + "\n";
+    hdr_text += "header offset = 0\nfile type = ENVI Standard\n";
+    if (num_avgs != 1) {
+        hdr_text += "data type = 4\n";
+    } else {
+        hdr_text += "data type = 12\n";
+    }
+    hdr_text += "interleave = bil\nsensor type = Unknown\nbyte order = 0\nwavelength units = Unknown\n";
+
+    std::ofstream hdr_out(hdr_fname);
+    hdr_out << hdr_text;
+    hdr_out.close();
+    save_count.store(0, std::memory_order_seq_cst);
+    qDebug() << "Done saving frames!";
+    emit doneSaving();
 }
 
 void FrameWorker::reportFPS()

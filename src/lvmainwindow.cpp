@@ -61,6 +61,9 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
 
+    createActions();
+    createMenus();
+
 }
 
 LVMainWindow::~LVMainWindow()
@@ -73,4 +76,78 @@ LVMainWindow::~LVMainWindow()
 void LVMainWindow::errorString(const QString &errstr)
 {
     qWarning() << errstr;
+}
+
+void LVMainWindow::createActions()
+{
+    openAct = new QAction("&Open", this);
+    openAct->setShortcuts(QKeySequence::Open);
+    openAct->setStatusTip("Open an existing data set");
+    connect(openAct, &QAction::triggered, this, &LVMainWindow::open);
+
+    saveAct = new QAction("&Save", this);
+    saveAct->setShortcuts(QKeySequence::Save);
+    saveAct->setStatusTip("Save frames to file");
+    connect(saveAct, &QAction::triggered, this, &LVMainWindow::save);
+
+    saveAsAct = new QAction("&Save As...", this);
+    saveAsAct->setShortcuts(QKeySequence::SaveAs);
+    saveAsAct->setStatusTip("Select a location to save frames");
+    connect(saveAsAct, &QAction::triggered, this, &LVMainWindow::saveAs);
+
+    exitAct = new QAction("E&xit", this);
+    exitAct->setShortcuts(QKeySequence::Quit);
+    exitAct->setStatusTip("Exit LiveView");
+    connect(exitAct, &QAction::triggered, this, &QWidget::close);
+}
+
+void LVMainWindow::createMenus()
+{
+    fileMenu = menuBar()->addMenu("&File");
+    fileMenu->addAction(openAct);
+    fileMenu->addAction(saveAct);
+    fileMenu->addAction(saveAsAct);
+    fileMenu->addSeparator();
+    fileMenu->addAction(exitAct);
+}
+
+#ifndef QT_NO_CONTEXTMENU
+void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu menu(this);
+    menu.addAction(openAct);
+    menu.addAction(saveAct);
+    menu.addAction(exitAct);
+    menu.exec(event->globalPos());
+}
+#endif // QT_NO_CONTEXTMENU
+
+void LVMainWindow::open()
+{
+    default_dir = "/Users/jryan/aviris";
+    QString dir_name = QFileDialog::getExistingDirectory(this, "Open Data Directory",
+                           default_dir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    fw->resetDir(dir_name.toLatin1().data());
+}
+
+void LVMainWindow::save()
+{
+    if (save_filename.isEmpty()) {
+        saveAs();
+        if (save_filename.isEmpty()) {
+            return;
+        }
+    } else {
+        QtConcurrent::run(fw, &FrameWorker::saveFrames, save_filename.toStdString(), 1, 10);
+    }
+}
+
+void LVMainWindow::saveAs()
+{
+    save_filename = QFileDialog::getSaveFileName(this, "Save Raw Frames",
+                        default_dir, "Raw Camera Frames (*.raw);;All files (*.*)");
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+    if (!save_filename.isEmpty()) {
+        QtConcurrent::run(fw, &FrameWorker::saveFrames, save_filename.toStdString(), 1, 10);
+    }
 }

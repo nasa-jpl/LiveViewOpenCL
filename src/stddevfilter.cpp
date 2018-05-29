@@ -48,6 +48,10 @@ bool StdDevFilter::start()
     for (cl_uint i = 0; i < deviceIdCount; i++) {
         qDebug() << "\t (" << (i+1) << ") :" << GetDeviceName(deviceIds[i]).data();
     }
+    device_num = 0;
+    if (deviceIdCount > 1) {
+        device_num = deviceIdCount - 1;
+    }
 
     const cl_context_properties contextProperties [] =
     {
@@ -65,12 +69,12 @@ bool StdDevFilter::start()
     build_options.append(QString::number(NUMBER_OF_BINS));
 
     program = CreateProgram(LoadKernel(":kernel/stddev.cl"), context);
-    error = clBuildProgram(program, 1, &(deviceIds[2]),
+    error = clBuildProgram(program, 1, &(deviceIds[device_num]),
                   build_options.toStdString().data(), 0, NULL);
     if (error != CL_SUCCESS) {
         cl_int errcode;
         size_t build_log_len;
-        errcode = clGetProgramBuildInfo(program, deviceIds[2],
+        errcode = clGetProgramBuildInfo(program, deviceIds[device_num],
                 CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_len);
         if (errcode) {
             qDebug("clGetProgramBuildInfo failed at line %d", __LINE__);
@@ -79,7 +83,7 @@ bool StdDevFilter::start()
 
         std::vector<char> buff_erro(build_log_len);
 
-        errcode = clGetProgramBuildInfo(program, deviceIds[2],
+        errcode = clGetProgramBuildInfo(program, deviceIds[device_num],
                 CL_PROGRAM_BUILD_LOG, build_log_len, buff_erro.data(), NULL);
         if (errcode) {
             qDebug("clGetProgramBuildInfo failed at line %d", __LINE__);
@@ -120,7 +124,7 @@ bool StdDevFilter::start()
     clSetKernelArg(kernel, 6, sizeof(cl_int), &gpu_buffer_head);
     clSetKernelArg(kernel, 7, sizeof(cl_uint), &N);
 
-    commandQueue = clCreateCommandQueue(context, deviceIds[2], 0, &error);
+    commandQueue = clCreateCommandQueue(context, deviceIds[device_num], 0, &error);
     CheckError(error, __LINE__);
 
     CheckError(clEnqueueWriteBuffer(commandQueue, hist_bins, CL_TRUE, 0, NUMBER_OF_BINS * sizeof(cl_float),
@@ -283,15 +287,15 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
     size_t offset[3] = { 0 };
     size_t work_size[3] = { frWidth, frHeight, N };
     size_t max_work_size;
-    CheckError(clGetDeviceInfo(deviceIds[2], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
+    CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
     double work_dim = sqrt(max_work_size);
     size_t local_work_size[2] = { (size_t)work_dim, (size_t)work_dim };
     CheckError(clEnqueueNDRangeKernel(commandQueue, kernel, 2,
                                       offset, work_size, local_work_size,
                                       0, NULL, NULL), __LINE__);
-    CheckError(clEnqueueReadBuffer(commandQueue, devOutputBuffer, CL_TRUE, 0, frWidth * frHeight * sizeof(cl_float),
+    CheckError(clEnqueueReadBuffer(commandQueue, devOutputBuffer, CL_FALSE, 0, frWidth * frHeight * sizeof(cl_float),
                                    new_frame->sdv_data, 0, NULL, NULL), __LINE__);
-    CheckError(clEnqueueReadBuffer(commandQueue, devOutputHist, CL_TRUE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
+    CheckError(clEnqueueReadBuffer(commandQueue, devOutputHist, CL_FALSE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
                                        new_frame->hist_data, 0, NULL, NULL), __LINE__);
 
     if (++gpu_buffer_head == GPU_FRAME_BUFFER_SIZE) {

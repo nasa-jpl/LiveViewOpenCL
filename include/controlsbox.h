@@ -21,7 +21,6 @@ public:
     ~ControlsBox();
 
 public slots:
-    void resetDir();
     void collectDSFMask();
     void tabChanged(int);
 
@@ -30,20 +29,18 @@ private slots:
     void setPrecision(bool isPrecise);
 
 private:
-    FrameWorker* frame_handler;
-    QLabel* fpsLabel;
+    FrameWorker *frame_handler;
+    QLabel *fpsLabel;
 
     QTabWidget* tab_handler;
 
     LVTabApplication* getCurrentTab();
-    LVTabApplication* viewWidget;
+    LVTabApplication *viewWidget;
 
-    ctkRangeSlider* rangeSlider;
-    QCheckBox* precisionBox;
+    ctkRangeSlider *rangeSlider;
+    QCheckBox *precisionBox;
 
-    QLineEdit* dirEdit;
-
-    QPushButton* maskButton;
+    QPushButton *maskButton;
     bool collecting_mask;
 };
 
