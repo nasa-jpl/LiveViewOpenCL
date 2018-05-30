@@ -72,6 +72,12 @@ private:
     cl_program program;
     cl_kernel kernel;
 
+    size_t offset[3] = { 0 };
+    size_t work_size[3];
+    size_t max_work_size;
+    size_t local_work_size[2];
+
+
 };
 
 #endif // STDDEVFILTER_H

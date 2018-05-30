@@ -124,6 +124,14 @@ bool StdDevFilter::start()
     clSetKernelArg(kernel, 6, sizeof(cl_int), &gpu_buffer_head);
     clSetKernelArg(kernel, 7, sizeof(cl_uint), &N);
 
+    work_size[0] = frWidth;
+    work_size[1] = frHeight;
+    work_size[2] = N;
+    CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
+    double work_dim = sqrt(max_work_size);
+    local_work_size[0] = (size_t)work_dim;
+    local_work_size[1] = (size_t)work_dim;
+
     commandQueue = clCreateCommandQueue(context, deviceIds[device_num], 0, &error);
     CheckError(error, __LINE__);
 
@@ -277,26 +285,29 @@ cl_program StdDevFilter::CreateProgram(const std::string &source, cl_context con
 void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
 {
     static int count = 0;
+    cl_event frame_written, hist_written, kernel_complete, frame_read, hist_read;
     N = new_N;
+
     size_t devMemOffset = gpu_buffer_head * frWidth * frHeight * sizeof(cl_ushort);
     CheckError(clEnqueueWriteBuffer(commandQueue, devInputBuffer, CL_FALSE, devMemOffset, frWidth * frHeight * sizeof(cl_ushort),
-                         new_frame->raw_data, 0, NULL, NULL), __LINE__);
+                         new_frame->raw_data, 0, NULL, &frame_written), __LINE__);
     CheckError(clEnqueueWriteBuffer(commandQueue, devOutputHist, CL_FALSE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
-                zero_buf.data(), 0, NULL, NULL), __LINE__);
+                zero_buf.data(), 0, NULL, &hist_written), __LINE__);
 
-    size_t offset[3] = { 0 };
-    size_t work_size[3] = { frWidth, frHeight, N };
-    size_t max_work_size;
-    CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
-    double work_dim = sqrt(max_work_size);
-    size_t local_work_size[2] = { (size_t)work_dim, (size_t)work_dim };
+    const cl_event kernel_wait_list[2] = { frame_written, hist_written };
+
+
     CheckError(clEnqueueNDRangeKernel(commandQueue, kernel, 2,
                                       offset, work_size, local_work_size,
-                                      0, NULL, NULL), __LINE__);
+                                      2, kernel_wait_list, &kernel_complete), __LINE__);
     CheckError(clEnqueueReadBuffer(commandQueue, devOutputBuffer, CL_FALSE, 0, frWidth * frHeight * sizeof(cl_float),
-                                   new_frame->sdv_data, 0, NULL, NULL), __LINE__);
+                                   new_frame->sdv_data, 1, &kernel_complete, &frame_read), __LINE__);
     CheckError(clEnqueueReadBuffer(commandQueue, devOutputHist, CL_FALSE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
-                                       new_frame->hist_data, 0, NULL, NULL), __LINE__);
+                                       new_frame->hist_data, 1, &kernel_complete, &hist_read), __LINE__);
+
+    const cl_event end_wait_list[2] = { frame_read, hist_read };
+    CheckError(clWaitForEvents(2, end_wait_list), __LINE__);
+    qDebug() << new_frame->raw_data[1024] << new_frame->sdv_data[1024];
 
     if (++gpu_buffer_head == GPU_FRAME_BUFFER_SIZE) {
         gpu_buffer_head = 0;
@@ -305,5 +316,4 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
         currentN++;
     }
     count++;
-
 }
