@@ -296,7 +296,6 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
 
     const cl_event kernel_wait_list[2] = { frame_written, hist_written };
 
-
     CheckError(clEnqueueNDRangeKernel(commandQueue, kernel, 2,
                                       offset, work_size, local_work_size,
                                       2, kernel_wait_list, &kernel_complete), __LINE__);
@@ -307,7 +306,6 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
 
     const cl_event end_wait_list[2] = { frame_read, hist_read };
     CheckError(clWaitForEvents(2, end_wait_list), __LINE__);
-    qDebug() << new_frame->raw_data[1024] << new_frame->sdv_data[1024];
 
     if (++gpu_buffer_head == GPU_FRAME_BUFFER_SIZE) {
         gpu_buffer_head = 0;

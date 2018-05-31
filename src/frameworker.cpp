@@ -56,7 +56,6 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
       save_framenum(0), save_count(0), save_num_avgs(1)
 {
     Camera = new SSDCamera();
-
     bool cam_started = Camera->start();
 
     if (!cam_started) {
