@@ -23,7 +23,7 @@ bool DebugCamera::start()
     if (!dev_p.is_open()) {
         qDebug("Could not open file. Does it exist?");
         dev_p.clear();
-        return running;
+        return running.load();
     }
 
     qDebug() << "Successfully opened" << ifname.data();
@@ -42,8 +42,8 @@ bool DebugCamera::start()
     }
     curIndex = -1;
     dev_p.close();
-    running = true;
-    return running;
+    running.store(true);
+    return running.load();
 }
 
 uint16_t* DebugCamera::getFrame()

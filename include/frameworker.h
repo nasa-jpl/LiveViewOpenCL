@@ -1,6 +1,7 @@
 #ifndef FRAMEWORKER_H
 #define FRAMEWORKER_H
 
+#include <queue>
 #include <chrono>
 
 #include <QPointF>
@@ -14,7 +15,9 @@
 #include "cameramodel.h"
 #include "debugcamera.h"
 #include "ssdcamera.h"
-// #include "clcamera.h"
+#if !(__APPLE__ || __MACH__)
+#include "clcamera.h"
+#endif
 #include "darksubfilter.h"
 #include "stddevfilter.h"
 #include "constants.h"
@@ -33,6 +36,8 @@ public:
     void stop();
     bool running();
 
+    void resetDir(const char *dirname);
+
     float* getFrame();
 
     DarkSubFilter* DSFilter;
@@ -41,7 +46,7 @@ public:
     float* getSDFrame();
     uint32_t* getHistData();
 
-    void saveFrames(std::string fname_out, unsigned int num_avgs, unsigned int num_frames);
+    void saveFrames(std::string frame_fname, unsigned int num_frames);
 
     void setCenter(double Xcoord, double Ycoord);
     QPointF* getCenter();
@@ -63,7 +68,6 @@ public slots:
     void captureFrames();
     void captureDSFrames();
     void captureSDFrames();
-    void resetDir(const char *dirname);
     void reportFPS();
 
 private:
@@ -73,17 +77,16 @@ private:
     void delay(int msecs);
 
     bool pixRemap;
-    bool isRunning;
-    std::atomic<bool> isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
-    volatile unsigned int count;
-    unsigned int count_prev;
+    volatile bool isRunning;
+    bool isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
+    std::atomic<uint_fast64_t> count;
+    uint64_t count_prev;
     unsigned int frWidth, frHeight, dataHeight, frSize;
     camera_t cam_type;
 
     uint32_t stddev_N; // controls standard deviation history window
 
-    std::list<uint16_t*> saveframe_list;
-    std::atomic<uint_fast32_t> save_framenum;
+    std::queue<uint16_t*> frame_fifo;
     std::atomic<uint_fast32_t> save_count;
     unsigned int save_num_avgs;
 

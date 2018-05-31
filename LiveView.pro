@@ -55,7 +55,9 @@ SOURCES += \
         stddevfilter.cpp \
         histogram_widget.cpp \
         line_widget.cpp
-#        clcamera.cpp
+unix:!macx {
+   SOURCES += clcamera.cpp
+}
 
 HEADERS += \
         lvmainwindow.h \
@@ -77,7 +79,9 @@ HEADERS += \
         stddevfilter.h \
         histogram_widget.h \
         line_widget.h
-#        clcamera.h
+unix:!macx {
+    HEADERS += clcamera.h
+}
 
 RESOURCES += \
     images/images.qrc \
@@ -87,6 +91,6 @@ RESOURCES += \
 DISTFILES += \
     kernel/stddev.cl
 
-mac: LIBS += -framework OpenCL
+macx: LIBS += -framework OpenCL
 else:unix|win32: LIBS += -lOpenCL
-unix:LIBS += -L$$PWD/lib -lm -lpdv -ldl
+unix:!macx: LIBS += -L$$PWD/lib -lm -lpdv -ldl

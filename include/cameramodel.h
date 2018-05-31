@@ -17,7 +17,7 @@ class CameraModel : public QObject
     Q_OBJECT
 
 public:
-    CameraModel(QObject *parent = NULL) : QObject(parent), running(false) {}
+    CameraModel(QObject *parent = NULL) : QObject(parent) { running.store(false); }
     virtual ~CameraModel() {}
 
 
@@ -26,7 +26,7 @@ public:
 
     virtual void setDir(const char *filename) { Q_UNUSED(filename); }
 
-    virtual bool isRunning() { return running; }
+    virtual bool isRunning() { return running.load(); }
 
     unsigned int getFrameWidth() const { return frame_width; }
     unsigned int getFrameHeight() const { return frame_height; }

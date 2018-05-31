@@ -25,26 +25,32 @@ public:
             LVFrame* pFrame = new LVFrame(frame_size);
             frame_vec.push_back(pFrame);
         }
-        fbIndex = 0;
+        fbIndex.store(0, std::memory_order_release);
     }
 
     uint16_t size() const { return frame_vec.size(); }
 
     LVFrame* frame(uint16_t i) { return frame_vec.at(i); }
-    LVFrame* current() { return frame_vec.at(fbIndex); }
-    LVFrame* recent() { return frame_vec.at(lastIndex); }
-    LVFrame* lastDSF() { return frame_vec.at(dsfIndex); }
-    LVFrame* lastSTD() { return frame_vec.at(stdIndex); }
+    LVFrame* current() { return frame_vec.at(fbIndex.load()); }
+    LVFrame* recent() { return frame_vec.at(lastIndex.load()); }
+    LVFrame* lastDSF() { return frame_vec.at(dsfIndex.load()); }
+    LVFrame* lastSTD() { return frame_vec.at(stdIndex.load()); }
 
-    volatile int lastIndex;
+    std::atomic<int> lastIndex;
     std::atomic<int> fbIndex;
     std::atomic<int> dsfIndex;
     std::atomic<int> stdIndex;
 
 public slots:
-    inline void incIndex() { lastIndex = fbIndex; if (++fbIndex == (int)frame_vec.size()) { fbIndex = 0; } }
-    inline void incDSF() { if (++dsfIndex == (int)frame_vec.size()) { dsfIndex = 0; } }
-    inline void incSTD() { if (++stdIndex == (int)frame_vec.size()) { stdIndex = 0; } }
+    inline void incIndex()
+    {
+        lastIndex.store(fbIndex, std::memory_order_release);
+        if (++fbIndex == (int)frame_vec.size()) {
+            fbIndex.store(0, std::memory_order_release);
+        }
+    }
+    inline void incDSF() { if (++dsfIndex == (int)frame_vec.size()) { dsfIndex.store(0, std::memory_order_release); } }
+    inline void incSTD() { if (++stdIndex == (int)frame_vec.size()) { stdIndex.store(0, std::memory_order_release); } }
 
 private:
     std::vector<LVFrame*> frame_vec;
@@ -52,8 +58,7 @@ private:
 
 FrameWorker::FrameWorker(QThread *worker, QObject *parent)
     : QObject(parent), thread(worker),
-      count(0), count_prev(0),
-      save_framenum(0), save_count(0), save_num_avgs(1)
+      count(0), count_prev(0)
 {
     Camera = new SSDCamera();
     bool cam_started = Camera->start();
@@ -83,8 +88,6 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
         qWarning("Standard Deviation and Histogram computation will be disabled.");
     }
 
-    saveframe_list.clear();
-
     centerVal += QPointF(-1.0, -1.0);
 
 }
@@ -112,6 +115,7 @@ bool FrameWorker::running()
 void FrameWorker::reportTimeout()
 {
     emit updateFPS(-1.0);
+    isTimeout = true;
 }
 
 void FrameWorker::captureFrames()
@@ -130,6 +134,7 @@ void FrameWorker::captureFrames()
         end = high_resolution_clock::now();
 
         duration = duration_cast<milliseconds>(end - beg).count();
+
         if (duration < FRAME_PERIOD_MS) {
             delay(FRAME_PERIOD_MS - duration);
         }
@@ -144,111 +149,70 @@ void FrameWorker::captureDSFrames()
 {
     int last_complete = 0;
     while (isRunning) {
-        if (last_complete != lvframe_buffer->lastIndex) {
+        if (last_complete != lvframe_buffer->lastIndex.load()) {
             DSFilter->dsf_callback(lvframe_buffer->recent()->raw_data, lvframe_buffer->recent()->dsf_data);
             lvframe_buffer->incDSF();
-            last_complete = lvframe_buffer->lastIndex;
+            last_complete = lvframe_buffer->lastIndex.load();
+        } else {
+            usleep(250);
         }
     }
 }
 
 void FrameWorker::captureSDFrames()
 {
-    // high_resolution_clock::time_point beg, end;
-    // uint32_t duration;
     int last_complete = 0;
     while (isRunning) {
-        if (last_complete != lvframe_buffer->lastIndex) {
-            // beg = high_resolution_clock::now();
+        if (last_complete != lvframe_buffer->lastIndex.load()) {
             STDFilter->compute_stddev(lvframe_buffer->recent(), stddev_N);
-            // end = high_resolution_clock::now();
-            // duration = duration_cast<microseconds>(end - beg).count();
             lvframe_buffer->incSTD();
-            last_complete = lvframe_buffer->lastIndex;
-        }
-    }
-}
-
-void FrameWorker::saveFrames(std::string fname_out, unsigned int num_avgs, unsigned int num_frames)
-{
-    save_framenum.store(0, std::memory_order_seq_cst);
-    save_count.store(0, std::memory_order_seq_cst);
-    save_framenum.store(num_frames, std::memory_order_seq_cst);
-    save_count.store(0, std::memory_order_seq_cst);
-
-    std::string hdr_fname = fname_out.substr(0, fname_out.size() - 3) + "hdr";
-    FILE *file_out = fopen(fname_out.c_str(), "wb");
-
-    int sv_count = 0;
-
-    while (save_framenum != 0 || !saveframe_list.empty()) {
-        if (!saveframe_list.empty()) {
-            if (num_avgs == 1) {
-                uint16_t *data = saveframe_list.back();
-                saveframe_list.pop_back();
-                fwrite(data, sizeof(uint16_t), frWidth * dataHeight, file_out);
-                delete[] data;
-                sv_count++;
-                if (sv_count == 1) {
-                    save_count.store(1, std::memory_order_seq_cst);
-                } else {
-                    save_count++;
-                }
-            } else if (saveframe_list.size() >= num_avgs && num_avgs != 1) {
-                float *data = new float[frWidth * dataHeight];
-                for (unsigned int i2 = 0; i2 < num_avgs; i2++) {
-                    uint16_t *data2 = saveframe_list.back();
-                    saveframe_list.pop_back();
-                    if (i2 == 0) {
-                        for (unsigned int i = 0; i < frWidth * dataHeight; i++) {
-                            data[i] = (float)data2[i];
-                        }
-                    } else if (i2 == num_avgs - 1) {
-                        for (unsigned int i = 0; i < frWidth * dataHeight; i++) {
-                            data[i] = (data[i] + (float)data2[i]) / num_avgs;
-                        }
-                    } else {
-                        for (unsigned int i = 0; i < frWidth * dataHeight; i++) {
-                            data[i] += (float)data2[i];
-                        }
-                    }
-                    delete[] data2;
-                }
-                fwrite(data, sizeof(float), frWidth * dataHeight, file_out);
-                delete[] data;
-                sv_count++;
-                if (sv_count == 1) {
-                    save_count.store(1, std::memory_order_seq_cst);
-                } else {
-                    save_count++;
-                }
-            } else if (save_framenum == 0 && saveframe_list.size() < num_avgs) {
-                saveframe_list.erase(saveframe_list.begin(), saveframe_list.end());
-            } else {
-                usleep(250);
-            }
+            last_complete = lvframe_buffer->lastIndex.load();
         } else {
             usleep(250);
         }
     }
-    fclose(file_out);
+}
 
-    std::string hdr_text = "ENVI\ndescription = {LIVEVIEW raw export file, " + std::to_string(num_avgs) + " frame mean per acquisition}\n";
+void FrameWorker::saveFrames(std::string frame_fname, unsigned int num_frames)
+{
+    unsigned int next_frame = count.load();
+    uint16_t* p_frame = nullptr;
+    std::string hdr_fname;
+    save_count.store(0);
+
+    if (frame_fname.find_last_of(".") != std::string::npos) {
+        hdr_fname = frame_fname.substr(0, frame_fname.find_last_of(".") + 1) + "hdr";
+    } else {
+        hdr_fname = frame_fname + ".hdr";
+    }
+
+    std::ofstream p_file;
+    p_file.open(frame_fname, std::ofstream::binary);
+    while (save_count.load() < num_frames) {
+        if (count.load() > next_frame) {
+            frame_fifo.push(lvframe_buffer->frame(next_frame % CPU_FRAME_BUFFER_SIZE)->raw_data);
+        }
+        if (!frame_fifo.empty()) {
+            p_frame = frame_fifo.front();
+            p_file.write(reinterpret_cast<char*>(p_frame), frWidth * dataHeight * sizeof(uint16_t));
+            frame_fifo.pop();
+            if (++next_frame == CPU_FRAME_BUFFER_SIZE) { next_frame = 0; }
+            save_count++;
+        }
+    }
+    p_file.close();
+
+    std::string hdr_text = "ENVI\ndescription = {LIVEVIEW raw export file, " + std::to_string(num_frames) + " frame mean per acquisition}\n";
     hdr_text += "samples = " + std::to_string(frWidth) + "\n";
-    hdr_text += "lines   = " + std::to_string(sv_count) + "\n";
+    hdr_text += "lines   = " + std::to_string(num_frames) + "\n";
     hdr_text += "bands   = " + std::to_string(dataHeight) + "\n";
     hdr_text += "header offset = 0\nfile type = ENVI Standard\n";
-    if (num_avgs != 1) {
-        hdr_text += "data type = 4\n";
-    } else {
-        hdr_text += "data type = 12\n";
-    }
+    hdr_text += "data type = 12\n";
     hdr_text += "interleave = bil\nsensor type = Unknown\nbyte order = 0\nwavelength units = Unknown\n";
 
     std::ofstream hdr_out(hdr_fname);
     hdr_out << hdr_text;
     hdr_out.close();
-    save_count.store(0, std::memory_order_seq_cst);
     qDebug() << "Done saving frames!";
     emit doneSaving();
 }
@@ -256,9 +220,10 @@ void FrameWorker::saveFrames(std::string fname_out, unsigned int num_avgs, unsig
 void FrameWorker::reportFPS()
 {
     if (Camera->isRunning()) {
-        emit updateFPS((float)(count - count_prev));
+        isTimeout = false;
+        emit updateFPS((float)(count.load() - count_prev));
     }
-    count_prev = count;
+    count_prev = count.load();
 }
 
 void FrameWorker::resetDir(const char *dirname)

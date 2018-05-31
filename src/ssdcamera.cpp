@@ -38,8 +38,8 @@ void SSDCamera::setDir(const char *dirname)
     data_dir = dirname;
     qDebug() << data_dir.data();
     if (data_dir.empty()) {
-        if (running) {
-            running = false;
+        if (running.load()) {
+            running.store(false);
             emit timeout();
         }
         return;
@@ -47,7 +47,7 @@ void SSDCamera::setDir(const char *dirname)
     xio_files.clear();
     dev_p.clear();
     dev_p.close();
-    curIndex = -1;
+    curIndex.store(-1);
     image_no = 0;
     std::vector<std::string> fname_list;
     os::listdir(fname_list, data_dir);
@@ -107,8 +107,8 @@ void SSDCamera::readFile()
             dev_p.close();
         }
 
-        if (running) {
-            running = false;
+        if (running.load()) {
+            running.store(false);
             emit timeout();
         }
     } else {
@@ -137,7 +137,7 @@ void SSDCamera::readFile()
             dev_p.read(reinterpret_cast<char*>(frame_buf[n].data()), framesize);
         }
 
-        running = true;
+        running.store(true);
         dev_p.close();
     }
 }
@@ -146,13 +146,13 @@ uint16_t* SSDCamera::getFrame()
 {
     curIndex++;
 
-    if (curIndex >= nFrames) {
+    if (curIndex.load() >= nFrames) {
         readFile();
-        curIndex = 0;
+        curIndex.store(0);
     }
 
-    if (running) {
-        return frame_buf[curIndex].data();
+    if (running.load()) {
+        return frame_buf[curIndex.load()].data();
     } else {
         return dummy.data();
     }

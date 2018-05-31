@@ -64,12 +64,13 @@ uint16_t* CLCamera::getFrame()
 
     timeouts = pdv_timeouts(dev_p);
     if (timeouts > last_timeouts) {
-        pdv_timeout_restart(dev_p, TRUE);
+        pdv_timeout_restart(dev_p, true);
         last_timeouts = timeouts;
-        recovering_timeout = TRUE;
+        recovering_timeout = true;
+        emit timeout();
     } else if (recovering_timeout) {
-        pdv_timeout_restart(dev_p, TRUE);
-        recovering_timeout = FALSE;
+        pdv_timeout_restart(dev_p, true);
+        recovering_timeout = false;
     }
 
     return image_p;

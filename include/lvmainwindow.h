@@ -39,6 +39,7 @@ private:
     QAction *openAct;
     QAction *saveAct;
     QAction *saveAsAct;
+    QAction *resetAct;
     QAction *exitAct;
 
     FrameWorker* fw;
@@ -54,12 +55,14 @@ private:
     ControlsBox* cbox;
 
     QString default_dir;
+    QString source_dir;
     QString save_filename;
 
 private slots:
     void open();
     void save();
     void saveAs();
+    void reset();
 };
 
 #endif // LVMAINWINDOW_H

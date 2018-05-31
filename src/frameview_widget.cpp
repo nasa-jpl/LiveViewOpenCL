@@ -146,7 +146,7 @@ frameview_widget::~frameview_widget()
 
 void frameview_widget::handleNewFrame()
 {
-    if (!this->isHidden() && (frame_handler->running())) {
+    if (!this->isHidden() && frame_handler->running()) {
 
         float* image_data = (frame_handler->*p_getFrame)();
         for (unsigned int col = 0; col < frWidth; col++) {

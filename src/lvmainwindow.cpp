@@ -69,8 +69,8 @@ LVMainWindow::LVMainWindow(QWidget *parent)
 LVMainWindow::~LVMainWindow()
 {
     fw->stop();
-    SDLoop.waitForFinished();
     DSLoop.waitForFinished();
+    SDLoop.waitForFinished();
 }
 
 void LVMainWindow::errorString(const QString &errstr)
@@ -90,10 +90,15 @@ void LVMainWindow::createActions()
     saveAct->setStatusTip("Save frames to file");
     connect(saveAct, &QAction::triggered, this, &LVMainWindow::save);
 
-    saveAsAct = new QAction("&Save As...", this);
+    saveAsAct = new QAction("Save &As...", this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip("Select a location to save frames");
     connect(saveAsAct, &QAction::triggered, this, &LVMainWindow::saveAs);
+
+    resetAct = new QAction("&Reset", this);
+    resetAct->setShortcuts(QKeySequence::Refresh);
+    resetAct->setStatusTip("Restart the data stream");
+    connect(resetAct, &QAction::triggered, this, &LVMainWindow::reset);
 
     exitAct = new QAction("E&xit", this);
     exitAct->setShortcuts(QKeySequence::Quit);
@@ -106,7 +111,11 @@ void LVMainWindow::createMenus()
     fileMenu = menuBar()->addMenu("&File");
     fileMenu->addAction(openAct);
     fileMenu->addAction(saveAct);
+    // saveAct->setEnabled(false);
     fileMenu->addAction(saveAsAct);
+    fileMenu->addAction(resetAct);
+    // These two items will not appear in MacOS because they are handled automatically by the
+    // application menu.
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
 }
@@ -117,6 +126,8 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
     QMenu menu(this);
     menu.addAction(openAct);
     menu.addAction(saveAct);
+    menu.addAction(saveAsAct);
+    menu.addAction(resetAct);
     menu.addAction(exitAct);
     menu.exec(event->globalPos());
 }
@@ -124,10 +135,10 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
 
 void LVMainWindow::open()
 {
-    default_dir = "/Users/jryan/aviris";
-    QString dir_name = QFileDialog::getExistingDirectory(this, "Open Data Directory",
+    default_dir = "/Users/jryan/aviris/";
+    source_dir = QFileDialog::getExistingDirectory(this, "Open Data Directory",
                            default_dir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    fw->resetDir(dir_name.toLatin1().data());
+    fw->resetDir(source_dir.toLatin1().data());
 }
 
 void LVMainWindow::save()
@@ -138,7 +149,7 @@ void LVMainWindow::save()
             return;
         }
     } else {
-        QtConcurrent::run(fw, &FrameWorker::saveFrames, save_filename.toStdString(), 1, 10);
+        QtConcurrent::run(fw, &FrameWorker::saveFrames, save_filename.toStdString(), 10);
     }
 }
 
@@ -148,6 +159,12 @@ void LVMainWindow::saveAs()
                         default_dir, "Raw Camera Frames (*.raw);;All files (*.*)");
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
     if (!save_filename.isEmpty()) {
-        QtConcurrent::run(fw, &FrameWorker::saveFrames, save_filename.toStdString(), 1, 10);
+        // saveAct->setEnabled(true);
+        QtConcurrent::run(fw, &FrameWorker::saveFrames, save_filename.toStdString(), 10);
     }
+}
+
+void LVMainWindow::reset()
+{
+    fw->resetDir(source_dir.toLatin1().data());
 }

@@ -48,7 +48,7 @@ private:
     std::string data_dir;
     std::streampos bufsize;
     const unsigned int nFrames;
-    std::atomic<unsigned int> framesize;
+    unsigned int framesize;
     const unsigned int headsize;
 
     size_t image_no;
