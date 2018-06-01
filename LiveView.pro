@@ -54,7 +54,8 @@ SOURCES += \
         osutils.cpp \
         stddevfilter.cpp \
         histogram_widget.cpp \
-        line_widget.cpp
+        line_widget.cpp \
+        meanfilter.cpp
 unix:!macx {
    SOURCES += clcamera.cpp
 }
@@ -78,7 +79,8 @@ HEADERS += \
         lvtabapplication.h \
         stddevfilter.h \
         histogram_widget.h \
-        line_widget.h
+        line_widget.h \
+        meanfilter.h
 unix:!macx {
     HEADERS += clcamera.h
 }

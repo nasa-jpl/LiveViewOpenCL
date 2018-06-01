@@ -13,19 +13,23 @@
 
 struct LVFrame
 {
-    uint16_t* raw_data;
-    float* dsf_data;
-    float* sdv_data;
-    uint32_t* hist_data;
+    uint16_t *raw_data;
+    float *dsf_data;
+    float *sdv_data;
+    uint32_t *hist_data;
+    float *spectral_mean;
+    float *spatial_mean;
     const unsigned int frSize;
 
-    LVFrame(const unsigned int frame_size) : frSize(frame_size)
+    LVFrame(const unsigned int frame_width, const unsigned int frame_height) : frSize(frame_width * frame_height)
     {
         try {
-            raw_data = new uint16_t[frame_size];
-            dsf_data = new float[frame_size];
-            sdv_data = new float[frame_size];
+            raw_data = new uint16_t[frSize];
+            dsf_data = new float[frSize];
+            sdv_data = new float[frSize];
             hist_data = new uint32_t[NUMBER_OF_BINS];
+            spectral_mean = new float[frame_height];
+            spatial_mean = new float[frame_width];
         } catch (std::bad_alloc&) {
             qFatal("Not enough memory to allocate frame buffer.");
             throw;
@@ -47,6 +51,8 @@ struct LVFrame
         delete dsf_data;
         delete sdv_data;
         delete hist_data;
+        delete spectral_mean;
+        delete spatial_mean;
     }
 
     void checkError(int error)

@@ -160,9 +160,10 @@ void line_widget::handleNewFrame()
     if (!this->isHidden() && frame_handler->running()) {
         QPointF *center = frame_handler->getCenter();
         if (center->x() > -0.1) {
-            y = (this->*p_getLine)(*center);
+            y = (this->*p_getLine)(*center);     
             qcp->graph(0)->setData(x, y);
             callout->setText(QString(" x: %1 \n y: %2 ").arg((int)tracer->graphKey()).arg((int)y[(int)tracer->graphKey()]));
+            // replotting is slow when the data set is chaotic... TODO: develop an optimization here
             qcp->replot();
         }
     }

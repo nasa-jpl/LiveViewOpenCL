@@ -3,11 +3,11 @@
 class LVFrameBuffer
 {
 public:
-    LVFrameBuffer(const unsigned int num_frames, const unsigned int frame_size)
-        : lastIndex(0), fbIndex(0),  dsfIndex(0), stdIndex(0)
+    LVFrameBuffer(const unsigned int num_frames, const unsigned int frame_width, const unsigned int frame_height)
+        : lastIndex(0), fbIndex(0),  dsfIndex(0), stdIndex(0), meanIndex(0)
     {
         for (unsigned int f = 0; f < num_frames; ++f) {
-            LVFrame *pFrame = new LVFrame(frame_size);
+            LVFrame *pFrame = new LVFrame(frame_width, frame_height);
             frame_vec.push_back(pFrame);
         }
     }
@@ -17,12 +17,12 @@ public:
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
         Q_ASSERT(frame_vec.capacity() == 0);
     }
-    void reset(const unsigned int num_frames, const unsigned int frame_size)
+    void reset(const unsigned int num_frames, const unsigned int frame_width, const unsigned int frame_height)
     {
         frame_vec.clear();
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
         for (unsigned int f = 0; f < num_frames; ++f) {
-            LVFrame* pFrame = new LVFrame(frame_size);
+            LVFrame* pFrame = new LVFrame(frame_width, frame_height);
             frame_vec.push_back(pFrame);
         }
         fbIndex.store(0, std::memory_order_release);
@@ -35,11 +35,13 @@ public:
     LVFrame* recent() { return frame_vec.at(lastIndex.load()); }
     LVFrame* lastDSF() { return frame_vec.at(dsfIndex.load()); }
     LVFrame* lastSTD() { return frame_vec.at(stdIndex.load()); }
+    LVFrame* lastMean() { return frame_vec.at(meanIndex.load()); }
 
     std::atomic<int> lastIndex;
     std::atomic<int> fbIndex;
     std::atomic<int> dsfIndex;
     std::atomic<int> stdIndex;
+    std::atomic<int> meanIndex;
 
 public slots:
     inline void incIndex()
@@ -51,6 +53,7 @@ public slots:
     }
     inline void incDSF() { if (++dsfIndex == (int)frame_vec.size()) { dsfIndex.store(0, std::memory_order_release); } }
     inline void incSTD() { if (++stdIndex == (int)frame_vec.size()) { stdIndex.store(0, std::memory_order_release); } }
+    inline void incMean() { if (++meanIndex == (int)frame_vec.size()) { meanIndex.store(0, std::memory_order_release); } }
 
 private:
     std::vector<LVFrame*> frame_vec;
@@ -79,7 +82,7 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
     }
 
     frSize = frWidth * dataHeight;
-    lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frSize);
+    lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frWidth, dataHeight);
     DSFilter = new DarkSubFilter(frSize);
     stddev_N = MAX_N;
     STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
@@ -151,10 +154,13 @@ void FrameWorker::captureDSFrames()
     while (isRunning) {
         if (last_complete != lvframe_buffer->lastIndex.load()) {
             DSFilter->dsf_callback(lvframe_buffer->recent()->raw_data, lvframe_buffer->recent()->dsf_data);
+            MEFilter->compute_mean(lvframe_buffer->recent(), QPointF((qreal)0, (qreal)0), QPointF((qreal)frWidth, (qreal)dataHeight), false);
             lvframe_buffer->incDSF();
+            lvframe_buffer->incMean();
             last_complete = lvframe_buffer->lastIndex.load();
+
         } else {
-            usleep(250);
+            usleep(FRAME_PERIOD_MS * 1000);
         }
     }
 }
@@ -168,7 +174,7 @@ void FrameWorker::captureSDFrames()
             lvframe_buffer->incSTD();
             last_complete = lvframe_buffer->lastIndex.load();
         } else {
-            usleep(250);
+            usleep(FRAME_PERIOD_MS * 1000);
         }
     }
 }
@@ -255,6 +261,15 @@ float* FrameWorker::getSDFrame()
 uint32_t* FrameWorker::getHistData()
 {
     return lvframe_buffer->lastSTD()->hist_data;
+}
+
+float* FrameWorker::getSpatialMean()
+{
+    return lvframe_buffer->lastMean()->spatial_mean;
+}
+float* FrameWorker::getSpectralMean()
+{
+    return lvframe_buffer->lastMean()->spectral_mean;
 }
 
 void FrameWorker::delay(int msecs)

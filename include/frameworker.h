@@ -20,6 +20,7 @@
 #endif
 #include "darksubfilter.h"
 #include "stddevfilter.h"
+#include "meanfilter.h"
 #include "constants.h"
 
 class LVFrameBuffer;
@@ -42,9 +43,12 @@ public:
 
     DarkSubFilter* DSFilter;
     StdDevFilter* STDFilter;
+    MeanFilter* MEFilter;
     float* getDSFrame();
     float* getSDFrame();
     uint32_t* getHistData();
+    float* getSpectralMean();
+    float* getSpatialMean();
 
     void saveFrames(std::string frame_fname, unsigned int num_frames);
 
