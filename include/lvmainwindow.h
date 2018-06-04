@@ -42,17 +42,19 @@ private:
     QAction *resetAct;
     QAction *exitAct;
 
-    FrameWorker* fw;
+    FrameWorker *fw;
     QFuture<void> DSLoop;
     QFuture<void> SDLoop;
-    QTabWidget* tab_widget;
-    frameview_widget* raw_display;
-    frameview_widget* dsf_display;
-    frameview_widget* sdv_display;
-    histogram_widget* hst_display;
-    line_widget* spec_display;
-    line_widget* spat_display;
-    ControlsBox* cbox;
+    QTabWidget *tab_widget;
+    frameview_widget *raw_display;
+    frameview_widget *dsf_display;
+    frameview_widget *sdv_display;
+    histogram_widget *hst_display;
+    line_widget *spec_display;
+    line_widget *spec_mean_display;
+    line_widget *spat_display;
+    line_widget *spat_mean_display;
+    ControlsBox *cbox;
 
     QString default_dir;
     QString source_dir;

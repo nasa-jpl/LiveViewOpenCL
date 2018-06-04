@@ -26,9 +26,7 @@ public:
         lowerRangeBoundY = 0;
     }
 
-    virtual ~LVTabApplication()
-    {
-    }
+    virtual ~LVTabApplication() {}
 
     double getCeiling() { return ceiling; }
     double getFloor() { return floor; }

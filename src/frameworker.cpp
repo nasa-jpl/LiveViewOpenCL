@@ -35,13 +35,11 @@ public:
     LVFrame* recent() { return frame_vec.at(lastIndex.load()); }
     LVFrame* lastDSF() { return frame_vec.at(dsfIndex.load()); }
     LVFrame* lastSTD() { return frame_vec.at(stdIndex.load()); }
-    LVFrame* lastMean() { return frame_vec.at(meanIndex.load()); }
 
     std::atomic<int> lastIndex;
     std::atomic<int> fbIndex;
     std::atomic<int> dsfIndex;
     std::atomic<int> stdIndex;
-    std::atomic<int> meanIndex;
 
 public slots:
     inline void incIndex()
@@ -51,10 +49,8 @@ public slots:
             fbIndex.store(0, std::memory_order_release);
         }
     }
-    inline void incDSF() { if (++dsfIndex == (int)frame_vec.size()) { dsfIndex.store(0, std::memory_order_release); } }
-    inline void incSTD() { if (++stdIndex == (int)frame_vec.size()) { stdIndex.store(0, std::memory_order_release); } }
-    inline void incMean() { if (++meanIndex == (int)frame_vec.size()) { meanIndex.store(0, std::memory_order_release); } }
-
+    inline void setDSF(unsigned int f_num) { dsfIndex.store(f_num, std::memory_order_release); }
+    inline void setSTD(unsigned int f_num) { stdIndex.store(f_num, std::memory_order_release); }
 private:
     std::vector<LVFrame*> frame_vec;
 };
@@ -86,6 +82,7 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
     DSFilter = new DarkSubFilter(frSize);
     stddev_N = MAX_N;
     STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
+    MEFilter = new MeanFilter(frWidth, dataHeight);
     if (!STDFilter->start()) {
         qWarning("Unable to start OpenCL kernel.");
         qWarning("Standard Deviation and Histogram computation will be disabled.");
@@ -97,6 +94,7 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
 
 FrameWorker::~FrameWorker()
 {
+    isRunning = false;
     delete Camera;
     delete lvframe_buffer;
     delete DSFilter;
@@ -137,42 +135,48 @@ void FrameWorker::captureFrames()
         end = high_resolution_clock::now();
 
         duration = duration_cast<milliseconds>(end - beg).count();
-
-        if (duration < FRAME_PERIOD_MS) {
-            delay(FRAME_PERIOD_MS - duration);
-        }
-
         lvframe_buffer->incIndex();
 
         count++;
+        if (duration < FRAME_PERIOD_MS) {
+            delay(FRAME_PERIOD_MS - duration);
+        }
     }
 }
 
 void FrameWorker::captureDSFrames()
 {
-    int last_complete = 0;
-    while (isRunning) {
-        if (last_complete != lvframe_buffer->lastIndex.load()) {
-            DSFilter->dsf_callback(lvframe_buffer->recent()->raw_data, lvframe_buffer->recent()->dsf_data);
-            MEFilter->compute_mean(lvframe_buffer->recent(), QPointF((qreal)0, (qreal)0), QPointF((qreal)frWidth, (qreal)dataHeight), false);
-            lvframe_buffer->incDSF();
-            lvframe_buffer->incMean();
-            last_complete = lvframe_buffer->lastIndex.load();
+    int64_t count_framestart;
+    uint16_t store_point;
+    int64_t last_complete = 1;
 
+    while (isRunning) {
+        count_framestart = count.load() - 1;
+        if (last_complete < count_framestart) {
+            store_point = count_framestart % CPU_FRAME_BUFFER_SIZE;
+            DSFilter->dsf_callback(lvframe_buffer->frame(store_point)->raw_data, lvframe_buffer->frame(store_point)->dsf_data);
+            MEFilter->compute_mean(lvframe_buffer->frame(store_point), QPointF((qreal)0, (qreal)0), QPointF((qreal)frWidth, (qreal)dataHeight), false);
+            lvframe_buffer->setDSF(store_point);
+            last_complete = count_framestart;
         } else {
-            usleep(FRAME_PERIOD_MS * 1000);
+            usleep(FRAME_DISPLAY_PERIOD_MSECS * 1000);
         }
     }
 }
 
 void FrameWorker::captureSDFrames()
 {
-    int last_complete = 0;
+    int64_t count_framestart;
+    uint16_t store_point;
+    int64_t last_complete = 0;
+
     while (isRunning) {
-        if (last_complete != lvframe_buffer->lastIndex.load()) {
-            STDFilter->compute_stddev(lvframe_buffer->recent(), stddev_N);
-            lvframe_buffer->incSTD();
-            last_complete = lvframe_buffer->lastIndex.load();
+        count_framestart = count.load() - 1;
+        if (last_complete < count_framestart) {
+            store_point = count_framestart % CPU_FRAME_BUFFER_SIZE;
+            STDFilter->compute_stddev(lvframe_buffer->frame(store_point), stddev_N);
+            lvframe_buffer->setSTD(store_point);
+            last_complete = count_framestart;
         } else {
             usleep(FRAME_PERIOD_MS * 1000);
         }
@@ -265,11 +269,11 @@ uint32_t* FrameWorker::getHistData()
 
 float* FrameWorker::getSpatialMean()
 {
-    return lvframe_buffer->lastMean()->spatial_mean;
+    return lvframe_buffer->lastDSF()->spatial_mean;
 }
 float* FrameWorker::getSpectralMean()
 {
-    return lvframe_buffer->lastMean()->spectral_mean;
+    return lvframe_buffer->lastDSF()->spectral_mean;
 }
 
 void FrameWorker::delay(int msecs)

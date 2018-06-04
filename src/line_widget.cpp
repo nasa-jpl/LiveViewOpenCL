@@ -25,6 +25,18 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
         qcp->xAxis->setLabel("Spatial index");
         p_getLine = &line_widget::getSpatialLine;
         break;
+    case SPECTRAL_MEAN:
+        xAxisMax = frHeight;
+        qcp->xAxis->setLabel("Spectral index");
+        p_getLine = &line_widget::getSpectralMean;
+        plotTitle->setText(QString("Spectral Mean of Single Frame"));
+        break;
+    case SPATIAL_MEAN:
+        xAxisMax = frWidth;
+        qcp->xAxis->setLabel("Spatial index");
+        p_getLine = &line_widget::getSpatialMean;
+        plotTitle->setText(QString("Spatial Mean of Single Frame"));
+        break;
     default:
         xAxisMax = frHeight;
         qcp->xAxis->setLabel("Spectral index");
@@ -155,12 +167,41 @@ QVector<double> line_widget::getSpatialLine(QPointF coord)
     return graphData;
 }
 
+QVector<double> line_widget::getSpectralMean(QPointF coord)
+{
+    Q_UNUSED(coord);
+    QVector<double> graphData(frHeight);
+    float *mean_data = frame_handler->getSpectralMean();
+    for (size_t r = 0; r < frHeight; r++) {
+        graphData[r] = mean_data[r];
+    }
+    return graphData;
+}
+
+QVector<double> line_widget::getSpatialMean(QPointF coord)
+{
+    Q_UNUSED(coord);
+    QVector<double> graphData(frWidth);
+    float *mean_data = frame_handler->getSpatialMean();
+    for (size_t c = 0; c < frWidth; c++) {
+        graphData[c] = mean_data[c];
+    }
+    return graphData;
+}
+
+
 void line_widget::handleNewFrame()
 {
     if (!this->isHidden() && frame_handler->running()) {
         QPointF *center = frame_handler->getCenter();
-        if (center->x() > -0.1) {
+        if (center->x() > -0.1 && (image_type == SPECTRAL_PROFILE || image_type == SPATIAL_PROFILE)) {
             y = (this->*p_getLine)(*center);     
+            qcp->graph(0)->setData(x, y);
+            callout->setText(QString(" x: %1 \n y: %2 ").arg((int)tracer->graphKey()).arg((int)y[(int)tracer->graphKey()]));
+            // replotting is slow when the data set is chaotic... TODO: develop an optimization here
+            qcp->replot();
+        } else if (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN) {
+            y = (this->*p_getLine)(*center);
             qcp->graph(0)->setData(x, y);
             callout->setText(QString(" x: %1 \n y: %2 ").arg((int)tracer->graphKey()).arg((int)y[(int)tracer->graphKey()]));
             // replotting is slow when the data set is chaotic... TODO: develop an optimization here
@@ -193,7 +234,7 @@ void line_widget::updatePlotTitle(const QPointF &coord)
         plotTitle->setText(QString("Spatial Profile centered at y = %1").arg((int)coord.y()));
         break;
     default:
-        plotTitle->setText(QString("Spectral Profile centered at x = %1").arg((int)coord.x()));
+        break;
     }
 }
 

@@ -18,7 +18,7 @@ class CameraModel : public QObject
 
 public:
     CameraModel(QObject *parent = NULL) : QObject(parent) { running.store(false); }
-    virtual ~CameraModel() {}
+    virtual ~CameraModel() { running.store(false); }
 
 
     virtual bool start() = 0;

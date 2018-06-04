@@ -25,6 +25,8 @@ private:
     QVector<double> (line_widget::*p_getLine)(QPointF);
     QVector<double> getSpectralLine(QPointF coord);
     QVector<double> getSpatialLine(QPointF coord);
+    QVector<double> getSpectralMean(QPointF coord);
+    QVector<double> getSpatialMean(QPointF coord);
     QVector<double> x, y;
 
     QCPTextElement *plotTitle;

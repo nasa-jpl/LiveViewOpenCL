@@ -35,7 +35,9 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     sdv_display = new frameview_widget(fw, STD_DEV);
     hst_display = new histogram_widget(fw);
     spec_display = new line_widget(fw, SPECTRAL_PROFILE);
+    spec_mean_display = new line_widget(fw, SPECTRAL_MEAN);
     spat_display = new line_widget(fw, SPATIAL_PROFILE);
+    spat_mean_display = new line_widget(fw, SPATIAL_MEAN);
 
     // Set these two to be in the precision slider by default
     dsf_display->setPrecision(true);
@@ -46,7 +48,9 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     tab_widget->addTab(sdv_display, QString("Standard Deviation"));
     tab_widget->addTab(hst_display, QString("Histogram"));
     tab_widget->addTab(spec_display, QString("Spectral Profile"));
+    tab_widget->addTab(spec_mean_display, QString("Spectral Mean"));
     tab_widget->addTab(spat_display, QString("Spatial Profile"));
+    tab_widget->addTab(spat_mean_display, QString("Spatial Mean"));
 
     /*
      * It's pretty bizarre to send the tab widget into the ControlsBox, but the reference is

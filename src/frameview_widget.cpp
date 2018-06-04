@@ -140,9 +140,7 @@ frameview_widget::frameview_widget(FrameWorker* fw, image_t image_type, QWidget 
     }
 }
 
-frameview_widget::~frameview_widget()
-{
-}
+frameview_widget::~frameview_widget() {}
 
 void frameview_widget::handleNewFrame()
 {
