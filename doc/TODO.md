@@ -3,16 +3,16 @@
 ## High priority items:
 * Ensure that new data is added to the file buffer in SSDCamera when new images are being written to the directory
 * Improve stability of frame display for CLCamera (Camera Link) at low backend framerates (<2 frames/second)
-* Improve algorithm for computing fps to be time-based rather than frame count-based
-* Indicator when fps display is stable/valid (issue: LiveView is currently showing the "real-time" results of the fps which take a time to stabilize)
+* ~~Improve algorithm for computing fps to be time-based rather than frame count-based~~
+* ~~Indicator when fps display is stable/valid (issue: LiveView is currently showing the "real-time" results of the fps which take a time to stabilize)~~
 * Improve the reliablility of detection of no image data and when the frame is out of sync (issue: LiveView currenly shows, some time, first line is in the middle of the frame)
-* Install and Test Classic LiveView on CARBO GSE server Ubuntu computer (including standard deviation).
-* Add installation step: "Edit /etc/security/limits.conf to include the line: `rduce        hard       memlock    unlimited`". In general, rduce should be replaced with the user of LiveView... Add a line to setrlimit in the code. A restart or re-login is required. This should be included in an install script (which could also build LiveView itself)
+* Install and Test Classic LiveView on CARBO GSE server Ubuntu computer ~~(including standard deviation).~~
+* (WORKING) Add installation step: "Edit /etc/security/limits.conf to include the line: `rduce        hard       memlock    unlimited`". In general, rduce should be replaced with the user of LiveView... Add a line to setrlimit in the code. A restart or re-login is required. This should be included in an install script (which could also build LiveView itself)
 
 
 ## Medium priority items:
 * Finish porting features of original LiveView to new, experimental version
-* Mean filter (profile is done)
+* ~~Mean filter (profile is done)~~
 * FFT filter
 * Playback widget
 * Preference window
