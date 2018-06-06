@@ -43,6 +43,8 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
         p_getLine = &line_widget::getSpectralLine;
     }
 
+    p_getFrame = &FrameWorker::getFrame;
+
     upperRangeBoundX = xAxisMax;
 
     x = QVector<double>(xAxisMax);
@@ -126,30 +128,37 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
         callout->setSelectedColor(Qt::black);
     }
 
-    QVBoxLayout *qvbl = new QVBoxLayout;
+    hideTracer = new QCheckBox("Hide Callout Box", this);
+    connect(hideTracer, SIGNAL(toggled(bool)), this, SLOT(hideCallout(bool)));
+    QCheckBox *dsfBox = new QCheckBox("Use Dark Subtracted Data", this);
+    connect(dsfBox, SIGNAL(toggled(bool)), this, SLOT(useDSF(bool)));
+    QHBoxLayout *bottomButtons = new QHBoxLayout;
+    bottomButtons->addWidget(hideTracer);
+    bottomButtons->addWidget(dsfBox);
+
+    QVBoxLayout *qvbl = new QVBoxLayout(this);
     qvbl->addWidget(qcp);
+    qvbl->addLayout(bottomButtons);
     this->setLayout(qvbl);
 
     connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledX(QCPRange)));
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(lineScrolledY(QCPRange)));
     connect(frame_handler, SIGNAL(crosshairChanged(QPointF)), this, SLOT(updatePlotTitle(QPointF)));
-    connect(qcp, SIGNAL(plottableDoubleClick(QCPAbstractPlottable*,int,QMouseEvent*)), \
-            this, SLOT(setTracer(QCPAbstractPlottable*,int,QMouseEvent*)));
+    connect(qcp, SIGNAL(plottableDoubleClick(QCPAbstractPlottable*, int, QMouseEvent*)), \
+            this, SLOT(setTracer(QCPAbstractPlottable*, int, QMouseEvent*)));
     connect(qcp, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(moveCallout(QMouseEvent*)));
-    connect(&renderTimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
+    connect(&renderTimer, &QTimer::timeout, this, &line_widget::handleNewFrame);
 
     renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
 }
 
-line_widget::~line_widget()
-{
-}
+line_widget::~line_widget() {}
 
 QVector<double> line_widget::getSpectralLine(QPointF coord)
 {
     QVector<double> graphData(frHeight);
     size_t col = (size_t)coord.y();
-    float *image_data = frame_handler->getFrame();
+    float *image_data = (frame_handler->*p_getFrame)();
     for (size_t r = 0; r < frHeight; r++) {
         graphData[r] = image_data[r * frWidth + col];
     }
@@ -160,7 +169,7 @@ QVector<double> line_widget::getSpatialLine(QPointF coord)
 {
     QVector<double> graphData(frWidth);
     size_t row = (size_t)coord.x();
-    float *image_data = frame_handler->getFrame();
+    float *image_data = (frame_handler->*p_getFrame)();
     for (size_t c = 0; c < frWidth; c++) {
         graphData[c] = image_data[row * frWidth + c];
     }
@@ -189,23 +198,20 @@ QVector<double> line_widget::getSpatialMean(QPointF coord)
     return graphData;
 }
 
-
 void line_widget::handleNewFrame()
 {
     if (!this->isHidden() && frame_handler->running()) {
         QPointF *center = frame_handler->getCenter();
-        if (center->x() > -0.1 && (image_type == SPECTRAL_PROFILE || image_type == SPATIAL_PROFILE)) {
+        if (center->x() < -0.1 && (image_type == SPECTRAL_PROFILE || image_type == SPATIAL_PROFILE)) {
+            return;
+        } else {
             y = (this->*p_getLine)(*center);     
             qcp->graph(0)->setData(x, y);
-            callout->setText(QString(" x: %1 \n y: %2 ").arg((int)tracer->graphKey()).arg((int)y[(int)tracer->graphKey()]));
             // replotting is slow when the data set is chaotic... TODO: develop an optimization here
             qcp->replot();
-        } else if (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN) {
-            y = (this->*p_getLine)(*center);
-            qcp->graph(0)->setData(x, y);
+        }
+        if (!hideTracer->isChecked()) {
             callout->setText(QString(" x: %1 \n y: %2 ").arg((int)tracer->graphKey()).arg((int)y[(int)tracer->graphKey()]));
-            // replotting is slow when the data set is chaotic... TODO: develop an optimization here
-            qcp->replot();
         }
     }
 }
@@ -249,11 +255,12 @@ void line_widget::setTracer(QCPAbstractPlottable *plottable, int dataIndex, QMou
     if (callout->position->coords().y() > getCeiling() || callout->position->coords().y() < getFloor()) {
         callout->position->setCoords(callout->position->coords().x(), (getCeiling() - getFloor()) * 0.9 + getFloor());
     }
-    callout->setVisible(true);
-    callout->setSelected(false);
-    tracer->setVisible(true);
-    arrow->setVisible(true);
-
+    if (!hideTracer->isChecked()) {
+        callout->setVisible(true);
+        callout->setSelected(false);
+        tracer->setVisible(true);
+        arrow->setVisible(true);
+    }
 }
 
 void line_widget::moveCallout(QMouseEvent *e)
@@ -261,4 +268,21 @@ void line_widget::moveCallout(QMouseEvent *e)
     if (e->buttons() & Qt::LeftButton) {
         callout->position->setPixelPosition(e->pos());
     }
+}
+
+void line_widget::hideCallout(bool toggled)
+{
+    callout->setVisible(!toggled);
+    tracer->setVisible(!toggled);
+    arrow->setVisible(!toggled);
+}
+
+void line_widget::useDSF(bool toggled)
+{
+    if (toggled) {
+        p_getFrame = &FrameWorker::getDSFrame;
+    } else {
+        p_getFrame = &FrameWorker::getFrame;
+    }
+    frame_handler->setDSF(toggled);
 }

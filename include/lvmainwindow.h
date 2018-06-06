@@ -32,6 +32,7 @@ protected:
 #endif // QT_NO_CONTEXTMENU
 
 private:
+    QThread *workerThread;
     void createActions();
     void createMenus();
 

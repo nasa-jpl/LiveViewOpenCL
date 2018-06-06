@@ -26,7 +26,7 @@ public:
     StdDevFilter(unsigned int frame_width, unsigned int frame_height, cl_uint _N) :
         gpu_buffer_head(0), frWidth(frame_width),
         frHeight(frame_height), N(_N) {}
-    virtual ~StdDevFilter();
+    ~StdDevFilter();
 
     bool start();
 

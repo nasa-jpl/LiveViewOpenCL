@@ -1,6 +1,6 @@
 #include "frameview_widget.h"
 
-frameview_widget::frameview_widget(FrameWorker* fw, image_t image_type, QWidget *parent) :
+frameview_widget::frameview_widget(FrameWorker *fw, image_t image_type, QWidget *parent) :
         LVTabApplication(fw, parent),
         image_type(image_type),
         count(0), count_prev(0), fps(0)
@@ -53,7 +53,7 @@ frameview_widget::frameview_widget(FrameWorker* fw, image_t image_type, QWidget 
     colorMap->setInterpolate(false);
     colorMap->setAntialiased(false);
 
-    QCPMarginGroup* marginGroup = new QCPMarginGroup(qcp);
+    QCPMarginGroup *marginGroup = new QCPMarginGroup(qcp);
     qcp->axisRect()->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
     colorScale->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
 
@@ -104,17 +104,17 @@ frameview_widget::frameview_widget(FrameWorker* fw, image_t image_type, QWidget 
     crosshairY = new QCPItemRect(qcp);
     crosshairY->setPen(QPen(Qt::white));
 
-    QCheckBox *hideXbox = new QCheckBox("Hide Crosshair");
+    QCheckBox *hideXbox = new QCheckBox("Hide Crosshair", this);
     connect(hideXbox, SIGNAL(toggled(bool)), this, SLOT(hideCrosshair(bool)));
     hideXbox->setFixedWidth(150);
 
-    QHBoxLayout *boxLayout = new QHBoxLayout;
+    QHBoxLayout *boxLayout = new QHBoxLayout(this);
     boxLayout->addWidget(zoomBothButton);
     boxLayout->addWidget(zoomXButton);
     boxLayout->addWidget(zoomYButton);
     zoomButtons->setLayout(boxLayout);
 
-    QVBoxLayout *qvbl = new QVBoxLayout;
+    QVBoxLayout *qvbl = new QVBoxLayout(this);
     QHBoxLayout *bottomControls = new QHBoxLayout;
     bottomControls->addWidget(fpsLabel);
     bottomControls->addWidget(hideXbox);
@@ -140,7 +140,9 @@ frameview_widget::frameview_widget(FrameWorker* fw, image_t image_type, QWidget 
     }
 }
 
-frameview_widget::~frameview_widget() {}
+frameview_widget::~frameview_widget()
+{
+}
 
 void frameview_widget::handleNewFrame()
 {

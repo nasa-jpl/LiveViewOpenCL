@@ -2,16 +2,24 @@
 #include <cmath>
 
 MeanFilter::MeanFilter(unsigned int frame_width, unsigned int frame_height)
-    : usingDSF(true), frWidth(frame_width), frHeight(frame_height) {}
+    : frWidth(frame_width), frHeight(frame_height) {}
 
 MeanFilter::~MeanFilter() {}
 
-void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight, bool use_DSF)
+void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight, bool useDSF)
 {
     unsigned int r, c;
     float nSamps = bottomRight.x() - topLeft.x();
     float nBands = bottomRight.y() - topLeft.y();
-    usingDSF = use_DSF;
+    float frame_mean = 0.0;
+    float data_point = 0.0;
+
+    if (useDSF) {
+        p_getPixel = &MeanFilter::getDSFPixel;
+    } else {
+        p_getPixel = &MeanFilter::getRawPixel;
+    }
+    curFrame = frame;
 
     for (r = 0; r < frHeight; r++) {
          frame->spectral_mean[r] = 0;
@@ -21,15 +29,23 @@ void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRig
     }
 
     for (r = 0; r < frHeight; r++) {
-        for (c = topLeft.x(); c < bottomRight.x(); c++) {
-            frame->spectral_mean[r] += (float)frame->raw_data[r * frWidth + c];
-        }
-    }
-    for (r = topLeft.y(); r < bottomRight.y(); r++) {
         for (c = 0; c < frWidth; c++) {
-            frame->spatial_mean[c] += (float)frame->raw_data[r * frWidth + c];
+            data_point = (this->*p_getPixel)(r * frWidth + c);
+            if (c > topLeft.x() && c < bottomRight.x()) {
+                frame->spectral_mean[r] += data_point;
+            }
+            if (r > topLeft.y() && r < bottomRight.y()) {
+                frame->spatial_mean[c] += data_point;
+            }
+            frame_mean += data_point;
         }
     }
+    frame_mean /= (frWidth * frHeight);
+    if (frame_means.size() == CPU_FRAME_BUFFER_SIZE) {
+        frame_means.pop_front();
+    }
+    frame_means.push_back(frame_mean);
+
     for (r = 0; r < frHeight; r++) {
         frame->spectral_mean[r] /= nSamps;
     }
@@ -37,4 +53,14 @@ void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRig
     for (c = 0; c < frWidth; c++) {
         frame->spatial_mean[c] /= nBands;
     }
+}
+
+float MeanFilter::getRawPixel(uint32_t index)
+{
+    return curFrame->raw_data[index];
+}
+
+float MeanFilter::getDSFPixel(uint32_t index)
+{
+    return curFrame->dsf_data[index];
 }

@@ -20,9 +20,12 @@ public slots:
     void updatePlotTitle(const QPointF &coord);
     void setTracer(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
     void moveCallout(QMouseEvent *e);
+    void hideCallout(bool toggled);
+    void useDSF(bool toggled);
 
 private:
     QVector<double> (line_widget::*p_getLine)(QPointF);
+    float* (FrameWorker::*p_getFrame)();
     QVector<double> getSpectralLine(QPointF coord);
     QVector<double> getSpatialLine(QPointF coord);
     QVector<double> getSpectralMean(QPointF coord);
@@ -30,6 +33,7 @@ private:
     QVector<double> x, y;
 
     QCPTextElement *plotTitle;
+
     QCheckBox *hideTracer;
 
     QCPItemTracer *tracer;

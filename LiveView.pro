@@ -24,7 +24,7 @@ TEMPLATE = app
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 QMAKE_CXXFLAGS -= -std=gnu++11
-QMAKE_CXXFLAGS += -std=c++0x -Wno-inconsistent-missing-override
+QMAKE_CXXFLAGS += -O3 -std=c++0x -Wno-inconsistent-missing-override
 
 OBJECTS_DIR = ./obj
 MOC_DIR = ./obj
@@ -56,6 +56,7 @@ SOURCES += \
         histogram_widget.cpp \
         line_widget.cpp \
         meanfilter.cpp
+#        fftfilter.cpp
 unix:!macx {
    SOURCES += clcamera.cpp
 }
@@ -81,6 +82,7 @@ HEADERS += \
         histogram_widget.h \
         line_widget.h \
         meanfilter.h
+#        fftfilter.h
 unix:!macx {
     HEADERS += clcamera.h
 }

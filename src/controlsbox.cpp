@@ -23,7 +23,7 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
     maskButton = new QPushButton("&Collect Mask Frames");
     connect(maskButton, SIGNAL(released()), this, SLOT(collectDSFMask()));
 
-    QGridLayout *cboxLayout = new QGridLayout();
+    QGridLayout *cboxLayout = new QGridLayout(this);
     cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Range:"), 0, 1, 1, 1);
     cboxLayout->addWidget(rangeSlider, 0, 2, 1, 5);
@@ -35,6 +35,10 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
 
 ControlsBox::~ControlsBox()
 {
+    delete fpsLabel;
+    delete rangeSlider;
+    delete precisionBox;
+    delete maskButton;
 }
 
 void ControlsBox::tabChanged(int index)

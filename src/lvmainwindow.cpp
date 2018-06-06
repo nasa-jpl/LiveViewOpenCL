@@ -11,7 +11,7 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     this->setWindowTitle("LiveView 4.0");
 
     // Load the worker thread
-    QThread *workerThread = new QThread();
+    workerThread = new QThread;
     fw = new FrameWorker(workerThread);
     fw->moveToThread(workerThread);
     // Reserve proper take object error handling for later
@@ -27,8 +27,8 @@ LVMainWindow::LVMainWindow(QWidget *parent)
         SDLoop = QtConcurrent::run(fw, &FrameWorker::captureSDFrames);
     }
 
-    QWidget* mainWidget = new QWidget();
-    tab_widget = new QTabWidget();
+    QWidget* mainWidget = new QWidget(this);
+    tab_widget = new QTabWidget(this);
 
     raw_display = new frameview_widget(fw, BASE);
     dsf_display = new frameview_widget(fw, DSF);
@@ -58,7 +58,7 @@ LVMainWindow::LVMainWindow(QWidget *parent)
      */
     cbox = new ControlsBox(fw, tab_widget);
 
-    QVBoxLayout* mainLayout = new QVBoxLayout();
+    QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->addWidget(tab_widget);
     mainLayout->addWidget(cbox);
 

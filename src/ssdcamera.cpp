@@ -24,9 +24,7 @@ SSDCamera::SSDCamera(unsigned int frWidth,
     camera_type = ITB;
 }
 
-SSDCamera::~SSDCamera()
-{
-}
+SSDCamera::~SSDCamera() {}
 
 bool SSDCamera::start()
 {
@@ -36,7 +34,6 @@ bool SSDCamera::start()
 void SSDCamera::setDir(const char *dirname)
 {
     data_dir = dirname;
-    qDebug() << data_dir.data();
     if (data_dir.empty()) {
         if (running.load()) {
             running.store(false);
@@ -79,16 +76,16 @@ std::string SSDCamera::getFname()
         /* if necessary, there may need to be code to sort the "frames" in the data directory
         * by product name, as mtime is unreliable.
         */
-        // std::sort(fname_list.begin(), fname_list.end(), doj::alphanum_less<std::string>());
+        std::sort(fname_list.begin(), fname_list.end(), doj::alphanum_less<std::string>());
         for (auto f = fname_list.end() - 1; f != fname_list.begin(); --f) {
             has_file = std::find(xio_files.begin(), xio_files.end(), *f) != xio_files.end();
             if ((*f).empty() or os::getext(*f) != "xio")
                 continue;
             else if (has_file) {
                 break;
+            } else {
+                xio_files.push_back(*f);
             }
-
-            xio_files.push_back(*f);
         }
 
         if (image_no < xio_files.size()) {
@@ -133,8 +130,14 @@ void SSDCamera::readFile()
 
         // qDebug() << "File size is" << filesize << "bytes, which corresponds to a framesize of" << framesize << "bytes.";
 
+        std::vector<uint16_t> zero_vec((frame_width * data_height) - (framesize / sizeof(uint16_t)));
+        std::fill(zero_vec.begin(), zero_vec.end(), 0);
+
         for (unsigned int n = 0; n < nFrames; ++n) {
             dev_p.read(reinterpret_cast<char*>(frame_buf[n].data()), framesize);
+            if ((framesize / sizeof(uint16_t)) < frame_width * data_height) {
+                std::copy(zero_vec.begin(), zero_vec.end(), frame_buf[n].begin() + framesize / sizeof(uint16_t));
+            }
         }
 
         running.store(true);

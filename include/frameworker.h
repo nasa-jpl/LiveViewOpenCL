@@ -33,7 +33,7 @@ class FrameWorker : public QObject
 
 public:
     explicit FrameWorker(QThread *worker, QObject *parent = NULL);
-    virtual ~FrameWorker();
+    ~FrameWorker();
     void stop();
     bool running();
 
@@ -54,6 +54,7 @@ public:
 
     void setCenter(double Xcoord, double Ycoord);
     QPointF* getCenter();
+    void setDSF(bool toggled);
 
     uint16_t getFrameWidth() const { return frWidth; }
     uint16_t getFrameHeight() const { return frHeight; }
@@ -81,6 +82,7 @@ private:
     void delay(int msecs);
 
     bool pixRemap;
+    volatile bool useDSF;
     volatile bool isRunning;
     bool isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
     std::atomic<uint64_t> count;

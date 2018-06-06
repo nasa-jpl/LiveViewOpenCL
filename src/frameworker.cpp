@@ -4,7 +4,7 @@ class LVFrameBuffer
 {
 public:
     LVFrameBuffer(const unsigned int num_frames, const unsigned int frame_width, const unsigned int frame_height)
-        : lastIndex(0), fbIndex(0),  dsfIndex(0), stdIndex(0), meanIndex(0)
+        : lastIndex(0), fbIndex(0),  dsfIndex(0), stdIndex(0)
     {
         for (unsigned int f = 0; f < num_frames; ++f) {
             LVFrame *pFrame = new LVFrame(frame_width, frame_height);
@@ -57,7 +57,7 @@ private:
 
 FrameWorker::FrameWorker(QThread *worker, QObject *parent)
     : QObject(parent), thread(worker),
-      count(0), count_prev(0)
+      useDSF(false), count(0), count_prev(0)
 {
     Camera = new SSDCamera();
     bool cam_started = Camera->start();
@@ -99,6 +99,7 @@ FrameWorker::~FrameWorker()
     delete lvframe_buffer;
     delete DSFilter;
     delete STDFilter;
+    delete MEFilter;
 }
 
 void FrameWorker::stop()
@@ -111,6 +112,11 @@ void FrameWorker::stop()
 bool FrameWorker::running()
 {
     return isRunning;
+}
+
+void FrameWorker::setDSF(bool toggled)
+{
+    useDSF = toggled;
 }
 
 void FrameWorker::reportTimeout()
@@ -155,7 +161,8 @@ void FrameWorker::captureDSFrames()
         if (last_complete < count_framestart) {
             store_point = count_framestart % CPU_FRAME_BUFFER_SIZE;
             DSFilter->dsf_callback(lvframe_buffer->frame(store_point)->raw_data, lvframe_buffer->frame(store_point)->dsf_data);
-            MEFilter->compute_mean(lvframe_buffer->frame(store_point), QPointF((qreal)0, (qreal)0), QPointF((qreal)frWidth, (qreal)dataHeight), false);
+            MEFilter->compute_mean(lvframe_buffer->frame(store_point), QPointF((qreal)0, (qreal)0),
+                                   QPointF((qreal)frWidth, (qreal)dataHeight), useDSF);
             lvframe_buffer->setDSF(store_point);
             last_complete = count_framestart;
         } else {
