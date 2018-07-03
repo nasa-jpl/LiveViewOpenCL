@@ -89,7 +89,6 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
     }
 
     centerVal += QPointF(-1.0, -1.0);
-
 }
 
 FrameWorker::~FrameWorker()
@@ -281,6 +280,10 @@ float* FrameWorker::getSpatialMean()
 float* FrameWorker::getSpectralMean()
 {
     return lvframe_buffer->lastDSF()->spectral_mean;
+}
+float* FrameWorker::getFrameFFT()
+{
+    return lvframe_buffer->lastDSF()->frame_fft;
 }
 
 void FrameWorker::delay(int msecs)

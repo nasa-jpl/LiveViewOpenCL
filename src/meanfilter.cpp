@@ -2,13 +2,14 @@
 #include <cmath>
 
 MeanFilter::MeanFilter(unsigned int frame_width, unsigned int frame_height)
-    : frWidth(frame_width), frHeight(frame_height) {}
+    : dft_ready_read(false), frWidth(frame_width), frHeight(frame_height)
+{}
 
 MeanFilter::~MeanFilter() {}
 
 void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight, bool useDSF)
 {
-    unsigned int r, c;
+    unsigned int r, c, k;
     float nSamps = bottomRight.x() - topLeft.x();
     float nBands = bottomRight.y() - topLeft.y();
     float frame_mean = 0.0;
@@ -41,10 +42,16 @@ void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRig
         }
     }
     frame_mean /= (frWidth * frHeight);
-    if (frame_means.size() == CPU_FRAME_BUFFER_SIZE) {
-        frame_means.pop_front();
+
+    dft_ready_read = dft.update(frame_mean);
+    if (dft_ready_read) {
+        dft.get(frame->frame_fft);
+    } else {
+        qDebug() << "resetting values to 0.";
+        for (k = 0; k < FFT_INPUT_LENGTH; k++) {
+            frame->frame_fft[k] = 0.0f;
+        }
     }
-    frame_means.push_back(frame_mean);
 
     for (r = 0; r < frHeight; r++) {
         frame->spectral_mean[r] /= nSamps;
@@ -63,4 +70,9 @@ float MeanFilter::getRawPixel(uint32_t index)
 float MeanFilter::getDSFPixel(uint32_t index)
 {
     return curFrame->dsf_data[index];
+}
+
+bool MeanFilter::dftReady()
+{
+    return dft_ready_read;
 }

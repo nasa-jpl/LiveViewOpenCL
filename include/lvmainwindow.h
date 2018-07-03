@@ -13,6 +13,7 @@
 #include "frameview_widget.h"
 #include "histogram_widget.h"
 #include "line_widget.h"
+#include "fft_widget.h"
 #include "controlsbox.h"
 
 class LVMainWindow : public QMainWindow
@@ -55,6 +56,7 @@ private:
     line_widget *spec_mean_display;
     line_widget *spat_display;
     line_widget *spat_mean_display;
+    fft_widget *fft_display;
     ControlsBox *cbox;
 
     QString default_dir;

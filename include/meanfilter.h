@@ -5,10 +5,10 @@
 
 #include <QPointF>
 #include <QDebug>
-#include <deque>
 #include <vector>
 
 #include "lvframe.h"
+#include "sliding_dft.h"
 
 class MeanFilter
 {
@@ -17,14 +17,17 @@ public:
     ~MeanFilter();
 
     void compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight, bool useDSF);
+    bool dftReady();
 
 private:
     float (MeanFilter::*p_getPixel)(uint32_t);
     float getRawPixel(uint32_t index);
     float getDSFPixel(uint32_t index);
-    std::deque<double> frame_means;
 
     LVFrame *curFrame;
+
+    SlidingDFT<float, FFT_INPUT_LENGTH> dft;
+    bool dft_ready_read;
 
     unsigned int frWidth;
     unsigned int frHeight;

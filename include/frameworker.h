@@ -49,6 +49,7 @@ public:
     uint32_t* getHistData();
     float* getSpectralMean();
     float* getSpatialMean();
+    float* getFrameFFT();
 
     void saveFrames(std::string frame_fname, unsigned int num_frames);
 

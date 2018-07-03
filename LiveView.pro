@@ -55,8 +55,8 @@ SOURCES += \
         stddevfilter.cpp \
         histogram_widget.cpp \
         line_widget.cpp \
-        meanfilter.cpp
-#        fftfilter.cpp
+        meanfilter.cpp \
+        fft_widget.cpp
 unix:!macx {
    SOURCES += clcamera.cpp
 }
@@ -81,8 +81,9 @@ HEADERS += \
         stddevfilter.h \
         histogram_widget.h \
         line_widget.h \
-        meanfilter.h
-#        fftfilter.h
+        meanfilter.h \
+        fft_widget.h \
+        sliding_dft.h
 unix:!macx {
     HEADERS += clcamera.h
 }
