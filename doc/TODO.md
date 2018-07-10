@@ -1,13 +1,12 @@
 # Items To Do for LiveView
 
 ## High priority items for Jacky:
-*	Sync of first line when there is a drop, no more need to relaunch liveview – While I did implement this functionality, it unfortunately did not play well with the frame counter for some reason, causing every other frame to be dropped (or perhaps not counted). Additionally, since the fps counter in this version of LiveView is count-based, slower framerates take a long time to update the value in the GUI, and so at 1 fps (or a timeout condition), the fps value in the GUI is only updated every 100 secs (!!). I will need to re-visit this in further detail, it may be an issue with the EDT API.
-* Ensure that new data is added to the file buffer in SSDCamera when new images are being written to the directory
 *	Fix “override file” dialog box that overrides no matter what is selected -  
 * Install and Test standard deviation LiveView on CARBO GSE server Ubuntu computer
 * (WORKING) Add installation step: "Edit /etc/security/limits.conf to include the line: `rduce        hard       memlock    unlimited`". In general, rduce should be replaced with the user of LiveView... Add a line to setrlimit in the code. A restart or re-login is required. This should be included in an install script (which could also build LiveView itself)
 
-## High priority items for Didier's summer students (10 weeks) using CARB-O Alpha Data UltraScale+ MPSoC board:
+## High priority items for Brandon (10 weeks) using CARB-O Alpha Data UltraScale+ MPSoC board:
+*	Sync of first line when there is a drop, no more need to relaunch liveview – While I did implement this functionality, it unfortunately did not play well with the frame counter for some reason, causing every other frame to be dropped (or perhaps not counted). Additionally, since the fps counter in this version of LiveView is count-based, slower framerates take a long time to update the value in the GUI, and so at 1 fps (or a timeout condition), the fps value in the GUI is only updated every 100 secs (!!). I will need to re-visit this in further detail, it may be an issue with the EDT API.
 * Provide compatibility for Yocto embedded Linux platforms with display capability (CARBO project flight Focal Plane Interface Electronics Digital platform: Xilinx UltraScale+ MPSoC Zynq)
 * Add DisplayPort capability available on Yocto embedded Linux platforms ( CARBo project flight Focal Plane Interface Electronics Digital platform: Xilinx UltraScale+ MPSoC Zynq)
 * Improve stability of frame display for CLCamera (Camera Link) at low backend framerates (<2 frames/second)
