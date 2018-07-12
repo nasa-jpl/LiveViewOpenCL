@@ -65,6 +65,9 @@ If there is an error attempting to run the second command, `ulimit -l unlimited`
 
 Finally, re-open LiveView, either from QtCreator or from the new build directory that is located in the same top-level directory as the source. There should no longer be memory errors reported in the application console output. If so, then congratulations! LiveView has been successfully installed.
 
+## Installing OpenCL Drivers for VM
+For Intel CPU-only environments in VMs.  Drivers need to be installed from [https://software.intel.com/en-us/articles/opencl-drivers](https://software.intel.com/en-us/articles/opencl-drivers) instead of those availible on aptitute (for Ubuntu).
+
 ## Configuring Camera Link drivers for LiveView
 LiveView is compatible with Camera Link interfaces, which is a type of serial interface commonly used for connecting high-throughput devices to a computer. Engineering Design Team (EDT) provides an API for developing software to read from camera link devices using C++.
 
