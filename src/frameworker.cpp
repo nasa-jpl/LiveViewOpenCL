@@ -160,8 +160,9 @@ void FrameWorker::captureDSFrames()
         if (last_complete < count_framestart) {
             store_point = count_framestart % CPU_FRAME_BUFFER_SIZE;
             DSFilter->dsf_callback(lvframe_buffer->frame(store_point)->raw_data, lvframe_buffer->frame(store_point)->dsf_data);
-            MEFilter->compute_mean(lvframe_buffer->frame(store_point), QPointF((qreal)0, (qreal)0),
-                                   QPointF((qreal)frWidth, (qreal)dataHeight), useDSF);
+            if(Camera->isRunning())
+                MEFilter->compute_mean(lvframe_buffer->frame(store_point), QPointF((qreal)0, (qreal)0),
+                                       QPointF((qreal)frWidth, (qreal)dataHeight), useDSF);
             lvframe_buffer->setDSF(store_point);
             last_complete = count_framestart;
         } else {
