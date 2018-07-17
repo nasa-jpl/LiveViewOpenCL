@@ -129,8 +129,8 @@ bool StdDevFilter::start()
     work_size[2] = N;
     CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
     double work_dim = sqrt(max_work_size);
-    local_work_size[0] = (size_t)work_dim;
-    local_work_size[1] = (size_t)work_dim;
+    local_work_size[0] = 4;	//(size_t)work_dim;
+    local_work_size[1] = 1;	//(size_t)work_dim;
 
     commandQueue = clCreateCommandQueue(context, deviceIds[device_num], 0, &error);
     CheckError(error, __LINE__);

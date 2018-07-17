@@ -12,10 +12,10 @@ SSDCamera::SSDCamera(unsigned int frWidth,
     frame_height = frHeight;
     data_height = dataHeight;
 
-    header.reserve(headsize);
+    header.resize(headsize);
     std::fill(header.begin(), header.end(), 0);
 
-    dummy.reserve(frame_width * data_height);
+    dummy.resize(frame_width * data_height);
     std::fill(dummy.begin(), dummy.end(), 0);
     for (unsigned int n = 0; n < nFrames; n++) {
         frame_buf.push_back(std::vector<uint16_t>(frame_width * data_height, 0));
