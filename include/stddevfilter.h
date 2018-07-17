@@ -6,6 +6,7 @@
 #include <vector>
 #include <array>
 #include <string>
+#include <functional>
 
 #include <QDebug>
 #include <QtGlobal>
@@ -50,6 +51,7 @@ private:
     std::string GetPlatformName(cl_platform_id id);
     std::string GetDeviceName(cl_device_id id);
     void CheckError(cl_int error, int line);
+    void ResourceSafeRun(std::function<int(void)> func, int line);
     const char* getOpenCLErrorString(cl_int error);
     const std::string LoadKernel(const char *name);
     cl_program CreateProgram(const std::string &source,

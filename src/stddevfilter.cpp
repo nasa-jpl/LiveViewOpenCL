@@ -127,10 +127,37 @@ bool StdDevFilter::start()
     work_size[0] = frWidth;
     work_size[1] = frHeight;
     work_size[2] = N;
+
+    size_t dims;
+
+    CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS , sizeof(size_t), &dims, NULL), __LINE__);
+    size_t *local_dim_maxes = (size_t *)malloc(sizeof(size_t) * dims);
     CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
-    double work_dim = sqrt(max_work_size);
-    local_work_size[0] = 4;	//(size_t)work_dim;
-    local_work_size[1] = 1;	//(size_t)work_dim;
+    CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_ITEM_SIZES, dims * sizeof(size_t), local_dim_maxes, NULL), __LINE__);
+
+    if(work_size[0] < local_dim_maxes[0]) {
+        local_work_size[0] = work_size[0];
+    } else {
+        size_t best = 1;
+        for(int i = 0; i < work_size[0]; i++) {
+            if(work_size[0] % i == 0) {
+                best = i;
+            }
+        }
+        local_work_size[0] = best;
+    }
+
+    local_work_size[1] = 1;
+    size_t i = 1;
+    while(local_work_size[0] * (i + 1) <= max_work_size
+            && i + 1 <= local_dim_maxes[1]
+            && i + 1 <= local_dim_maxes[1]) {
+        if(work_size[1] % i == 0)
+            local_work_size[1] = i;
+        i++;
+    }
+
+    free(local_dim_maxes);
 
     commandQueue = clCreateCommandQueue(context, deviceIds[device_num], 0, &error);
     CheckError(error, __LINE__);
@@ -282,6 +309,32 @@ cl_program StdDevFilter::CreateProgram(const std::string &source, cl_context con
     return program;
 }
 
+void StdDevFilter::ResourceSafeRun(std::function<int(void)> func, int line) {
+    int response;
+    do {
+        response = func();
+        if(response == -5) {
+            if(local_work_size[1] > 1) {
+                int next_size = local_work_size[1] - 1;
+                while(work_size[1] % next_size) {
+                    next_size--;
+                }
+                local_work_size[1] = next_size;
+                qDebug() << "Insufficient CL resources, reducing local work size second dimension to " << local_work_size[1] << "\n";
+            } else if (local_work_size[0] > 1) {
+                int next_size = local_work_size[0] - 1;
+                while(work_size[0] % next_size) {
+                    next_size--;
+                }
+                local_work_size[0] = next_size;
+                qDebug() << "Insufficient CL resources, reducing local work size first dimension to " << local_work_size[0] << "\n";
+            }
+        }
+
+    } while(response == -5 && local_work_size[1] > 0);
+    CheckError(response, line);
+}
+
 void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
 {
     static int count = 0;
@@ -296,13 +349,13 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
 
     const cl_event kernel_wait_list[2] = { frame_written, hist_written };
 
-    CheckError(clEnqueueNDRangeKernel(commandQueue, kernel, 2,
-                                      offset, work_size, local_work_size,
-                                      2, kernel_wait_list, &kernel_complete), __LINE__);
-    CheckError(clEnqueueReadBuffer(commandQueue, devOutputBuffer, CL_FALSE, 0, frWidth * frHeight * sizeof(cl_float),
-                                   new_frame->sdv_data, 1, &kernel_complete, &frame_read), __LINE__);
-    CheckError(clEnqueueReadBuffer(commandQueue, devOutputHist, CL_FALSE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
-                                       new_frame->hist_data, 1, &kernel_complete, &hist_read), __LINE__);
+    ResourceSafeRun([&](){return clEnqueueNDRangeKernel(commandQueue, kernel, 2,
+                                                       offset, work_size, local_work_size,
+                                                       2, kernel_wait_list, &kernel_complete); }, __LINE__);
+    ResourceSafeRun([&](){return clEnqueueReadBuffer(commandQueue, devOutputBuffer, CL_FALSE, 0, frWidth * frHeight * sizeof(cl_float),
+                                                    new_frame->sdv_data, 1, &kernel_complete, &frame_read); }, __LINE__);
+    ResourceSafeRun([&](){return clEnqueueReadBuffer(commandQueue, devOutputHist, CL_FALSE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
+                                                    new_frame->hist_data, 1, &kernel_complete, &hist_read); }, __LINE__);
 
     const cl_event end_wait_list[2] = { frame_read, hist_read };
     CheckError(clWaitForEvents(2, end_wait_list), __LINE__);
