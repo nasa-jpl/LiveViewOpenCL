@@ -25,33 +25,57 @@ bool StdDevFilter::start()
 
     std::vector<cl_platform_id> platformIds(platformIdCount);
     clGetPlatformIDs(platformIdCount, platformIds.data(), NULL);
+    std::vector<cl_uint> devicesPerPlatform;
 
     for (cl_uint i = 0; i < platformIdCount; ++i) {
         qDebug() << "\t (" << (i+1) << ") :" << GetPlatformName(platformIds[i]).data();
     }
 
     cl_uint deviceIdCount = 0;
-    clGetDeviceIDs(platformIds[0], CL_DEVICE_TYPE_ALL, 0, NULL,
-                &deviceIdCount);
+    cl_uint totalDeviceCount = 0;
+    for (auto &platform : platformIds) {
+        clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 0, NULL,
+                    &deviceIdCount);
+        devicesPerPlatform.push_back(deviceIdCount);
+        totalDeviceCount += deviceIdCount;
+    }
 
-    if (deviceIdCount == 0) {
-        qFatal("No OpenCL-compatible devices found");
+    if (totalDeviceCount == 0) {
+        qFatal("No OpenCL-compatible devices found on any platform!");
         return false;
     } else {
-        qDebug() << "Found" << deviceIdCount << "device(s) across all platforms";
+        qDebug() << "Found" << totalDeviceCount << "device(s) across all platforms";
     }
 
-    deviceIds.reserve(deviceIdCount);
-    clGetDeviceIDs(platformIds[0], CL_DEVICE_TYPE_ALL, deviceIdCount,
-            deviceIds.data(), NULL);
+    deviceIds.resize(totalDeviceCount);
+    for (cl_uint i = 0; i < platformIdCount; i++) {
+        cl_uint ndx = 0;
+        for (auto it = devicesPerPlatform.begin(); it != devicesPerPlatform.end() - (platformIdCount - i); ++it) {
+            ndx += *it;
+        }
+        clGetDeviceIDs(platformIds[i], CL_DEVICE_TYPE_ALL, devicesPerPlatform[i],
+                &deviceIds[ndx], NULL);
+    }
 
-    for (cl_uint i = 0; i < deviceIdCount; i++) {
+    std::vector<cl_device_type> deviceTypes(totalDeviceCount);
+    for (cl_uint i = 0; i < totalDeviceCount; i++) {
         qDebug() << "\t (" << (i+1) << ") :" << GetDeviceName(deviceIds[i]).data();
+        clGetDeviceInfo(deviceIds[i], CL_DEVICE_TYPE, sizeof(cl_device_type), &deviceTypes[i], NULL);
     }
-    device_num = 0;
-    if (deviceIdCount > 1) {
-        device_num = deviceIdCount - 1;
+
+    ptrdiff_t pos = std::find(deviceTypes.rbegin(), deviceTypes.rend(), CL_DEVICE_TYPE_GPU) - deviceTypes.rbegin();
+    if ((size_t)pos >= deviceTypes.size()) {
+        pos = std::find(deviceTypes.rbegin(), deviceTypes.rend(), CL_DEVICE_TYPE_CPU) - deviceTypes.rbegin();
+        if ((size_t)pos >= deviceTypes.size()) {
+            qFatal("No suitable (CPU or GPU) OpenCL devices found.");
+            return false;
+        }
+        device_num = (ptrdiff_t)deviceTypes.size() - pos - 1;
+    } else {
+        device_num = (ptrdiff_t)deviceTypes.size() - pos - 1;
     }
+
+    qDebug() << "Using" << GetDeviceName(deviceIds[device_num]).data() << "for some computations. Enter the Computation menu to change.";
 
     const cl_context_properties contextProperties [] =
     {
@@ -124,40 +148,25 @@ bool StdDevFilter::start()
     clSetKernelArg(kernel, 6, sizeof(cl_int), &gpu_buffer_head);
     clSetKernelArg(kernel, 7, sizeof(cl_uint), &N);
 
+    // work_size defines the global work group size, which is defined by the size of the problem space
     work_size[0] = frWidth;
     work_size[1] = frHeight;
-    work_size[2] = N;
+    work_size[2] = 1;
 
-    size_t dims;
+    int dims;
+    CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(int), &dims, NULL), __LINE__);
+    local_work_size.resize(dims);
 
-    CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS , sizeof(size_t), &dims, NULL), __LINE__);
-    size_t *local_dim_maxes = (size_t *)malloc(sizeof(size_t) * dims);
+    // local_work_size defines the local work group size, which is defined by the device max work group size
     CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
-    CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_ITEM_SIZES, dims * sizeof(size_t), local_dim_maxes, NULL), __LINE__);
 
-    if(work_size[0] < local_dim_maxes[0]) {
-        local_work_size[0] = work_size[0];
-    } else {
-        size_t best = 1;
-        for(int i = 0; i < work_size[0]; i++) {
-            if(work_size[0] % i == 0) {
-                best = i;
-            }
+    for (int i = 0; i < dims; i++) {
+        if (i < 2) {
+            local_work_size[i] = sqrt(max_work_size);
+        } else {
+            local_work_size[i] = 1;
         }
-        local_work_size[0] = best;
     }
-
-    local_work_size[1] = 1;
-    size_t i = 1;
-    while(local_work_size[0] * (i + 1) <= max_work_size
-            && i + 1 <= local_dim_maxes[1]
-            && i + 1 <= local_dim_maxes[1]) {
-        if(work_size[1] % i == 0)
-            local_work_size[1] = i;
-        i++;
-    }
-
-    free(local_dim_maxes);
 
     commandQueue = clCreateCommandQueue(context, deviceIds[device_num], 0, &error);
     CheckError(error, __LINE__);
@@ -166,9 +175,7 @@ bool StdDevFilter::start()
             getHistBinValues().data(), 0, NULL, NULL), __LINE__);
     CheckError(error, __LINE__);
 
-    for (size_t i = 0; i < zero_buf.size(); i++) {
-        zero_buf[i] = 0;
-    }
+    std::fill(zero_buf.begin(), zero_buf.end(), 0);
 
     return true;
 }
@@ -313,25 +320,26 @@ void StdDevFilter::ResourceSafeRun(std::function<int(void)> func, int line) {
     int response;
     do {
         response = func();
-        if(response == -5) {
-            if(local_work_size[1] > 1) {
+        // -54 is the error code for CL_INVALID_WORK_GROUP_SIZE
+        if (response == -54) {
+            if (local_work_size[1] > 1) {
                 int next_size = local_work_size[1] - 1;
-                while(work_size[1] % next_size) {
+                while (work_size[1] % next_size) {
                     next_size--;
                 }
                 local_work_size[1] = next_size;
-                qDebug() << "Insufficient CL resources, reducing local work size second dimension to " << local_work_size[1] << "\n";
+                // qDebug() << "Insufficient OpenCL device resources, reducing local work group size second dimension to" << local_work_size[1] << "\n";
             } else if (local_work_size[0] > 1) {
                 int next_size = local_work_size[0] - 1;
-                while(work_size[0] % next_size) {
+                while (work_size[0] % next_size) {
                     next_size--;
                 }
                 local_work_size[0] = next_size;
-                qDebug() << "Insufficient CL resources, reducing local work size first dimension to " << local_work_size[0] << "\n";
+                // qDebug() << "Insufficient OpenCL resources, reducing local work group size first dimension to" << local_work_size[0] << "\n";
             }
         }
 
-    } while(response == -5 && local_work_size[1] > 0);
+    } while (response == -54 && local_work_size[1] > 0);
     CheckError(response, line);
 }
 
@@ -349,8 +357,8 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
 
     const cl_event kernel_wait_list[2] = { frame_written, hist_written };
 
-    ResourceSafeRun([&](){return clEnqueueNDRangeKernel(commandQueue, kernel, 2,
-                                                       offset, work_size, local_work_size,
+    ResourceSafeRun([&](){return clEnqueueNDRangeKernel(commandQueue, kernel, 3,
+                                                       offset, work_size, local_work_size.data(),
                                                        2, kernel_wait_list, &kernel_complete); }, __LINE__);
     ResourceSafeRun([&](){return clEnqueueReadBuffer(commandQueue, devOutputBuffer, CL_FALSE, 0, frWidth * frHeight * sizeof(cl_float),
                                                     new_frame->sdv_data, 1, &kernel_complete, &frame_read); }, __LINE__);

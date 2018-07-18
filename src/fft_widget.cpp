@@ -23,7 +23,10 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
     renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
 }
 
-fft_widget::~fft_widget() {}
+fft_widget::~fft_widget()
+{
+    // delete fft_bars;
+}
 
 void fft_widget::handleNewFrame()
 {
