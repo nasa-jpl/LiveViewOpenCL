@@ -1,4 +1,7 @@
 #include "lvmainwindow.h"
+#include "computedevdialog.h"
+
+
 
 LVMainWindow::LVMainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -110,6 +113,10 @@ void LVMainWindow::createActions()
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip("Exit LiveView");
     connect(exitAct, &QAction::triggered, this, &QWidget::close);
+
+    compAct = new QAction("Change Compute Device...", this);
+    compAct->setStatusTip("Use a different computing type for OpenCL calculations.");
+    connect(compAct, &QAction::triggered, this, &LVMainWindow::show_deviceModelView);
 }
 
 void LVMainWindow::createMenus()
@@ -124,6 +131,9 @@ void LVMainWindow::createMenus()
     // application menu.
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
+
+    prefMenu = menuBar()->addMenu("&Computation");
+    prefMenu->addAction(compAct);
 }
 
 #ifndef QT_NO_CONTEXTMENU
@@ -136,6 +146,10 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
     menu.addAction(resetAct);
     menu.addAction(exitAct);
     menu.exec(event->globalPos());
+
+    QMenu compMenu(this);
+    compMenu.addAction(compAct);
+    compMenu.exec(event->globalPos());
 }
 #endif // QT_NO_CONTEXTMENU
 
@@ -173,4 +187,16 @@ void LVMainWindow::saveAs()
 void LVMainWindow::reset()
 {
     fw->resetDir(source_dir.toLatin1().data());
+}
+
+void LVMainWindow::show_deviceModelView()
+{
+    ComputeDevDialog *compDialog = new ComputeDevDialog(fw->STDFilter->getDeviceList());
+    connect(compDialog, &ComputeDevDialog::device_changed, this, &LVMainWindow::change_compute_device);
+    compDialog->show();
+}
+
+void LVMainWindow::change_compute_device(QString dev_name)
+{
+    fw->STDFilter->change_device(dev_name);
 }

@@ -38,11 +38,13 @@ private:
     void createMenus();
 
     QMenu *fileMenu;
+    QMenu *prefMenu;
     QAction *openAct;
     QAction *saveAct;
     QAction *saveAsAct;
     QAction *resetAct;
     QAction *exitAct;
+    QAction *compAct;
 
     FrameWorker *fw;
     QFuture<void> DSLoop;
@@ -68,6 +70,8 @@ private slots:
     void save();
     void saveAs();
     void reset();
+    void show_deviceModelView();
+    void change_compute_device(QString dev_name);
 };
 
 #endif // LVMAINWINDOW_H

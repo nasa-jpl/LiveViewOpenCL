@@ -179,10 +179,13 @@ void FrameWorker::captureSDFrames()
 
     while (isRunning) {
         count_framestart = count.load() - 1;
-        if (last_complete < count_framestart) {
+        if (last_complete < count_framestart && STDFilter->isReadyRead()) {
             store_point = count_framestart % CPU_FRAME_BUFFER_SIZE;
             STDFilter->compute_stddev(lvframe_buffer->frame(store_point), stddev_N);
-            lvframe_buffer->setSTD(store_point);
+            // Move the read point in the buffer only if the data is "valid"
+            if (STDFilter->isReadyDisplay()) {
+                lvframe_buffer->setSTD(store_point);
+            }
             last_complete = count_framestart;
         } else {
             usleep(FRAME_PERIOD_MS * 1000);
