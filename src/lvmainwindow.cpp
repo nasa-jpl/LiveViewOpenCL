@@ -155,10 +155,13 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
 
 void LVMainWindow::open()
 {
-    default_dir = "/Users/jryan/aviris/";
-    source_dir = QFileDialog::getExistingDirectory(this, "Open Data Directory",
+    default_dir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    QString temp_dir = QFileDialog::getExistingDirectory(this, "Open Data Directory",
                            default_dir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    fw->resetDir(source_dir.toLatin1().data());
+    if (!temp_dir.isEmpty()) {
+        source_dir = temp_dir;
+        fw->resetDir(source_dir.toLatin1().data());
+    }
 }
 
 void LVMainWindow::save()

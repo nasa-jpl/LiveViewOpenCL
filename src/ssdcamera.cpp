@@ -114,7 +114,7 @@ void SSDCamera::readFile()
         } else { // otherwise check if data is valid
             dev_p.open(ifname, std::ios::in | std::ios::binary);
             if (!dev_p.is_open()) {
-                qDebug() << "Could not open file " << ifname.data() << ". Does it exist?";
+                qDebug() << "Could not open file" << ifname.data() << ". Does it exist?";
                 dev_p.clear();
                 readFile();
                 return;
@@ -131,7 +131,7 @@ void SSDCamera::readFile()
             framesize = filesize / int(nFrames);
             if(framesize == 0) { //If header reports a 0 filesize (invalid data), then skip this file.
                 dev_p.close();
-                qDebug() << "Skipped file \"" << ifname.data() << "\" due to invalid data.\n";
+                qDebug().nospace() << "Skipped file \"" << ifname.data() << "\" due to invalid data.";
             } else { //otherwise we load it
                 validFile = true;
                 dev_p.seekg(headsize, std::ios::beg);
