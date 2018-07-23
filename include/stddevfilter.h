@@ -6,10 +6,13 @@
 #include <vector>
 #include <array>
 #include <string>
+#include <functional>
 
 #include <QDebug>
 #include <QtGlobal>
 #include <QFile>
+#include <QString>
+#include <QStringList>
 
 #if (__APPLE__ && __MACH__)
     #include "OpenCL/opencl.h"
@@ -24,11 +27,14 @@ class StdDevFilter
 {
 public:
     StdDevFilter(unsigned int frame_width, unsigned int frame_height, cl_uint _N) :
-        gpu_buffer_head(0), frWidth(frame_width),
+        readyRead(false), gpu_buffer_head(0), frWidth(frame_width),
         frHeight(frame_height), N(_N) {}
     ~StdDevFilter();
 
     bool start();
+
+    bool isReadyRead();
+    bool isReadyDisplay();
 
     void compute_stddev(LVFrame *new_frame, cl_uint new_N);
 
@@ -46,7 +52,12 @@ public:
         return values;
     }
 
+    QStringList getDeviceList();
+    void change_device(QString dev_name);
+
 private:
+    bool readyRead;
+
     std::string GetPlatformName(cl_platform_id id);
     std::string GetDeviceName(cl_device_id id);
     void CheckError(cl_int error, int line);
@@ -54,16 +65,20 @@ private:
     const std::string LoadKernel(const char *name);
     cl_program CreateProgram(const std::string &source,
                              cl_context context);
+    cl_uint getPlatformNum(cl_uint dev_num);
+    bool BuildAndSetup(); // Not even worth trying to make this functional
 
+    cl_uint platform_num;
     cl_uint device_num;
     cl_int gpu_buffer_head;
     cl_uint frWidth;
     cl_uint frHeight;
     cl_uint N;
     cl_uint currentN;
-    cl_context context;
+    std::vector<cl_context> context;
     std::vector<cl_device_id> deviceIds;
     std::array<unsigned int, NUMBER_OF_BINS> zero_buf;
+    std::vector<cl_uint> devicesPerPlatform;
     cl_mem devInputBuffer;
     cl_mem devOutputBuffer;
     cl_mem hist_bins;
@@ -74,8 +89,7 @@ private:
 
     size_t offset[3] = { 0 };
     size_t work_size[3];
-    size_t max_work_size;
-    size_t local_work_size[2];
+    cl_event end_wait_list[2];
 
 
 };

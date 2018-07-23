@@ -98,50 +98,59 @@ std::string SSDCamera::getFname()
 
 void SSDCamera::readFile()
 {
-    ifname = getFname();
-    if (ifname.empty()) {
-        if (dev_p.is_open()) {
-            dev_p.close();
-        }
-
-        if (running.load()) {
-            running.store(false);
-            emit timeout();
-        }
-    } else {
-        dev_p.open(ifname, std::ios::in | std::ios::binary);
-        if (!dev_p.is_open()) {
-            qDebug() << "Could not open file " << ifname.data() << ". Does it exist?";
-            dev_p.clear();
-            readFile();
-            return;
-        }
-
-        // qDebug() << "Successfully opened " << ifname.data();
-        dev_p.unsetf(std::ios::skipws);
-
-        dev_p.read(reinterpret_cast<char*>(header.data()), headsize);
-
-        // convert the raw hex string to decimal, one digit at a time.
-        int filesize = int(header[7]) * 16777216 + int(header[6]) * 65536 + int(header[5]) * 256 + int(header[4]);
-
-        framesize = filesize / int(nFrames);
-        dev_p.seekg(headsize, std::ios::beg);
-
-        // qDebug() << "File size is" << filesize << "bytes, which corresponds to a framesize of" << framesize << "bytes.";
-
-        std::vector<uint16_t> zero_vec((frame_width * data_height) - (framesize / sizeof(uint16_t)));
-        std::fill(zero_vec.begin(), zero_vec.end(), 0);
-
-        for (unsigned int n = 0; n < nFrames; ++n) {
-            dev_p.read(reinterpret_cast<char*>(frame_buf[n].data()), framesize);
-            if ((framesize / sizeof(uint16_t)) < frame_width * data_height) {
-                std::copy(zero_vec.begin(), zero_vec.end(), frame_buf[n].begin() + framesize / sizeof(uint16_t));
+    bool validFile = false;
+    while(!validFile) {
+        ifname = getFname();
+        if (ifname.empty()) {
+            if (dev_p.is_open()) {
+                dev_p.close();
             }
-        }
 
-        running.store(true);
-        dev_p.close();
+            if (running.load()) {
+                running.store(false);
+                emit timeout();
+            }
+            return; //If we're out of files, give up
+        } else { // otherwise check if data is valid
+            dev_p.open(ifname, std::ios::in | std::ios::binary);
+            if (!dev_p.is_open()) {
+                qDebug() << "Could not open file " << ifname.data() << ". Does it exist?";
+                dev_p.clear();
+                readFile();
+                return;
+            }
+
+            // qDebug() << "Successfully opened " << ifname.data();
+            dev_p.unsetf(std::ios::skipws);
+
+            dev_p.read(reinterpret_cast<char*>(header.data()), headsize);
+
+            // convert the raw hex string to decimal, one digit at a time.
+            int filesize = int(header[7]) * 16777216 + int(header[6]) * 65536 + int(header[5]) * 256 + int(header[4]);
+
+            framesize = filesize / int(nFrames);
+            if(framesize == 0) { //If header reports a 0 filesize (invalid data), then skip this file.
+                dev_p.close();
+                qDebug() << "Skipped file \"" << ifname.data() << "\" due to invalid data.\n";
+            } else { //otherwise we load it
+                validFile = true;
+                dev_p.seekg(headsize, std::ios::beg);
+
+                // qDebug() << "File size is" << filesize << "bytes, which corresponds to a framesize of" << framesize << "bytes.";
+
+                std::vector<uint16_t> zero_vec((frame_width * data_height) - (framesize / sizeof(uint16_t)));
+                std::fill(zero_vec.begin(), zero_vec.end(), 0);
+
+                for (unsigned int n = 0; n < nFrames; ++n) {
+                    dev_p.read(reinterpret_cast<char*>(frame_buf[n].data()), framesize);
+                    if ((framesize / sizeof(uint16_t)) < frame_width * data_height) {
+                                std::copy(zero_vec.begin(), zero_vec.end(), frame_buf[n].begin() + framesize / sizeof(uint16_t));
+                    }
+                }
+                running.store(true);
+                dev_p.close();
+           }
+        }
     }
 }
 

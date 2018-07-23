@@ -157,6 +157,9 @@ void frameview_widget::handleNewFrame()
         qcp->replot();
         count++;
     }
+
+    // count-based FPS counter, gets slower to update the lower the fps,
+    // but can provide fractional fps values.
     /* if (count % 50 == 0 && count != 0) {
         fps = 50.0 / fpsclock.restart() * 1000.0;
         fps_string = QString::number(fps, 'f', 1);
