@@ -188,23 +188,6 @@ bool StdDevFilter::BuildAndSetup()
     clSetKernelArg(kernel, 6, sizeof(cl_int), &gpu_buffer_head);
     clSetKernelArg(kernel, 7, sizeof(cl_uint), &N);
 
-
-    // not determining local_work_size by default any more
-    /* int dims;
-    CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(int), &dims, NULL), __LINE__);
-    local_work_size.resize(dims);
-
-    // local_work_size defines the local work group size, which is defined by the device max work group size
-    CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_work_size, NULL), __LINE__);
-
-    for (int i = 0; i < dims; i++) {
-        if (i < 2) {
-            local_work_size[i] = sqrt(max_work_size);
-        } else {
-            local_work_size[i] = 1;
-        }
-    } */
-
     commandQueue = clCreateCommandQueue(context[platform_num], deviceIds[device_num], 0, &error);
     CheckError(error, __LINE__);
 

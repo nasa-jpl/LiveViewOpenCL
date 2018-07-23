@@ -84,7 +84,7 @@ HEADERS += \
         meanfilter.h \
         fft_widget.h \
         sliding_dft.h \
-    include/computedevdialog.h
+        computedevdialog.h
 unix:!macx {
     HEADERS += clcamera.h
 }
