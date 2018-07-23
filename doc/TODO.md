@@ -3,7 +3,6 @@
 ## High priority items for Jacky:
 *	Fix “override file” dialog box that overrides no matter what is selected -  
 * Install and Test standard deviation LiveView on CARBO GSE server Ubuntu computer
-* (WORKING) Add installation step: "Edit /etc/security/limits.conf to include the line: `rduce        hard       memlock    unlimited`". In general, rduce should be replaced with the user of LiveView... Add a line to setrlimit in the code. A restart or re-login is required. This should be included in an install script (which could also build LiveView itself)
 
 ## High priority items for Brandon (10 weeks) using CARB-O Alpha Data UltraScale+ MPSoC board:
 *	Sync of first line when there is a drop, no more need to relaunch liveview – While I did implement this functionality, it unfortunately did not play well with the frame counter for some reason, causing every other frame to be dropped (or perhaps not counted). Additionally, since the fps counter in this version of LiveView is count-based, slower framerates take a long time to update the value in the GUI, and so at 1 fps (or a timeout condition), the fps value in the GUI is only updated every 100 secs (!!). I will need to re-visit this in further detail, it may be an issue with the EDT API.
@@ -19,7 +18,6 @@
 * Enhance remote control TCP/IP interface – Not yet implemented. However, a frame saving capability is now available.
 * Preference window
 * Save server and Python client
-* Add a Reset button to the Standard Deviation tab and Histogram Tab and show when the display is stable (N frames acquired)
 * Add a counter of the number of frames in the dark subtraction widget and allow a specific number of frames to be averaged for the dark mask.
 
 ## Low priority items:
