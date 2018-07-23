@@ -19,6 +19,31 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
     qgl->addWidget(DCMaskBox, 8, 0, 1, 2);
     this->setLayout(qgl);
 
+    if (USE_DARK_STYLE) {
+        fft_bars->setPen(QPen(Qt::lightGray));
+        fft_bars->setBrush(QBrush(QColor("#31363B")));
+
+        qcp->setBackground(QBrush(QColor("#31363B")));
+        qcp->xAxis->setTickLabelColor(Qt::white);
+        qcp->xAxis->setBasePen(QPen(Qt::white));
+        qcp->xAxis->setLabelColor(Qt::white);
+        qcp->xAxis->setTickPen(QPen(Qt::white));
+        qcp->xAxis->setSubTickPen(QPen(Qt::white));
+        qcp->yAxis->setTickLabelColor(Qt::white);
+        qcp->yAxis->setBasePen(QPen(Qt::white));
+        qcp->yAxis->setLabelColor(Qt::white);
+        qcp->yAxis->setTickPen(QPen(Qt::white));
+        qcp->yAxis->setSubTickPen(QPen(Qt::white));
+        qcp->xAxis2->setTickLabelColor(Qt::white);
+        qcp->xAxis2->setBasePen(QPen(Qt::white));
+        qcp->xAxis2->setTickPen(QPen(Qt::white));
+        qcp->xAxis2->setSubTickPen(QPen(Qt::white));
+        qcp->yAxis2->setTickLabelColor(Qt::white);
+        qcp->yAxis2->setBasePen(QPen(Qt::white));
+        qcp->yAxis2->setTickPen(QPen(Qt::white));
+        qcp->yAxis2->setSubTickPen(QPen(Qt::white));
+    }
+
     connect(&renderTimer, &QTimer::timeout, this, &fft_widget::handleNewFrame);
     renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
 }
