@@ -89,8 +89,8 @@ private:
 
     size_t offset[3] = { 0 };
     size_t work_size[3];
-    size_t max_work_size;
-    std::vector<size_t> local_work_size;
+    // size_t max_work_size;
+    // std::vector<size_t> local_work_size;
     cl_event end_wait_list[2];
 
 

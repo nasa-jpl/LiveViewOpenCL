@@ -52,7 +52,7 @@ private slots:
     void okButtonPressed() {
         QString device_name("");
         if (deviceListView->selectionModel()->selectedIndexes().size() > 0) {
-            QVariant device_data = deviceListModel->data(deviceListView->selectionModel()->selectedIndexes()[0]);
+            QVariant device_data = deviceListModel->data(deviceListView->selectionModel()->selectedIndexes()[0], Qt::DisplayRole);
             device_name = device_data.toString();
         }
         emit device_changed(device_name);

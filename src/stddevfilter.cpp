@@ -189,7 +189,8 @@ bool StdDevFilter::BuildAndSetup()
     clSetKernelArg(kernel, 7, sizeof(cl_uint), &N);
 
 
-    int dims;
+    // not determining local_work_size by default any more
+    /* int dims;
     CheckError(clGetDeviceInfo(deviceIds[device_num], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(int), &dims, NULL), __LINE__);
     local_work_size.resize(dims);
 
@@ -202,7 +203,7 @@ bool StdDevFilter::BuildAndSetup()
         } else {
             local_work_size[i] = 1;
         }
-    }
+    } */
 
     commandQueue = clCreateCommandQueue(context[platform_num], deviceIds[device_num], 0, &error);
     CheckError(error, __LINE__);
@@ -391,8 +392,9 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
 
     const cl_event kernel_wait_list[2] = { frame_written, hist_written };
 
+    // Now using a null pointer for the local work size, which can be determined automatically.
     CheckError(clEnqueueNDRangeKernel(commandQueue, kernel, 3,
-                                      offset, work_size, local_work_size.data(),
+                                      offset, work_size, NULL,
                                       2, kernel_wait_list, &kernel_complete), __LINE__);
     CheckError(clEnqueueReadBuffer(commandQueue, devOutputBuffer, CL_FALSE, 0, frWidth * frHeight * sizeof(cl_float),
                                                     new_frame->sdv_data, 1, &kernel_complete, &frame_read), __LINE__);
