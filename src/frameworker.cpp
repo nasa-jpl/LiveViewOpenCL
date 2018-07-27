@@ -143,7 +143,7 @@ void FrameWorker::captureFrames()
         lvframe_buffer->incIndex();
 
         count++;
-        if (duration < FRAME_PERIOD_MS) {
+        if (duration < FRAME_PERIOD_MS && cam_type == ITB) {
             delay(FRAME_PERIOD_MS - duration);
         }
     }

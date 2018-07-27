@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += network
 QT       += printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -56,7 +57,8 @@ SOURCES += \
         histogram_widget.cpp \
         line_widget.cpp \
         meanfilter.cpp \
-        fft_widget.cpp
+        fft_widget.cpp \
+        saveserver.cpp
 unix:!macx {
    SOURCES += clcamera.cpp
 }
@@ -84,7 +86,9 @@ HEADERS += \
         meanfilter.h \
         fft_widget.h \
         sliding_dft.h \
-        computedevdialog.h
+        computedevdialog.h \
+        saveserver.h \
+        saveclient.h
 unix:!macx {
     HEADERS += clcamera.h
 }

@@ -73,6 +73,8 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     createActions();
     createMenus();
 
+    server = new SaveServer(this);
+
 }
 
 LVMainWindow::~LVMainWindow()
