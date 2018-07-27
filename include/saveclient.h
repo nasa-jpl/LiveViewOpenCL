@@ -5,6 +5,9 @@
 #include <QtNetwork/QTcpSocket>
 #include <QDebug>
 
+#include <QJsonDocument>
+#include <QJsonObject>
+
 class SaveClient : public QObject
 {
     Q_OBJECT
@@ -30,8 +33,11 @@ public slots:
     void receiveAction()
     {
         if (clientConnection->bytesAvailable() > (qint64)sizeof(quint16)) {
-            QByteArray clientRequest = clientConnection->readAll();
-            qDebug() << "Got:" << clientRequest;
+            QByteArray clientRequest = qUncompress(clientConnection->readAll());
+            QJsonDocument document = QJsonDocument::fromJson(clientRequest);
+            QJsonObject rootObj = document.object();
+            qDebug() << clientRequest;
+
         }
     }
 
