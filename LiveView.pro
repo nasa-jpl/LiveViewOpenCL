@@ -39,6 +39,7 @@ INCLUDEPATH += ./include \
 VPATH += ./include \
          ./src \
          ./kernel \
+         ./util \
          ./EDT_include
 
 SOURCES += \

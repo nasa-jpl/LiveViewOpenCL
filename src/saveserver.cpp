@@ -52,10 +52,6 @@ void SaveServer::sessionOpened()
     }
 
     tcpServer = new QTcpServer(this);
-    if (!tcpServer->listen(QHostAddress::Any, port)) {
-        qDebug() << "Unable to start server:" << tcpServer->errorString();
-        return;
-    }
 
     QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
     // use the first non-localhost IPv6 address
@@ -71,6 +67,11 @@ void SaveServer::sessionOpened()
         ipAdress = QHostAddress(QHostAddress::LocalHost);
     }
 
+    if (!tcpServer->listen(ipAdress, port)) {
+        qDebug() << "Unable to start server:" << tcpServer->errorString();
+        return;
+    }
+
     qDebug() << "Host address is" << ipAdress.toString();
     qDebug() << "Port is" << tcpServer->serverPort();
 }
@@ -78,4 +79,5 @@ void SaveServer::sessionOpened()
 void SaveServer::startClient()
 {
     SaveClient *client = new SaveClient(tcpServer->nextPendingConnection());
+    Q_UNUSED(client);
 }

@@ -43,13 +43,23 @@ class SaveClient(QObject):
                 u"numFrames":   int(n_frames),
                 u"numAvgs":     int(n_avgs)
             }).encode("utf-8")
-        reqBlock = QByteArray(zlib.compress(requestDoc))
+        reqBlock = qCompress(requestDoc)
         self.socket.write(reqBlock)
+        self.socket.waitForReadyRead(2000)
+        if self.socket.bytesAvailable() >= 0:
+            respBlock = self.socket.readAll()
+            response = qUncompress(respBlock)
+            print(response)
+            return True
+        else:
+            return False
 
 def main():
     client = SaveClient("137.79.193.242", "50000")
-    client.requestSave("Hello.dat", 100)
-    print("Sent Request!")
+    res = client.requestSave("Hello.dat", 100)
+    if res:
+        print("Received a reply!")
+
 
 if __name__ == '__main__':
     main()

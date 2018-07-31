@@ -33,11 +33,12 @@ public slots:
     void receiveAction()
     {
         if (clientConnection->bytesAvailable() > (qint64)sizeof(quint16)) {
-            QByteArray clientRequest = qUncompress(clientConnection->readAll());
+            QByteArray rawData = clientConnection->readAll();
+            QByteArray clientRequest = qUncompress(rawData);
             QJsonDocument document = QJsonDocument::fromJson(clientRequest);
             QJsonObject rootObj = document.object();
-            qDebug() << clientRequest;
-
+            qDebug() << rootObj["requestType"];
+            clientConnection->write(qCompress(clientRequest));
         }
     }
 
