@@ -24,6 +24,15 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     connect(fw, SIGNAL(finished()), fw, SLOT(deleteLater()));
     connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
 
+    connect(fw, &FrameWorker::startSaving, this, [&](){
+        saveAct->setEnabled(false);
+        saveAsAct->setEnabled(false);
+    });
+    connect(fw, &FrameWorker::doneSaving, this, [&](){
+        saveAct->setEnabled(true);
+        saveAsAct->setEnabled(true);
+    });
+
     if (fw->running()) {
         workerThread->start();
         DSLoop = QtConcurrent::run(fw, &FrameWorker::captureDSFrames);
@@ -74,7 +83,7 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     createMenus();
 
     server = new SaveServer(this);
-
+    connect(server, &SaveServer::startSavingRemote, fw, &FrameWorker::captureFramesRemote);
 }
 
 LVMainWindow::~LVMainWindow()
@@ -174,7 +183,7 @@ void LVMainWindow::save()
             return;
         }
     } else {
-        QtConcurrent::run(fw, &FrameWorker::saveFrames, save_filename.toStdString(), 10);
+        fw->captureFramesRemote(save_filename, (quint64)10, (quint64)1);
     }
 }
 
@@ -185,7 +194,7 @@ void LVMainWindow::saveAs()
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
     if (!save_filename.isEmpty()) {
         // saveAct->setEnabled(true);
-        QtConcurrent::run(fw, &FrameWorker::saveFrames, save_filename.toStdString(), 10);
+        fw->captureFramesRemote(save_filename, (quint64)10, (quint64)1);
     }
 }
 

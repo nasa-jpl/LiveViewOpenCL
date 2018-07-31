@@ -40,17 +40,27 @@ class SaveClient(QObject):
         requestDoc = json.dumps(
             {
                 u"requestType": u"Save",
+                u"fileName":    u"%s" % file_name,
                 u"numFrames":   int(n_frames),
                 u"numAvgs":     int(n_avgs)
             }).encode("utf-8")
         reqBlock = qCompress(requestDoc)
         self.socket.write(reqBlock)
-        self.socket.waitForReadyRead(2000)
+        self.socket.waitForReadyRead(2000) # Wait for 2 secs.
         if self.socket.bytesAvailable() >= 0:
             respBlock = self.socket.readAll()
             response = qUncompress(respBlock)
-            print(response)
-            return True
+            respDoc = json.loads(bytearray(response))
+            if "status" in respDoc.keys():
+                status = int(respDoc["status"])
+                if status != 200:
+                    print("Received an error: %s" % respDoc["message"])
+                    return False
+                print("Sent command to save %d frames to the file %s on %s" % (n_frames, file_name, self.ipAddress))
+                return True
+            else:
+                print("Unexpected response from server: %s" % response)
+                return False
         else:
             return False
 

@@ -79,5 +79,8 @@ void SaveServer::sessionOpened()
 void SaveServer::startClient()
 {
     SaveClient *client = new SaveClient(tcpServer->nextPendingConnection());
-    Q_UNUSED(client);
+    connect(client, &SaveClient::saveFrames, this, [&](QString fname, quint64 nframes, quint64 navgs)
+    {
+        emit startSavingRemote(fname, nframes, navgs);
+    });
 }

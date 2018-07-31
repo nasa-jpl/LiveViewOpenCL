@@ -57,7 +57,8 @@ private:
 
 FrameWorker::FrameWorker(QThread *worker, QObject *parent)
     : QObject(parent), thread(worker),
-      useDSF(false), count(0), count_prev(0)
+      useDSF(false), saving(false),
+      count(0), count_prev(0)
 {
     Camera = new SSDCamera();
     bool cam_started = Camera->start();
@@ -89,6 +90,17 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
     }
 
     centerVal += QPointF(-1.0, -1.0);
+
+    connect(this, &FrameWorker::doneSaving, this, [&]()
+    {
+        if (!SaveQueue.empty()) {
+            const save_req_t &req = SaveQueue.front();
+            SaveQueue.pop();
+            QtConcurrent::run(this, &FrameWorker::saveFrames, req.file_name, req.nFrames); // no nAvgs for now.
+        } else {
+            saving = false;
+        }
+    });
 }
 
 FrameWorker::~FrameWorker()
@@ -193,8 +205,10 @@ void FrameWorker::captureSDFrames()
     }
 }
 
-void FrameWorker::saveFrames(std::string frame_fname, unsigned int num_frames)
+void FrameWorker::saveFrames(std::string frame_fname, uint64_t num_frames)
 {
+    emit startSaving();
+    saving = true;
     unsigned int next_frame = count.load();
     uint16_t* p_frame = nullptr;
     std::string hdr_fname;
@@ -235,6 +249,16 @@ void FrameWorker::saveFrames(std::string frame_fname, unsigned int num_frames)
     hdr_out.close();
     qDebug() << "Done saving frames!";
     emit doneSaving();
+}
+
+void FrameWorker::captureFramesRemote(const QString &fileName, const quint64 &nFrames, const quint64 &nAvgs)
+{
+    SaveQueue.push({fileName.toStdString(), nFrames, nAvgs});
+    if (!saving) {
+        const save_req_t &req = SaveQueue.front();
+        QtConcurrent::run(this, &FrameWorker::saveFrames, req.file_name, req.nFrames); // no nAvgs for now.
+        SaveQueue.pop();
+    }
 }
 
 void FrameWorker::reportFPS()

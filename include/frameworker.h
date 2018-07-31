@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QCoreApplication>
 #include <QThread>
+#include <QtConcurrent/QtConcurrentRun>
 
 #include "image_type.h"
 #include "lvframe.h"
@@ -26,6 +27,13 @@
 class LVFrameBuffer;
 
 using namespace std::chrono;
+
+struct save_req_t
+{
+    std::string file_name;
+    uint64_t nFrames;
+    uint64_t nAvgs;
+};
 
 class FrameWorker : public QObject
 {
@@ -51,7 +59,7 @@ public:
     float* getSpatialMean();
     float* getFrameFFT();
 
-    void saveFrames(std::string frame_fname, unsigned int num_frames);
+    void saveFrames(std::string frame_fname, uint64_t num_frames);
 
     void setCenter(double Xcoord, double Ycoord);
     QPointF* getCenter();
@@ -66,6 +74,7 @@ signals:
     void finished();
     void error(const QString &error);
     void updateFPS(float fps);
+    void startSaving();
     void doneSaving();
     void crosshairChanged(const QPointF &coord);
 
@@ -75,6 +84,7 @@ public slots:
     void captureDSFrames();
     void captureSDFrames();
     void reportFPS();
+    void captureFramesRemote(const QString &fileName, const quint64 &nFrames, const quint64 &nAvgs);
 
 private:
     QThread *thread;
@@ -84,6 +94,7 @@ private:
 
     bool pixRemap;
     volatile bool useDSF;
+    bool saving;
     volatile bool isRunning;
     bool isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
     std::atomic<uint64_t> count;
@@ -98,6 +109,8 @@ private:
     unsigned int save_num_avgs;
 
     QPointF centerVal;
+
+    std::queue<save_req_t> SaveQueue;
 
 };
 
