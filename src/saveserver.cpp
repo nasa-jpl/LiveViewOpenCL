@@ -54,7 +54,7 @@ void SaveServer::sessionOpened()
     tcpServer = new QTcpServer(this);
 
     QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-    // use the first non-localhost IPv6 address
+    // use the first non-localhost IPv4 address
     for (QHostAddress &address: ipAddressesList) {
         if (address != QHostAddress::LocalHost && address.toIPv4Address()) {
             ipAdress = address;

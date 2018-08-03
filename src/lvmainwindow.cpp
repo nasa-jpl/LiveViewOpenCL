@@ -1,7 +1,4 @@
 #include "lvmainwindow.h"
-#include "computedevdialog.h"
-
-
 
 LVMainWindow::LVMainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -84,6 +81,11 @@ LVMainWindow::LVMainWindow(QWidget *parent)
 
     server = new SaveServer(this);
     connect(server, &SaveServer::startSavingRemote, fw, &FrameWorker::captureFramesRemote);
+
+    compDialog = new ComputeDevDialog(fw->STDFilter->getDeviceList());
+    connect(compDialog, &ComputeDevDialog::device_changed, this, &LVMainWindow::change_compute_device);
+
+    dsfDialog = new DSFPrefDialog();
 }
 
 LVMainWindow::~LVMainWindow()
@@ -128,6 +130,12 @@ void LVMainWindow::createActions()
     compAct = new QAction("Change Compute Device...", this);
     compAct->setStatusTip("Use a different computing type for OpenCL calculations.");
     connect(compAct, &QAction::triggered, this, &LVMainWindow::show_deviceModelView);
+
+    dsfAct = new QAction("Dark Subtraction", this);
+    dsfAct->setShortcut(QKeySequence::Deselect); // This specifies the Ctrl+D key combo.
+    dsfAct->setStatusTip("Modify settings when collecting dark subtraction frames.");
+    connect(dsfAct, &QAction::triggered, this, &LVMainWindow::show_dsfModelView);
+
 }
 
 void LVMainWindow::createMenus()
@@ -145,6 +153,7 @@ void LVMainWindow::createMenus()
 
     prefMenu = menuBar()->addMenu("&Computation");
     prefMenu->addAction(compAct);
+    prefMenu->addAction(dsfAct);
 }
 
 #ifndef QT_NO_CONTEXTMENU
@@ -160,6 +169,7 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
 
     QMenu compMenu(this);
     compMenu.addAction(compAct);
+    compMenu.addAction(dsfAct);
     compMenu.exec(event->globalPos());
 }
 #endif // QT_NO_CONTEXTMENU
@@ -205,9 +215,12 @@ void LVMainWindow::reset()
 
 void LVMainWindow::show_deviceModelView()
 {
-    ComputeDevDialog *compDialog = new ComputeDevDialog(fw->STDFilter->getDeviceList());
-    connect(compDialog, &ComputeDevDialog::device_changed, this, &LVMainWindow::change_compute_device);
     compDialog->show();
+}
+
+void LVMainWindow::show_dsfModelView()
+{
+    dsfDialog->show();
 }
 
 void LVMainWindow::change_compute_device(QString dev_name)

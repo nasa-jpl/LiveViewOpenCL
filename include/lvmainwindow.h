@@ -16,6 +16,8 @@
 #include "fft_widget.h"
 #include "controlsbox.h"
 #include "saveserver.h"
+#include "computedevdialog.h"
+#include "dsfprefdialog.h"
 
 class LVMainWindow : public QMainWindow
 {
@@ -46,6 +48,7 @@ private:
     QAction *resetAct;
     QAction *exitAct;
     QAction *compAct;
+    QAction *dsfAct;
 
     FrameWorker *fw;
     QFuture<void> DSLoop;
@@ -64,6 +67,9 @@ private:
 
     SaveServer *server;
 
+    ComputeDevDialog *compDialog;
+    DSFPrefDialog *dsfDialog;
+
     QString default_dir;
     QString source_dir;
     QString save_filename;
@@ -74,6 +80,7 @@ private slots:
     void saveAs();
     void reset();
     void show_deviceModelView();
+    void show_dsfModelView();
     void change_compute_device(QString dev_name);
 };
 

@@ -89,7 +89,8 @@ HEADERS += \
         sliding_dft.h \
         computedevdialog.h \
         saveserver.h \
-        saveclient.h
+        saveclient.h \
+        dsfprefdialog.h
 unix:!macx {
     HEADERS += clcamera.h
 }
