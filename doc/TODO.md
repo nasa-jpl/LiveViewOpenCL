@@ -15,7 +15,6 @@
 * Finish porting features of original LiveView to new, experimental version
 * Implement FFT filter plots and visualizations of the legacy liveview
 * Implement Playback widget plots and visualizations of the legacy liveview
-* Enhance remote control TCP/IP interface – Not yet implemented. However, a frame saving capability is now available.
 * Preference window
 * Save server and Python client
 * Add a counter of the number of frames in the dark subtraction widget and allow a specific number of frames to be averaged for the dark mask.
@@ -40,4 +39,4 @@
 * Improve algorithm for computing fps to be time-based rather than frame count-based
 * Indicator when fps display is stable/valid (issue: LiveView is currently showing the "real-time" results of the fps which take a time to stabilize)
 * Mean filter (profile is done)
-
+* Enhance remote control TCP/IP interface. This has been done in theory, although many features still need to be built out, such as requesting a default save location, getting the status of the frame save operation, etc.
