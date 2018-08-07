@@ -261,6 +261,41 @@ void FrameWorker::captureFramesRemote(const QString &fileName, const quint64 &nF
     }
 }
 
+void FrameWorker::applyMask(const QString &fileName)
+{
+    DSFilter->apply_mask_file(fileName);
+}
+
+void FrameWorker::collectMask()
+{
+    if (QFileInfo(mask_file).exists()) {
+        int retval = QMessageBox::warning(nullptr, "Confirm Mask Save",
+                             QString("The file: %1 already exists. Are you sure you want to overwrite it?").arg(mask_file),
+                             QMessageBox::Ok, QMessageBox::Cancel);
+        if (retval == QMessageBox::Accepted) {
+            DSFilter->start_mask_collection();
+        } else {
+            return;
+        }
+    } else {
+        DSFilter->start_mask_collection();
+    }
+}
+
+void FrameWorker::stopCollectingMask()
+{
+    DSFilter->finish_mask_collection();
+    if (!mask_file.isEmpty()) {
+        DSFilter->save_mask_file(mask_file);
+    }
+}
+
+void FrameWorker::setMaskSettings(QString mask_name, quint64 avg_frames)
+{
+    mask_file = mask_name;
+    avgd_frames = avg_frames;
+}
+
 void FrameWorker::reportFPS()
 {
     if (Camera->isRunning()) {
@@ -305,10 +340,12 @@ float* FrameWorker::getSpatialMean()
 {
     return lvframe_buffer->lastDSF()->spatial_mean;
 }
+
 float* FrameWorker::getSpectralMean()
 {
     return lvframe_buffer->lastDSF()->spectral_mean;
 }
+
 float* FrameWorker::getFrameFFT()
 {
     return lvframe_buffer->lastDSF()->frame_fft;

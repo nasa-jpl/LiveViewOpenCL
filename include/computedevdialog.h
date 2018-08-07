@@ -19,7 +19,6 @@ public:
     ComputeDevDialog(QStringList device_list) : deviceList(device_list)
     {
         this->setWindowTitle("Select OpenCL Device");
-        this->setModal(true);
 
         deviceListView = new QListView(this);
         deviceListModel = new QStringListModel(this);
@@ -36,7 +35,7 @@ public:
         buttonLayout->addWidget(okButton);
         buttonLayout->addWidget(cancelButton);
         QVBoxLayout *dialogLayout = new QVBoxLayout(this);
-        dialogLayout->addWidget(new QLabel("Select a computing device to use for Standard Deviviation computation:"));
+        dialogLayout->addWidget(new QLabel("Select a computing device to use for Standard Deviation computation:"));
         dialogLayout->addWidget(deviceListView);
         dialogLayout->addLayout(buttonLayout);
     }

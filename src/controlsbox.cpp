@@ -4,7 +4,7 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
     QWidget(parent), collecting_mask(false)
 {
     frame_handler = fw;
-    connect(frame_handler, SIGNAL(updateFPS(float)), this, SLOT(updateFPS(float)));
+    connect(frame_handler, &FrameWorker::updateFPS, this, &ControlsBox::updateFPS);
     tab_handler = tw;
     connect(tab_handler, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
     viewWidget = getCurrentTab();
@@ -82,10 +82,10 @@ void ControlsBox::collectDSFMask()
     collecting_mask = !collecting_mask;
     if (collecting_mask) {
         maskButton->setText("&Stop Collecting Mask");
-        frame_handler->DSFilter->start_mask_collection();
+        frame_handler->collectMask();
     } else {
         maskButton->setText("&Collect Mask Frames");
-        frame_handler->DSFilter->finish_mask_collection();
+        frame_handler->stopCollectingMask();
     }
 }
 

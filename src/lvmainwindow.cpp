@@ -86,6 +86,10 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     connect(compDialog, &ComputeDevDialog::device_changed, this, &LVMainWindow::change_compute_device);
 
     dsfDialog = new DSFPrefDialog();
+    connect(dsfDialog, &DSFPrefDialog::applyMaskFromFile, fw, &FrameWorker::applyMask);
+    connect(dsfDialog, &DSFPrefDialog::accepted, fw, [this](){
+        fw->setMaskSettings(dsfDialog->getMaskFile(), dsfDialog->getAvgdFrames());
+    });
 }
 
 LVMainWindow::~LVMainWindow()

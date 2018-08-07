@@ -1,9 +1,10 @@
 #ifndef FRAMEWORKER_H
 #define FRAMEWORKER_H
 
-#include <queue>
 #include <chrono>
+#include <queue>
 
+#include <QMessageBox>
 #include <QPointF>
 #include <QTime>
 #include <QTimer>
@@ -64,6 +65,9 @@ public:
     void setCenter(double Xcoord, double Ycoord);
     QPointF* getCenter();
     void setDSF(bool toggled);
+    void collectMask();
+    void stopCollectingMask();
+    void setMaskSettings(QString mask_name, quint64 avg_frames);
 
     uint16_t getFrameWidth() const { return frWidth; }
     uint16_t getFrameHeight() const { return frHeight; }
@@ -85,6 +89,7 @@ public slots:
     void captureSDFrames();
     void reportFPS();
     void captureFramesRemote(const QString &fileName, const quint64 &nFrames, const quint64 &nAvgs);
+    void applyMask(const QString &fileName);
 
 private:
     QThread *thread;
@@ -111,6 +116,9 @@ private:
     QPointF centerVal;
 
     std::queue<save_req_t> SaveQueue;
+
+    QString mask_file;
+    quint64 avgd_frames;
 
 };
 
