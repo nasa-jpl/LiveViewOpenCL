@@ -9,7 +9,7 @@ MeanFilter::~MeanFilter() {}
 
 void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight, bool useDSF)
 {
-    unsigned int r, c, k;
+    unsigned int r, c; // , k;
     float nSamps = bottomRight.x() - topLeft.x();
     float nBands = bottomRight.y() - topLeft.y();
     float frame_mean = 0.0;

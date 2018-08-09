@@ -60,7 +60,7 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
       useDSF(false), saving(false),
       count(0), count_prev(0)
 {
-    Camera = new SSDCamera();
+    Camera = new CLCamera();
     bool cam_started = Camera->start();
 
     if (!cam_started) {
@@ -157,6 +157,8 @@ void FrameWorker::captureFrames()
         count++;
         if (duration < FRAME_PERIOD_MS && cam_type == ITB) {
             delay(FRAME_PERIOD_MS - duration);
+        } else {
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
         }
     }
 }

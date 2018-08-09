@@ -45,6 +45,7 @@ bool CLCamera::start()
 
     pdv_multibuf(dev_p, numbufs);
     numbufs = 16;
+    pdv_start_images(dev_p, numbufs);
 
     return true;
 }
