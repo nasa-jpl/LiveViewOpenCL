@@ -17,7 +17,8 @@ class ControlsBox : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent = NULL);
+    explicit ControlsBox(FrameWorker *fw, QTabWidget *tw,
+                         QString ipAddress, quint16 port, QWidget *parent = NULL);
     ~ControlsBox();
 
 public slots:

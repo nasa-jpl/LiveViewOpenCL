@@ -1,6 +1,7 @@
 #include "controlsbox.h"
 
-ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
+ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
+                         QString ipAddress, quint16 port, QWidget *parent) :
     QWidget(parent), collecting_mask(false)
 {
     frame_handler = fw;
@@ -11,6 +12,9 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
 
     fpsLabel = new QLabel("Warning: No Frames Received");
     fpsLabel->setFixedWidth(200);
+
+    QLabel *ipLabel = new QLabel(QString("IP Address: %1").arg(ipAddress));
+    QLabel *portLabel = new QLabel(QString("Port Label: %1").arg(port));
 
     rangeSlider = new ctkRangeSlider();
     rangeSlider->setOrientation(Qt::Horizontal);
@@ -25,6 +29,8 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw, QWidget *parent) :
 
     QGridLayout *cboxLayout = new QGridLayout(this);
     cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
+    cboxLayout->addWidget(ipLabel, 1, 0, 1, 1);
+    cboxLayout->addWidget(portLabel, 2, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Range:"), 0, 1, 1, 1);
     cboxLayout->addWidget(rangeSlider, 0, 2, 1, 5);
     cboxLayout->addWidget(precisionBox, 0, 7, 1, 2);

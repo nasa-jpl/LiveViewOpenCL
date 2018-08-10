@@ -63,11 +63,14 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     tab_widget->addTab(spat_mean_display, QString("Spatial Mean"));
     tab_widget->addTab(fft_display, QString("FFT of Plane Mean"));
 
+    server = new SaveServer(this);
+    connect(server, &SaveServer::startSavingRemote, fw, &FrameWorker::captureFramesRemote);
+
     /*
      * It's pretty bizarre to send the tab widget into the ControlsBox, but the reference is
      * preserved so that the ControlsBox GUI elements will control the current tab in context.
      */
-    cbox = new ControlsBox(fw, tab_widget);
+    cbox = new ControlsBox(fw, tab_widget, server->ipAdress.toString(), server->port);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->addWidget(tab_widget);
@@ -77,10 +80,7 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     this->setCentralWidget(mainWidget);
 
     createActions();
-    createMenus();
-
-    server = new SaveServer(this);
-    connect(server, &SaveServer::startSavingRemote, fw, &FrameWorker::captureFramesRemote);
+    createMenus();    
 
     compDialog = new ComputeDevDialog(fw->STDFilter->getDeviceList());
     connect(compDialog, &ComputeDevDialog::device_changed, this, &LVMainWindow::change_compute_device);

@@ -35,7 +35,7 @@ bool CLCamera::start()
     data_height = pdv_get_height(dev_p);
 
     // perform slightly different hardware interface tasks depending of the type of camera
-    switch (size){
+    switch (size) {
         case 481*640*sizeof(uint16_t): camera_type = CL_6604A; break;
         case 285*640*sizeof(uint16_t): camera_type = CL_6604A; break; // legacy FPA geometry
         default: camera_type = CL_6604B; break; // Typically 1280x480 Chroma geometry
