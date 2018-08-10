@@ -9,7 +9,7 @@ MeanFilter::~MeanFilter() {}
 
 void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight, bool useDSF)
 {
-    unsigned int r, c; // , k;
+    unsigned int r, c, k;
     float nSamps = bottomRight.x() - topLeft.x();
     float nBands = bottomRight.y() - topLeft.y();
     float frame_mean = 0.0;
@@ -43,14 +43,14 @@ void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRig
     }
     frame_mean /= (frWidth * frHeight);
 
-    /* dft_ready_read = dft.update(frame_mean);
+    dft_ready_read = dft.update(frame_mean);
     if (dft_ready_read) {
         dft.get(frame->frame_fft);
     } else {
         for (k = 0; k < FFT_INPUT_LENGTH; k++) {
             frame->frame_fft[k] = 0.0f;
         }
-    } */
+    }
 
     for (r = 0; r < frHeight; r++) {
         frame->spectral_mean[r] /= nSamps;

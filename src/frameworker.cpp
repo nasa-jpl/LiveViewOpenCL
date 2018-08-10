@@ -60,7 +60,7 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
       useDSF(false), saving(false),
       count(0), count_prev(0)
 {
-    Camera = new CLCamera();
+    Camera = new SSDCamera();
     bool cam_started = Camera->start();
 
     if (!cam_started) {
