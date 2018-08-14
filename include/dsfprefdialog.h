@@ -52,8 +52,15 @@ public:
         QHBoxLayout *checkLayout = new QHBoxLayout;
         checkLayout->addWidget(useFixedFrames);
 
+        /* Controls the number of frames to average each time a
+         * dark subtraction mask is requested. The default is to continue
+         * to record frames until the user presses a button to stop
+         * averaging. Note that this object does NOT start recording
+         * the dark subtraction mask, just sets a setting.
+         */
         avgdFramesBox = new QSpinBox(this);
         avgdFramesBox->setMinimum(1);
+        avgdFramesBox->setMaximum(10000);
         avgdFramesBox->setValue(avgd_frames);
         maskLabel = new QLabel("Num. Frames to Avg. in Mask:", this);
 
