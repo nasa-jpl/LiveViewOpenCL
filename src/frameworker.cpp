@@ -275,12 +275,12 @@ void FrameWorker::collectMask()
                              QString("The file: %1 already exists. Are you sure you want to overwrite it?").arg(mask_file),
                              QMessageBox::Ok, QMessageBox::Cancel);
         if (retval == QMessageBox::Accepted) {
-            DSFilter->start_mask_collection();
+            DSFilter->start_mask_collection(avgd_frames);
         } else {
             return;
         }
     } else {
-        DSFilter->start_mask_collection();
+        DSFilter->start_mask_collection(avgd_frames);
     }
 }
 
