@@ -12,8 +12,9 @@ DarkSubFilter::~DarkSubFilter()
     mask_collected = false;
 }
 
-void DarkSubFilter::start_mask_collection()
+void DarkSubFilter::start_mask_collection(const quint64 &avgf)
 {
+    avgd_frames = avgf;
     mask_collected = false;
     nSamples = 0;
     std::fill (mask.begin(), mask.end(), 0.0);
@@ -36,7 +37,9 @@ void DarkSubFilter::collect_mask(uint16_t* in_frame)
         mask_accum[i] = in_frame[i] + mask_accum[i];
     }
 
-    nSamples++;
+    if (avgd_frames != 0 && ++nSamples >= avgd_frames) {
+        mask_frames_collected();
+    }
 }
 
 void DarkSubFilter::dark_subtract(uint16_t* in_frame, float* out_frame)
@@ -106,4 +109,3 @@ void DarkSubFilter::save_mask_file(const QString &file_name)
     }
 
 }
-

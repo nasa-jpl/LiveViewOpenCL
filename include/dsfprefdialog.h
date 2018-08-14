@@ -33,7 +33,6 @@ public:
             open_mode = true;
         });
         connect(saveChoice, &QRadioButton::clicked, this, [this]() {
-            qDebug() << "这是来自 Save Mode Button 的测试。";
             useFixedFrames->setEnabled(true);
             open_mode = false;
         });
@@ -72,7 +71,6 @@ public:
 
         connect(useFixedFrames, &QCheckBox::toggled, this, [this](bool toggled)
         {
-            qDebug() << "这个错了吗？";
             avgdFramesBox->setVisible(toggled);
             maskLabel->setVisible(toggled);
         });
@@ -115,9 +113,7 @@ private slots:
     void okButtonPressed()
     {
         applyMask();
-        if (useFixedFrames->isChecked()) {
-            avgd_frames = avgdFramesBox->value();
-        }
+        avgd_frames = useFixedFrames->isChecked() ? static_cast<quint64>(avgdFramesBox->value()) : 0;
         this->accept();
     }
 

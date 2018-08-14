@@ -26,6 +26,9 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
 
     maskButton = new QPushButton("&Collect Mask Frames");
     connect(maskButton, SIGNAL(released()), this, SLOT(collectDSFMask()));
+    connect(frame_handler->DSFilter, &DarkSubFilter::mask_frames_collected, this, [this](){
+        this->collectDSFMask();
+    });
 
     QGridLayout *cboxLayout = new QGridLayout(this);
     cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
