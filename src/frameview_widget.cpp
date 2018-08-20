@@ -39,7 +39,7 @@ frameview_widget::frameview_widget(FrameWorker *fw, image_t image_type, QWidget 
     qcp->yAxis->setRangeReversed(true);
 
     colorMap = new QCPColorMap(qcp->xAxis, qcp->yAxis);
-    colorMapData = NULL;
+    colorMapData = nullptr;
 
     colorScale = new QCPColorScale(qcp);
     qcp->plotLayout()->addElement(0, 1, colorScale);

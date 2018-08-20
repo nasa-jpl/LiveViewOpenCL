@@ -21,7 +21,7 @@ public:
                 unsigned int frWidth = 640,
                 unsigned int frHeight = 480,
                 unsigned int dataHeight = 481,
-                QObject *parent = NULL);
+                QObject *parent = nullptr);
     virtual ~DebugCamera();
 
     virtual bool start();

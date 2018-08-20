@@ -34,7 +34,6 @@ struct LVFrame
             frame_fft = new float[MAX_FFT_SIZE];
         } catch (std::bad_alloc&) {
             qFatal("Not enough memory to allocate frame buffer.");
-            throw;
         }
         rlimit cur_lims;
         checkError(getrlimit(RLIMIT_MEMLOCK, &cur_lims));

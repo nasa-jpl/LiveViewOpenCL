@@ -6,8 +6,8 @@ void os::listdir(std::vector<std::string> &out, const std::string &directory)
     struct dirent *ent;
     struct stat st;
 
-    if ((dir = opendir(directory.data())) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
+    if ((dir = opendir(directory.data())) != nullptr) {
+        while ((ent = readdir(dir)) != nullptr) {
             const std::string file_name = ent->d_name;
             const std::string full_file_name = directory + "/" + file_name;
 

@@ -13,7 +13,7 @@ class LVTabApplication : public QWidget
 {
     Q_OBJECT
 public:
-    LVTabApplication(FrameWorker *fw, QWidget *parent = NULL) :
+    LVTabApplication(FrameWorker *fw, QWidget *parent = nullptr) :
         QWidget(parent), dataMax(float(UINT16_MAX)), dataMin(0.0),
         isPrecise(false), frame_handler(fw)
     {

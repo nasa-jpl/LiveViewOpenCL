@@ -31,7 +31,7 @@ public:
     SSDCamera(unsigned int frWidth = 640,
               unsigned int frHeight = 480,
               unsigned int dataHeight = 480,
-              QObject *parent = NULL);
+              QObject *parent = nullptr);
     virtual ~SSDCamera();
 
     virtual bool start();

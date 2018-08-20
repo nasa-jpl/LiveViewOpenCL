@@ -19,9 +19,9 @@ bool StdDevFilter::start()
     // Find the available platforms on the host computer system.
     // Typically there is only one platform, but some systems have several depending on hardware configuration.
     cl_uint platformIdCount = 0;
-    clGetPlatformIDs(0, NULL, &platformIdCount);
+    clGetPlatformIDs(0, nullptr, &platformIdCount);
     if (platformIdCount == 0) {
-        qFatal("No OpenCL platform found!");
+        qWarning("No OpenCL platform found!");
         return false;
     } else {
         qDebug() << "Found" << (int)platformIdCount << " platform(s)";
@@ -29,7 +29,7 @@ bool StdDevFilter::start()
 
     // List the platform names.
     std::vector<cl_platform_id> platformIds(platformIdCount);
-    clGetPlatformIDs(platformIdCount, platformIds.data(), NULL);
+    clGetPlatformIDs(platformIdCount, platformIds.data(), nullptr);
 
     for (cl_uint i = 0; i < platformIdCount; ++i) {
         qDebug() << "\t (" << (i+1) << ") :" << GetPlatformName(platformIds[i]).data();
@@ -41,14 +41,14 @@ bool StdDevFilter::start()
     cl_uint deviceIdCount = 0;
     cl_uint totalDeviceCount = 0;
     for (auto &platform : platformIds) {
-        clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 0, NULL,
+        clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 0, nullptr,
                     &deviceIdCount);
         devicesPerPlatform.push_back(deviceIdCount);
         totalDeviceCount += deviceIdCount;
     }
 
     if (totalDeviceCount == 0) {
-        qFatal("No OpenCL-compatible devices found on any platform!"); // will abort
+        qWarning("No OpenCL-compatible devices found on any platform!"); // will abort
         return false;
     } else {
         qDebug() << "Found" << totalDeviceCount << "device(s) across all platforms";
@@ -63,14 +63,14 @@ bool StdDevFilter::start()
             ndx += *it;
         }
         clGetDeviceIDs(platformIds[i], CL_DEVICE_TYPE_ALL, devicesPerPlatform[i],
-                &deviceIds[ndx], NULL);
+                &deviceIds[ndx], nullptr);
     }
 
     // Get the types of all devices. TODO: icons on the Computation ModelView for each device type?
     std::vector<cl_device_type> deviceTypes(totalDeviceCount);
     for (cl_uint i = 0; i < totalDeviceCount; i++) {
         qDebug() << "\t (" << (i+1) << ") :" << GetDeviceName(deviceIds[i]).data();
-        clGetDeviceInfo(deviceIds[i], CL_DEVICE_TYPE, sizeof(cl_device_type), &deviceTypes[i], NULL);
+        clGetDeviceInfo(deviceIds[i], CL_DEVICE_TYPE, sizeof(cl_device_type), &deviceTypes[i], nullptr);
     }
 
     // use a reverse iterator to search for the last occurence of a GPU-type device on the device list
@@ -79,7 +79,7 @@ bool StdDevFilter::start()
         // GPU not found on the system; fall back to using a CPU-type device.
         pos = std::find(deviceTypes.rbegin(), deviceTypes.rend(), CL_DEVICE_TYPE_CPU) - deviceTypes.rbegin();
         if ((size_t)pos >= deviceTypes.size()) {
-            qFatal("No suitable (CPU or GPU) OpenCL devices found."); // will abort
+            qWarning("No suitable (CPU or GPU) OpenCL devices found."); // will abort
             return false;
         }
         // since pos is the result of a reverse iterator, the index in the forward list is the opposite
@@ -108,7 +108,7 @@ bool StdDevFilter::start()
         }
 
         context.push_back(clCreateContext(contextProperties, devicesPerPlatform[p],
-                &deviceIds[ndx], NULL, NULL, &error));
+                &deviceIds[ndx], nullptr, nullptr, &error));
     }
 
     // work_size defines the global work group size, which is defined by the size of the problem space
@@ -134,12 +134,12 @@ bool StdDevFilter::BuildAndSetup()
 
     program = CreateProgram(LoadKernel(":kernel/stddev.cl"), context[platform_num]);
     error = clBuildProgram(program, 1, &(deviceIds[device_num]),
-                  build_options.toStdString().data(), 0, NULL);
+                  build_options.toStdString().data(), nullptr, nullptr);
     if (error != CL_SUCCESS) {
         cl_int errcode;
         size_t build_log_len;
         errcode = clGetProgramBuildInfo(program, deviceIds[device_num],
-                CL_PROGRAM_BUILD_LOG, 0, NULL, &build_log_len);
+                CL_PROGRAM_BUILD_LOG, 0, nullptr, &build_log_len);
         if (errcode) {
             qDebug("clGetProgramBuildInfo failed at line %d", __LINE__);
             return false;
@@ -148,7 +148,7 @@ bool StdDevFilter::BuildAndSetup()
         std::vector<char> buff_erro(build_log_len);
 
         errcode = clGetProgramBuildInfo(program, deviceIds[device_num],
-                CL_PROGRAM_BUILD_LOG, build_log_len, buff_erro.data(), NULL);
+                CL_PROGRAM_BUILD_LOG, build_log_len, buff_erro.data(), nullptr);
         if (errcode) {
             qDebug("clGetProgramBuildInfo failed at line %d", __LINE__);
             return false;
@@ -164,19 +164,19 @@ bool StdDevFilter::BuildAndSetup()
     CheckError(error, __LINE__);
 
     devInputBuffer = clCreateBuffer(context[platform_num], CL_MEM_READ_ONLY,
-            frWidth * frHeight * sizeof(cl_ushort) * GPU_FRAME_BUFFER_SIZE, NULL, &error);
+            frWidth * frHeight * sizeof(cl_ushort) * GPU_FRAME_BUFFER_SIZE, nullptr, &error);
     CheckError(error, __LINE__);
 
     devOutputBuffer = clCreateBuffer(context[platform_num], CL_MEM_WRITE_ONLY,
-            frWidth * frHeight * sizeof(cl_float), NULL, &error);
+            frWidth * frHeight * sizeof(cl_float), nullptr, &error);
     CheckError(error, __LINE__);
 
     hist_bins = clCreateBuffer(context[platform_num], CL_MEM_READ_ONLY,
-             NUMBER_OF_BINS * sizeof(cl_float), NULL, &error);
+             NUMBER_OF_BINS * sizeof(cl_float), nullptr, &error);
      CheckError(error, __LINE__);
 
      devOutputHist = clCreateBuffer(context[platform_num], CL_MEM_WRITE_ONLY,
-             NUMBER_OF_BINS * sizeof(cl_uint), NULL, &error);
+             NUMBER_OF_BINS * sizeof(cl_uint), nullptr, &error);
      CheckError(error, __LINE__);
 
     clSetKernelArg(kernel, 0, sizeof(cl_mem), &devInputBuffer);
@@ -192,7 +192,7 @@ bool StdDevFilter::BuildAndSetup()
     CheckError(error, __LINE__);
 
     CheckError(clEnqueueWriteBuffer(commandQueue, hist_bins, CL_TRUE, 0, NUMBER_OF_BINS * sizeof(cl_float),
-            getHistBinValues().data(), 0, NULL, NULL), __LINE__);
+            getHistBinValues().data(), 0, nullptr, nullptr), __LINE__);
     CheckError(error, __LINE__);
 
     return true;
@@ -211,12 +211,12 @@ bool StdDevFilter::isReadyDisplay()
 std::string StdDevFilter::GetPlatformName(cl_platform_id id)
 {
     size_t size = 0;
-    clGetPlatformInfo(id, CL_PLATFORM_NAME, 0, NULL, &size);
+    clGetPlatformInfo(id, CL_PLATFORM_NAME, 0, nullptr, &size);
 
     std::string result;
     result.resize(size);
     clGetPlatformInfo(id, CL_PLATFORM_NAME, size,
-            const_cast<char*>(result.data()), NULL);
+            const_cast<char*>(result.data()), nullptr);
 
     return result;
 }
@@ -224,12 +224,12 @@ std::string StdDevFilter::GetPlatformName(cl_platform_id id)
 std::string StdDevFilter::GetDeviceName(cl_device_id id)
 {
     size_t size = 0;
-    clGetDeviceInfo(id, CL_DEVICE_NAME, 0, NULL, &size);
+    clGetDeviceInfo(id, CL_DEVICE_NAME, 0, nullptr, &size);
 
     std::string result;
     result.resize(size);
     clGetDeviceInfo(id, CL_DEVICE_NAME, size,
-            const_cast<char*>(result.data()), NULL);
+            const_cast<char*>(result.data()), nullptr);
 
     return result;
 }
@@ -253,7 +253,6 @@ void StdDevFilter::CheckError(cl_int error, int line)
     if (error != CL_SUCCESS) {
         const char *errorString = getOpenCLErrorString(error);
         qFatal("OpenCL call failed with error %s on line %d", errorString, line);
-        std::exit(1);
     }
 }
 
@@ -369,15 +368,15 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
 
     size_t devMemOffset = gpu_buffer_head * frWidth * frHeight * sizeof(cl_ushort);
     CheckError(clEnqueueWriteBuffer(commandQueue, devInputBuffer, CL_FALSE, devMemOffset, frWidth * frHeight * sizeof(cl_ushort),
-                         new_frame->raw_data, 0, NULL, &frame_written), __LINE__);
+                         new_frame->raw_data, 0, nullptr, &frame_written), __LINE__);
     CheckError(clEnqueueWriteBuffer(commandQueue, devOutputHist, CL_FALSE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
-                zero_buf.data(), 0, NULL, &hist_written), __LINE__);
+                zero_buf.data(), 0, nullptr, &hist_written), __LINE__);
 
     const cl_event kernel_wait_list[2] = { frame_written, hist_written };
 
     // Now using a null pointer for the local work size, which can be determined automatically.
     CheckError(clEnqueueNDRangeKernel(commandQueue, kernel, 3,
-                                      offset, work_size, NULL,
+                                      offset, work_size, nullptr,
                                       2, kernel_wait_list, &kernel_complete), __LINE__);
     CheckError(clEnqueueReadBuffer(commandQueue, devOutputBuffer, CL_FALSE, 0, frWidth * frHeight * sizeof(cl_float),
                                                     new_frame->sdv_data, 1, &kernel_complete, &frame_read), __LINE__);

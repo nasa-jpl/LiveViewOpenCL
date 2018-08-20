@@ -17,7 +17,7 @@ class CameraModel : public QObject
     Q_OBJECT
 
 public:
-    CameraModel(QObject *parent = NULL) : QObject(parent) { running.store(false); }
+    CameraModel(QObject *parent = nullptr) : QObject(parent) { running.store(false); }
     virtual ~CameraModel() { running.store(false); }
 
 

@@ -17,7 +17,7 @@ class frameview_widget : public LVTabApplication
 {
     Q_OBJECT
 public:
-    explicit frameview_widget(FrameWorker *fw, image_t image_type, QWidget *parent = NULL);
+    explicit frameview_widget(FrameWorker *fw, image_t image_type, QWidget *parent = nullptr);
     ~frameview_widget();
 
 public slots:

@@ -13,7 +13,7 @@ class SaveClient : public QObject
     Q_OBJECT
 
 public:
-    explicit SaveClient(QTcpSocket *socket, QObject *parent = 0) :
+    explicit SaveClient(QTcpSocket *socket, QObject *parent = nullptr) :
         QObject(parent), clientConnection(socket)
     {
         connect(clientConnection, &QAbstractSocket::disconnected,

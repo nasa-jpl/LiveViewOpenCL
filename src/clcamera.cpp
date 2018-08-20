@@ -20,9 +20,9 @@ CLCamera::~CLCamera()
 
 bool CLCamera::start()
 {
-    dev_p = NULL;
+    dev_p = nullptr;
     dev_p = pdv_open_channel(EDT_INTERFACE, 0, channel);
-    if (dev_p == NULL) {
+    if (dev_p == nullptr) {
         qFatal("Could not open Camera Link device on channel 0. Is there a camera connected and powered on?");
     }
     pdv_flush_fifo(dev_p);

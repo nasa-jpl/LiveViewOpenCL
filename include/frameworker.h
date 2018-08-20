@@ -41,7 +41,7 @@ class FrameWorker : public QObject
     Q_OBJECT
 
 public:
-    explicit FrameWorker(QThread *worker, QObject *parent = NULL);
+    explicit FrameWorker(QThread *worker, QObject *parent = nullptr);
     ~FrameWorker();
     void stop();
     bool running();
