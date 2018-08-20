@@ -1,23 +1,23 @@
 # Items To Do for LiveView
 
 ## High priority items for Jacky:
-*	Fix “override file” dialog box that overrides no matter what is selected -  
-* Install and Test standard deviation LiveView on CARBO GSE server Ubuntu computer
+*	Fix “override file” dialog box that overrides no matter what is selected
 
-## High priority items for Brandon (10 weeks) using CARB-O Alpha Data UltraScale+ MPSoC board:
-*	Sync of first line when there is a drop, no more need to relaunch liveview – While I did implement this functionality, it unfortunately did not play well with the frame counter for some reason, causing every other frame to be dropped (or perhaps not counted). Additionally, since the fps counter in this version of LiveView is count-based, slower framerates take a long time to update the value in the GUI, and so at 1 fps (or a timeout condition), the fps value in the GUI is only updated every 100 secs (!!). I will need to re-visit this in further detail, it may be an issue with the EDT API.
+## High priority for Max and Brendan:
+* Ensure that OpenCL and/or CUDA work on the hotelkit machine
+* Put a more recent version of LiveView on rduce5
+
+## High priority items for Brendon (10 weeks) using CARB-O Alpha Data UltraScale+ MPSoC board:
+*	Sync of first line when there is a drop, no more need to relaunch liveview – While I did implement this functionality, it unfortunately did not play well with the frame counter for some reason, causing every other frame to be dropped (or perhaps not counted). Additionally, since the fps counter in this version of LiveView is count-based, slower framerates take a long time to update the value in the GUI, and so at 1 fps (or a timeout condition), the fps value in the GUI is only updated every 100 secs (!!). I will need to re-visit this in further detail, it may be an issue with the EDT API. NEEDS TESTING
 * Provide compatibility for Yocto embedded Linux platforms with display capability (CARBO project flight Focal Plane Interface Electronics Digital platform: Xilinx UltraScale+ MPSoC Zynq)
 * Add DisplayPort capability available on Yocto embedded Linux platforms ( CARBo project flight Focal Plane Interface Electronics Digital platform: Xilinx UltraScale+ MPSoC Zynq)
 * Improve stability of frame display for CLCamera (Camera Link) at low backend framerates (<2 frames/second)
-* Improve the reliablility of detection of no image data and when the frame is out of sync (issue: LiveView currenly shows, some time, first line is in the middle of the frame)
+* Improve the reliablility of detection of no image data and when the frame is out of sync (issue: LiveView currenly shows, some time, first line is in the middle of the frame) NEEDS TESTING
 
 ## Medium priority items:
 * Finish porting features of original LiveView to new, experimental version
-* Implement FFT filter plots and visualizations of the legacy liveview
 * Implement Playback widget plots and visualizations of the legacy liveview
 * Preference window
-* Save server and Python client
-* Add a counter of the number of frames in the dark subtraction widget and allow a specific number of frames to be averaged for the dark mask.
 
 ## Low priority items:
 *	Many of our users ask if we can interpolate between pixels, for example, fitting an optical signal to a Gaussian curve. It would be useful for alignment (and as you know, alignment is a big deal…) – Not yet implemented. I’ve heard of this idea, but I want to make LiveView 4 a full replacement of the old LiveView first.
@@ -40,3 +40,9 @@
 * Indicator when fps display is stable/valid (issue: LiveView is currently showing the "real-time" results of the fps which take a time to stabilize)
 * Mean filter (profile is done)
 * Enhance remote control TCP/IP interface. This has been done in theory, although many features still need to be built out, such as requesting a default save location, getting the status of the frame save operation, etc.
+* Implement FFT filter plots and visualizations of the legacy liveview - Done by Brendan, Jackie, and Max
+* Save server and Python client - Done by Jackie
+* Add a counter of the number of frames in the dark subtraction widget and allow a specific number of frames to be averaged for the dark mask. - Done by Jackie and Max
+* LiveView installed on Carbo GSE computer, unfortunately the camera link hardware does not appear to be working. Maybe a driver issue?
+* LiveView installed on hotelkit with OpenCL disabled, both CUDA and OpenCL appear to not be working right now on hotelkit.
+* LiveView installed on rduce5. Needs a more recent pull.
