@@ -60,7 +60,7 @@ FrameWorker::FrameWorker(QThread *worker, QObject *parent)
       useDSF(false), saving(false),
       count(0), count_prev(0)
 {
-    Camera = new SSDCamera();
+    Camera = new CLCamera();
     bool cam_started = Camera->start();
 
     if (!cam_started) {
@@ -144,7 +144,7 @@ void FrameWorker::captureFrames()
 
     QTimer *fpsclock = new QTimer(this);
     connect(fpsclock, &QTimer::timeout, this, &FrameWorker::reportFPS);
-    fpsclock->start(1000);
+    fpsclock->start(frame_period);
 
     while (isRunning) {
         beg = high_resolution_clock::now();
@@ -300,11 +300,17 @@ void FrameWorker::setMaskSettings(QString mask_name, quint64 avg_frames)
 
 void FrameWorker::reportFPS()
 {
+    uint64_t count_local = count.load();
+    windows_since_frame++;
     if (Camera->isRunning()) {
         isTimeout = false;
-        emit updateFPS((float)(count.load() - count_prev));
+        //emit updateFPS((float)(count.load() - count_prev));
+        if(count_local != count_prev) {
+            emit updateFPS(1000.0f * (float)(count_local - count_prev)/(windows_since_frame * frame_period));
+            windows_since_frame = 0;
+        }
     }
-    count_prev = count.load();
+    count_prev = count_local;
 }
 
 void FrameWorker::resetDir(const char *dirname)
