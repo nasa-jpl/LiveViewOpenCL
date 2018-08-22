@@ -148,7 +148,7 @@ void frameview_widget::handleNewFrame()
 {
     if (!this->isHidden() && frame_handler->running()) {
 
-        float* image_data = (frame_handler->*p_getFrame)();
+        std::vector<float>image_data{(frame_handler->*p_getFrame)()};
         for (unsigned int col = 0; col < frWidth; col++) {
             for (unsigned int row = 0; row < frHeight; row++ ) {
                 colorMap->data()->setCell(col, row, image_data[row * frWidth + col]); // y-axis NOT reversed

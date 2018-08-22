@@ -158,7 +158,7 @@ QVector<double> line_widget::getSpectralLine(QPointF coord)
 {
     QVector<double> graphData(frHeight);
     size_t col = (size_t)coord.y();
-    float *image_data = (frame_handler->*p_getFrame)();
+    std::vector<float> image_data = (frame_handler->*p_getFrame)();
     for (size_t r = 0; r < frHeight; r++) {
         graphData[r] = image_data[r * frWidth + col];
     }
@@ -169,7 +169,7 @@ QVector<double> line_widget::getSpatialLine(QPointF coord)
 {
     QVector<double> graphData(frWidth);
     size_t row = (size_t)coord.x();
-    float *image_data = (frame_handler->*p_getFrame)();
+    std::vector<float> image_data = (frame_handler->*p_getFrame)();
     for (size_t c = 0; c < frWidth; c++) {
         graphData[c] = image_data[row * frWidth + c];
     }

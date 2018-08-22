@@ -31,7 +31,7 @@ public slots:
     void reportFPS();
 
 private:
-    float* (FrameWorker::*p_getFrame)();
+    std::vector<float> (FrameWorker::*p_getFrame)();
     image_t image_type;
 
     QCPColorMap *colorMap;

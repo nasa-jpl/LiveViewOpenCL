@@ -25,7 +25,7 @@ public slots:
 
 private:
     QVector<double> (line_widget::*p_getLine)(QPointF);
-    float* (FrameWorker::*p_getFrame)();
+    std::vector<float> (FrameWorker::*p_getFrame)();
     QVector<double> getSpectralLine(QPointF coord);
     QVector<double> getSpatialLine(QPointF coord);
     QVector<double> getSpectralMean(QPointF coord);

@@ -314,23 +314,28 @@ void FrameWorker::resetDir(const char *dirname)
     }
 }
 
-float* FrameWorker::getFrame()
+std::vector<float> FrameWorker::getFrame()
 {
+    //Maintains reference to data by using vector for memory management
+
     std::vector<float> raw_data(frSize);
     for (unsigned int i = 0; i < frSize; i++) {
         raw_data[i] = (float)lvframe_buffer->recent()->raw_data[i];
     }
-    return raw_data.data();
+    return raw_data;
 }
 
-float* FrameWorker::getDSFrame()
+std::vector<float> FrameWorker::getDSFrame()
 {
-    return lvframe_buffer->lastDSF()->dsf_data;
+    //Maintains reference to data by using vector for memory management
+    return std::vector<float>(lvframe_buffer->lastDSF()->dsf_data, lvframe_buffer->lastDSF()->dsf_data + frSize);
 }
 
-float* FrameWorker::getSDFrame()
+std::vector<float> FrameWorker::getSDFrame()
 {
-    return lvframe_buffer->lastSTD()->sdv_data;
+    //Maintains reference to data by using vector for memory management
+
+    return std::vector<float>(lvframe_buffer->lastSTD()->sdv_data, lvframe_buffer->lastSTD()->sdv_data + frSize);
 }
 
 uint32_t* FrameWorker::getHistData()

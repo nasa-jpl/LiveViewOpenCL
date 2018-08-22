@@ -48,13 +48,13 @@ public:
 
     void resetDir(const char *dirname);
 
-    float* getFrame();
+    std::vector<float> getFrame();
 
     DarkSubFilter* DSFilter;
     StdDevFilter* STDFilter;
     MeanFilter* MEFilter;
-    float* getDSFrame();
-    float* getSDFrame();
+    std::vector<float> getDSFrame();
+    std::vector<float> getSDFrame();
     uint32_t* getHistData();
     float* getSpectralMean();
     float* getSpatialMean();
