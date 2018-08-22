@@ -1,6 +1,9 @@
 #include "frameview_widget.h"
 
-frameview_widget::frameview_widget(FrameWorker *fw, image_t image_type, QWidget *parent) :
+frameview_widget::frameview_widget(FrameWorker *fw,
+                                   image_t image_type,
+                                   QSettings *settings,
+                                   QWidget *parent) :
         LVTabApplication(fw, parent),
         image_type(image_type),
         count(0), count_prev(0), fps(0)
@@ -49,7 +52,11 @@ frameview_widget::frameview_widget(FrameWorker *fw, image_t image_type, QWidget 
     colorMap->data()->setValueRange(QCPRange(0, frHeight-1));
     colorMap->data()->setKeyRange(QCPRange(0, frWidth-1));
     colorMap->setDataRange(QCPRange(floor, ceiling));
-    colorMap->setGradient(QCPColorGradient::gpJet);
+    colorMap->setGradient(QCPColorGradient(
+                              static_cast<QCPColorGradient::GradientPreset>(
+                                  settings->value(
+                                      QString("gradient"),
+                                      QCPColorGradient::gpJet).toInt())));
     colorMap->setInterpolate(false);
     colorMap->setAntialiased(false);
 

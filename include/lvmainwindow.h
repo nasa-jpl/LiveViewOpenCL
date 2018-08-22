@@ -26,6 +26,7 @@ class LVMainWindow : public QMainWindow
 public:
     LVMainWindow(QWidget *parent = nullptr);
     ~LVMainWindow() override;
+    QSettings *settings;
 
 public slots:
     void errorString(const QString &);
