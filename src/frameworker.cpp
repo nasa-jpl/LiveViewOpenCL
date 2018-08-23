@@ -68,17 +68,23 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
       useDSF(false), saving(false),
       count(0), count_prev(0)
 {
-#if !(__APPLE__ || __MACH__)
-    if (settings->value(QString("cam_model")).toString()
-            .compare(QString("CL"), Qt::CaseInsensitive) == 0) {
-        Camera = new CLCamera();
-    } else {
-#endif
-        settings->setValue(QString("cam_model"), QString("CL"));
+    Camera = nullptr;
+    switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
+    case SSD:
         Camera = new SSDCamera();
+        break;
+    case DEBUG:
+        Camera = new DebugCamera("");
+        break;
+    case CAMERA_LINK:
 #if !(__APPLE__ || __MACH__)
-    }
+        Camera = new CLCamera();
+        break;
+#else
+        qFatal("Unable to use Camera Link interface on MacOS systems!");
 #endif
+    }
+
 
     bool cam_started = Camera->start();
 
