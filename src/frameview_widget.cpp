@@ -112,6 +112,11 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     crosshairY = new QCPItemRect(qcp);
     crosshairY->setPen(QPen(Qt::white));
 
+    crosshairX->bottomRight->setCoords(-100, -100);
+    crosshairX->topLeft->setCoords(-100, -100);
+    crosshairY->bottomRight->setCoords(-100, -100);
+    crosshairY->topLeft->setCoords(-100, -100);
+
     QCheckBox *hideXbox = new QCheckBox("Hide Crosshair", this);
     connect(hideXbox, SIGNAL(toggled(bool)), this, SLOT(hideCrosshair(bool)));
     hideXbox->setFixedWidth(150);
