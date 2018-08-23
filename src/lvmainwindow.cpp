@@ -1,15 +1,10 @@
 #include "lvmainwindow.h"
-#include <QSettings>
 
-LVMainWindow::LVMainWindow(QWidget *parent)
+LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     : QMainWindow(parent)
 {   
     // Hardcoded default window size
     this->resize(1440, 900);
-
-    this->settings = new QSettings(QStandardPaths::writableLocation(
-                                       QStandardPaths::AppConfigLocation)
-                                   + "/lvconfig.ini", QSettings::IniFormat);
 
     QPixmap icon_pixmap(":images/icon.png");
     this->setWindowIcon(QIcon(icon_pixmap));
@@ -17,7 +12,7 @@ LVMainWindow::LVMainWindow(QWidget *parent)
 
     // Load the worker thread
     workerThread = new QThread;
-    fw = new FrameWorker(this->settings, workerThread);
+    fw = new FrameWorker(settings, workerThread);
     fw->moveToThread(workerThread);
     // Reserve proper take object error handling for later
     connect(fw, SIGNAL(error(QString)), this, SLOT(errorString(QString)));

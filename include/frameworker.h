@@ -75,6 +75,8 @@ public:
     uint16_t getDataHeight() const { return dataHeight; }
     camera_t getCameraType() const { return cam_type; }
 
+    QSettings *settings;
+
 signals:
     void finished();
     void error(const QString &error);
