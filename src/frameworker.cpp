@@ -66,7 +66,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         Camera = new CLCamera();
     } else {
 #endif
-        settings->setValue(QString("cam_model"), QString("CL"));
+        settings->setValue(QString("cam_model"), QString("SSD"));
         Camera = new SSDCamera();
 #if !(__APPLE__ || __MACH__)
     }
