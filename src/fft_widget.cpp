@@ -19,7 +19,7 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
     qgl->addWidget(DCMaskBox, 8, 0, 1, 2);
     this->setLayout(qgl);
 
-    if (USE_DARK_STYLE) {
+    if (fw->settings->value(QString("dark"), USE_DARK_STYLE).toInt()) {
         fft_bars->setPen(QPen(Qt::lightGray));
         fft_bars->setBrush(QBrush(QColor("#31363B")));
 

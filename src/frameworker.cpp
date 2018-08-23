@@ -55,8 +55,8 @@ private:
     std::vector<LVFrame*> frame_vec;
 };
 
-FrameWorker::FrameWorker(QSettings *settings, QThread *worker, QObject *parent)
-    : QObject(parent), thread(worker),
+FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *parent)
+    : settings(settings_arg), QObject(parent), thread(worker),
       useDSF(false), saving(false),
       count(0), count_prev(0)
 {
@@ -76,6 +76,7 @@ FrameWorker::FrameWorker(QSettings *settings, QThread *worker, QObject *parent)
         qFatal("Unable to use Camera Link interface on MacOS systems!");
 #endif
     }
+
 
     bool cam_started = Camera->start();
 

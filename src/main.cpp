@@ -18,8 +18,11 @@
 int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
+    QSettings *settings = new QSettings(QStandardPaths::writableLocation(
+                           QStandardPaths::AppConfigLocation)
+                       + "/lvconfig.ini", QSettings::IniFormat);
 
-    if (USE_DARK_STYLE) {
+    if (settings->value(QString("dark"), USE_DARK_STYLE).toInt()) {
         QFile f(":qdarkstyle/style.qss");
         if (!f.exists())
         {
@@ -40,7 +43,7 @@ int main(int argc, char* argv[])
 
     qDebug() << "This version of LiveView was compiled on" << __DATE__ << "at" << __TIME__ << "using gcc" << __GNUC__;
     qDebug() << "The compilation was performed by" << UNAME << "@" << HOST << "\n";
-    LVMainWindow w;
+    LVMainWindow w(settings);
     w.setGeometry(   QStyle::alignedRect(
                              Qt::LeftToRight,
                              Qt::AlignCenter,
@@ -50,6 +53,6 @@ int main(int argc, char* argv[])
     w.show();
     splash.finish(&w);
 
+    delete settings;
     return a.exec();
-
 }
