@@ -10,6 +10,7 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     this->settings = new QSettings(QStandardPaths::writableLocation(
                                        QStandardPaths::AppConfigLocation)
                                    + "/lvconfig.ini", QSettings::IniFormat);
+    qDebug() << settings->fileName();
 
     QPixmap icon_pixmap(":images/icon.png");
     this->setWindowIcon(QIcon(icon_pixmap));
