@@ -11,6 +11,7 @@
 #include <QCoreApplication>
 #include <QThread>
 #include <QtConcurrent/QtConcurrentRun>
+#include <QSettings>
 
 #include "image_type.h"
 #include "lvframe.h"
@@ -41,7 +42,7 @@ class FrameWorker : public QObject
     Q_OBJECT
 
 public:
-    explicit FrameWorker(QThread *worker, QObject *parent = nullptr);
+    explicit FrameWorker(QSettings *settings, QThread *worker, QObject *parent = nullptr);
     ~FrameWorker();
     void stop();
     bool running();

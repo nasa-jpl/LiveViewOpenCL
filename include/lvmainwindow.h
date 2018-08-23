@@ -26,7 +26,6 @@ class LVMainWindow : public QMainWindow
 public:
     LVMainWindow(QWidget *parent = nullptr);
     ~LVMainWindow() override;
-    QSettings *settings;
 
 public slots:
     void errorString(const QString &);
@@ -74,6 +73,7 @@ private:
     QString default_dir;
     QString source_dir;
     QString save_filename;
+    QSettings *settings;
 
 private slots:
     void open();

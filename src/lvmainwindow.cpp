@@ -1,4 +1,5 @@
 #include "lvmainwindow.h"
+#include <QSettings>
 
 LVMainWindow::LVMainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -7,8 +8,8 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     this->resize(1440, 900);
 
     this->settings = new QSettings(QStandardPaths::writableLocation(
-                                       QStandardPaths::ConfigLocation),
-                                       QSettings::IniFormat);
+                                       QStandardPaths::AppConfigLocation)
+                                   + "/lvconfig.ini", QSettings::IniFormat);
 
     QPixmap icon_pixmap(":images/icon.png");
     this->setWindowIcon(QIcon(icon_pixmap));
@@ -16,7 +17,7 @@ LVMainWindow::LVMainWindow(QWidget *parent)
 
     // Load the worker thread
     workerThread = new QThread;
-    fw = new FrameWorker(workerThread);
+    fw = new FrameWorker(this->settings, workerThread);
     fw->moveToThread(workerThread);
     // Reserve proper take object error handling for later
     connect(fw, SIGNAL(error(QString)), this, SLOT(errorString(QString)));
@@ -101,6 +102,7 @@ LVMainWindow::~LVMainWindow()
     fw->stop();
     DSLoop.waitForFinished();
     SDLoop.waitForFinished();
+    delete this->settings;
 }
 
 void LVMainWindow::errorString(const QString &errstr)
