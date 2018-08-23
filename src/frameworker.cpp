@@ -55,12 +55,19 @@ private:
     std::vector<LVFrame*> frame_vec;
 };
 
-FrameWorker::FrameWorker(QThread *worker, QObject *parent)
+FrameWorker::FrameWorker(QSettings *settings, QThread *worker, QObject *parent)
     : QObject(parent), thread(worker),
       useDSF(false), saving(false),
       count(0), count_prev(0)
 {
-    Camera = new CLCamera();
+    if (settings->value(QString("cam_model")).toString()
+            .compare(QString("SSD"), Qt::CaseInsensitive) == 0) {
+        Camera = new SSDCamera();
+    } else {
+        settings->setValue(QString("cam_model"), QString("CL"));
+        Camera = new CLCamera();
+    }
+
     bool cam_started = Camera->start();
 
     if (!cam_started) {

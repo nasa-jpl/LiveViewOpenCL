@@ -1,4 +1,5 @@
 #include "lvmainwindow.h"
+#include <QSettings>
 
 LVMainWindow::LVMainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -6,13 +7,17 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     // Hardcoded default window size
     this->resize(1440, 900);
 
+    this->settings = new QSettings(QStandardPaths::writableLocation(
+                                       QStandardPaths::AppConfigLocation)
+                                   + "/lvconfig.ini", QSettings::IniFormat);
+
     QPixmap icon_pixmap(":images/icon.png");
     this->setWindowIcon(QIcon(icon_pixmap));
     this->setWindowTitle("LiveView 4.0");
 
     // Load the worker thread
     workerThread = new QThread;
-    fw = new FrameWorker(workerThread);
+    fw = new FrameWorker(this->settings, workerThread);
     fw->moveToThread(workerThread);
     // Reserve proper take object error handling for later
     connect(fw, SIGNAL(error(QString)), this, SLOT(errorString(QString)));
@@ -39,9 +44,9 @@ LVMainWindow::LVMainWindow(QWidget *parent)
     QWidget* mainWidget = new QWidget(this);
     tab_widget = new QTabWidget(this);
 
-    raw_display = new frameview_widget(fw, BASE);
-    dsf_display = new frameview_widget(fw, DSF);
-    sdv_display = new frameview_widget(fw, STD_DEV);
+    raw_display = new frameview_widget(fw, BASE, settings);
+    dsf_display = new frameview_widget(fw, DSF, settings);
+    sdv_display = new frameview_widget(fw, STD_DEV, settings);
     hst_display = new histogram_widget(fw);
     spec_display = new line_widget(fw, SPECTRAL_PROFILE);
     spec_mean_display = new line_widget(fw, SPECTRAL_MEAN);
@@ -97,6 +102,7 @@ LVMainWindow::~LVMainWindow()
     fw->stop();
     DSLoop.waitForFinished();
     SDLoop.waitForFinished();
+    delete this->settings;
 }
 
 void LVMainWindow::errorString(const QString &errstr)
@@ -180,9 +186,11 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
 
 void LVMainWindow::open()
 {
-    default_dir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-    QString temp_dir = QFileDialog::getExistingDirectory(this, "Open Data Directory",
-                           default_dir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    default_dir = settings->value(QString("save_dir"),
+                                  QStandardPaths::writableLocation(
+                                      QStandardPaths::HomeLocation)).toString();
+
+    QString temp_dir = QFileDialog::getExistingDirectory(this, "Open Data Directory", default_dir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (!temp_dir.isEmpty()) {
         source_dir = temp_dir;
         fw->resetDir(source_dir.toLatin1().data());

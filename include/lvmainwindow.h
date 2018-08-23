@@ -73,6 +73,7 @@ private:
     QString default_dir;
     QString source_dir;
     QString save_filename;
+    QSettings *settings;
 
 private slots:
     void open();
