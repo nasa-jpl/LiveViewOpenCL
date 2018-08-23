@@ -64,6 +64,7 @@ FrameWorker::FrameWorker(QSettings *settings, QThread *worker, QObject *parent)
             .compare(QString("SSD"), Qt::CaseInsensitive) == 0) {
         Camera = new SSDCamera();
     } else {
+        settings->setValue(QString("cam_model"), QString("CL"));
         Camera = new CLCamera();
     }
 
