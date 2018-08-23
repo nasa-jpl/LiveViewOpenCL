@@ -11,8 +11,8 @@ CLCamera::CLCamera(int channel_num,
 
 CLCamera::~CLCamera()
 {
+    std::lock_guard<std::mutex> lock{dev_p_lock};
     int dummy_frame;
-
     // collect the last frame to avoid a core dump
     pdv_wait_last_image(dev_p, &dummy_frame);
     pdv_close(dev_p);
@@ -20,13 +20,13 @@ CLCamera::~CLCamera()
 
 bool CLCamera::start()
 {
+    std::lock_guard<std::mutex> lock{dev_p_lock};
     dev_p = nullptr;
     dev_p = pdv_open_channel(EDT_INTERFACE, 0, channel);
     if (dev_p == nullptr) {
         qFatal("Could not open Camera Link device on channel 0. Is there a camera connected and powered on?");
     }
     pdv_flush_fifo(dev_p);
-
     int size = pdv_get_dmasize(dev_p);
     char *cameratype = pdv_get_cameratype(dev_p);
     qDebug() << "Hardware Type (as reported by driver): " << cameratype;
@@ -57,6 +57,7 @@ bool CLCamera::isRunning()
 
 uint16_t* CLCamera::getFrame()
 {
+    std::lock_guard<std::mutex> lock{dev_p_lock};
     pdv_start_image(dev_p);
     image_p = (uint16_t*)pdv_wait_image(dev_p);
 

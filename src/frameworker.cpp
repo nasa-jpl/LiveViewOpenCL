@@ -13,12 +13,20 @@ public:
     }
     ~LVFrameBuffer()
     {
+        for(auto &elem : frame_vec) {
+            delete elem;
+            elem = nullptr;
+        }
         frame_vec.clear();
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
         Q_ASSERT(frame_vec.capacity() == 0);
     }
     void reset(const unsigned int num_frames, const unsigned int frame_width, const unsigned int frame_height)
     {
+        for(auto &elem : frame_vec) {
+            delete elem;
+            elem = nullptr;
+        }
         frame_vec.clear();
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
         for (unsigned int f = 0; f < num_frames; ++f) {

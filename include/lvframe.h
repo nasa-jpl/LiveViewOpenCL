@@ -41,12 +41,12 @@ struct LVFrame
             rlimit new_limit = { RLIM_INFINITY, RLIM_INFINITY };
             checkError(setrlimit(RLIMIT_MEMLOCK, &new_limit));
         }
-        checkError(mlock(raw_data, frSize * sizeof(uint16_t)));
+ //       checkError(mlock(raw_data, frSize * sizeof(uint16_t)));
         checkError(mlock(sdv_data, frSize * sizeof(float)));
     }
     ~LVFrame()
     {
-        checkError(munlock(raw_data, frSize * sizeof(uint16_t)));
+//        checkError(munlock(raw_data, frSize * sizeof(uint16_t)));
         checkError(munlock(sdv_data, frSize * sizeof(float)));
         delete raw_data;
         delete dsf_data;

@@ -60,6 +60,10 @@ void ControlsBox::tabChanged(int index)
 
     // associate the GUI items with the pointer to the new tab
     viewWidget = getCurrentTab();
+    if(!viewWidget) {
+        return;
+    }
+
     connect(rangeSlider, SIGNAL(minimumPositionChanged(int)), viewWidget, SLOT(setFloorPos(int)));
     connect(rangeSlider, SIGNAL(maximumPositionChanged(int)),  viewWidget, SLOT(setCeilingPos(int)));
 

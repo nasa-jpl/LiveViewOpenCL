@@ -1,7 +1,10 @@
 #ifndef EDTCAMERA_H
 #define EDTCAMERA_H
 
+
 #include <cstring>
+#include <mutex>
+
 #include <QtGlobal>
 
 #include "image_type.h"
@@ -27,6 +30,7 @@ private:
     int overrun, overruns;
     int timeouts, last_timeouts;
     bool recovering_timeout;
+    std::mutex dev_p_lock;
 };
 
 #endif // EDTCAMERA_H

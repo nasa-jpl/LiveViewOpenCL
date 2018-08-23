@@ -97,7 +97,18 @@ LVMainWindow::~LVMainWindow()
     fw->stop();
     DSLoop.waitForFinished();
     SDLoop.waitForFinished();
-    delete this->settings;
+    delete cbox;
+    delete raw_display;
+    delete dsf_display;
+    delete sdv_display;
+    delete hst_display;
+    delete spec_display;
+    delete spec_mean_display;
+    delete spat_display;
+    delete spat_mean_display;
+    delete fft_display;
+    delete compDialog;
+    delete dsfDialog;
 }
 
 void LVMainWindow::errorString(const QString &errstr)
