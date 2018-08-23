@@ -6,6 +6,10 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     // Hardcoded default window size
     this->resize(1440, 900);
 
+    this->settings = new QSettings(QStandardPaths::writableLocation(
+                                       QStandardPaths::AppConfigLocation)
+                                   + "/lvconfig.ini", QSettings::IniFormat);
+
     QPixmap icon_pixmap(":images/icon.png");
     this->setWindowIcon(QIcon(icon_pixmap));
     this->setWindowTitle("LiveView 4.0");
