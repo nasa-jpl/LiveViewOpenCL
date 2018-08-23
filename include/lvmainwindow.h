@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QtConcurrent/QtConcurrent>
 #include <QFuture>
+#include <QSettings>
 
 #include "image_type.h"
 #include "frameview_widget.h"
@@ -24,7 +25,7 @@ class LVMainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    LVMainWindow(QWidget *parent = nullptr);
+    LVMainWindow(QSettings *settings, QWidget *parent = nullptr);
     ~LVMainWindow() override;
 
 public slots:

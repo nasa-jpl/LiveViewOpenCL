@@ -28,7 +28,7 @@ histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
     histogram->keyAxis()->setScaleType(QCPAxis::stLogarithmic);
     histogram->valueAxis()->setRange(QCPRange(0, getCeiling()));
 
-    if (USE_DARK_STYLE) {
+    if (fw->settings->value(QString("dark"), USE_DARK_STYLE).toInt()) {
         histogram->setPen(QPen(Qt::lightGray));
         histogram->setBrush(QBrush(QColor("#31363B")));
 
