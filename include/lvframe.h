@@ -48,7 +48,6 @@ struct LVFrame
     {
 //        checkError(munlock(raw_data, frSize * sizeof(uint16_t)));
         checkError(munlock(sdv_data, frSize * sizeof(float)));
-        delete raw_data;
         delete dsf_data;
         delete sdv_data;
         delete hist_data;
