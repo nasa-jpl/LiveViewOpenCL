@@ -23,7 +23,8 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     connect(workerThread, SIGNAL(started()), fw, SLOT(captureFrames()));
     connect(fw, SIGNAL(finished()), workerThread, SLOT(quit()));
     connect(fw, SIGNAL(finished()), fw, SLOT(deleteLater()));
-    connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+    connect(workerThread, SIGNAL(finished()),
+            workerThread, SLOT(deleteLater()));
 
     connect(fw, &FrameWorker::startSaving, this, [&](){
         saveAct->setEnabled(false);
@@ -68,13 +69,16 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     tab_widget->addTab(fft_display, QString("FFT of Plane Mean"));
 
     server = new SaveServer(this);
-    connect(server, &SaveServer::startSavingRemote, fw, &FrameWorker::captureFramesRemote);
+    connect(server, &SaveServer::startSavingRemote,
+            fw, &FrameWorker::captureFramesRemote);
 
     /*
-     * It's pretty bizarre to send the tab widget into the ControlsBox, but the reference is
-     * preserved so that the ControlsBox GUI elements will control the current tab in context.
+     * It's pretty bizarre to send the tab widget into the ControlsBox,
+     * but the reference is preserved so that the ControlsBox GUI elements will
+     * control the current tab in context.
      */
-    cbox = new ControlsBox(fw, tab_widget, server->ipAdress.toString(), server->port);
+    cbox = new ControlsBox(fw, tab_widget,
+                           server->ipAdress.toString(), server->port);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->addWidget(tab_widget);
@@ -84,15 +88,18 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     this->setCentralWidget(mainWidget);
 
     createActions();
-    createMenus();    
+    createMenus();
 
     compDialog = new ComputeDevDialog(fw->STDFilter->getDeviceList());
-    connect(compDialog, &ComputeDevDialog::device_changed, this, &LVMainWindow::change_compute_device);
+    connect(compDialog, &ComputeDevDialog::device_changed,
+            this, &LVMainWindow::change_compute_device);
 
     dsfDialog = new DSFPrefDialog();
-    connect(dsfDialog, &DSFPrefDialog::applyMaskFromFile, fw, &FrameWorker::applyMask);
+    connect(dsfDialog, &DSFPrefDialog::applyMaskFromFile,
+            fw, &FrameWorker::applyMask);
     connect(dsfDialog, &DSFPrefDialog::accepted, fw, [this](){
-        fw->setMaskSettings(dsfDialog->getMaskFile(), dsfDialog->getAvgdFrames());
+        fw->setMaskSettings(dsfDialog->getMaskFile(),
+                            dsfDialog->getAvgdFrames());
     });
 }
 
@@ -200,7 +207,10 @@ void LVMainWindow::open()
                                   QStandardPaths::writableLocation(
                                       QStandardPaths::HomeLocation)).toString();
 
-    QString temp_dir = QFileDialog::getExistingDirectory(this, "Open Data Directory", default_dir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QString temp_dir = QFileDialog::getExistingDirectory(
+                this, "Open Data Directory", default_dir,
+                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
     if (!temp_dir.isEmpty()) {
         source_dir = temp_dir;
         fw->resetDir(source_dir.toLatin1().data());
@@ -221,9 +231,12 @@ void LVMainWindow::save()
 
 void LVMainWindow::saveAs()
 {
-    save_filename = QFileDialog::getSaveFileName(this, "Save Raw Frames",
-                        default_dir, "Raw Camera Frames (*.raw);;All files (*.*)");
+    save_filename = QFileDialog::getSaveFileName(
+                this, "Save Raw Frames", default_dir,
+                "Raw Camera Frames (*.raw);;All files (*.*)");
+
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+
     if (!save_filename.isEmpty()) {
         // saveAct->setEnabled(true);
         fw->captureFramesRemote(save_filename, (quint64)10, (quint64)1);
