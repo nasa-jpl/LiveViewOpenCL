@@ -26,6 +26,7 @@ TEMPLATE = app
 
 QMAKE_CXXFLAGS -= -std=gnu++11
 QMAKE_CXXFLAGS += -O3 -std=c++0x -Wno-inconsistent-missing-override -Wno-ignored-attributes
+DEFINES += HOST=\\\"`hostname`\\\" UNAME=\\\"`whoami`\\\"
 
 OBJECTS_DIR = ./obj
 MOC_DIR = ./obj
