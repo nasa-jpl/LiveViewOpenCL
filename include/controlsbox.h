@@ -28,6 +28,10 @@ public slots:
 private slots:
     void updateFPS(float frameRate);
     void setPrecision(bool isPrecise);
+    void setMinSpin(int new_min);
+    void setMaxSpin(int new_max);
+    void setRangeSliderMin(int new_min);
+    void setRangeSliderMax(int new_max);
 
 private:
     FrameWorker *frame_handler;
@@ -40,6 +44,8 @@ private:
 
     ctkRangeSlider *rangeSlider;
     QCheckBox *precisionBox;
+    QSpinBox *min_box;
+    QSpinBox *max_box;
 
     QPushButton *maskButton;
     bool collecting_mask;

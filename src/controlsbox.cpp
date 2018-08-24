@@ -15,44 +15,85 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     fpsLabel = new QLabel("Warning: No Frames Received");
     fpsLabel->setFixedWidth(200);
 
-    QLabel *ipLabel = new QLabel(QString("IP Address: %1").arg(ipAddress));
-    QLabel *portLabel = new QLabel(QString("Port Label: %1").arg(port));
+    QLabel *ipLabel = new QLabel(QString("IP Address: %1").arg(ipAddress), this);
+    QLabel *portLabel = new QLabel(QString("Port Label: %1").arg(port), this);
 
-    rangeSlider = new ctkRangeSlider();
+    rangeSlider = new ctkRangeSlider(this);
     rangeSlider->setOrientation(Qt::Horizontal);
-    connect(rangeSlider, SIGNAL(minimumPositionChanged(int)),
-            viewWidget, SLOT(setFloorPos(int)));
-    connect(rangeSlider, SIGNAL(maximumPositionChanged(int)),
-            viewWidget, SLOT(setCeilingPos(int)));
+    connect(rangeSlider, &ctkRangeSlider::minimumPositionChanged, viewWidget, &LVTabApplication::setFloorPos);
+    connect(rangeSlider, &ctkRangeSlider::maximumPositionChanged, viewWidget, &LVTabApplication::setCeilingPos);
 
-    precisionBox = new QCheckBox("Precision Slider");
-    connect(precisionBox, SIGNAL(toggled(bool)),
-            this, SLOT(setPrecision(bool)));
+    min_box = new QSpinBox(this);
+    max_box = new QSpinBox(this);
 
-    maskButton = new QPushButton("&Collect Mask Frames");
-    connect(maskButton, SIGNAL(released()), this, SLOT(collectDSFMask()));
-    connect(frame_handler->DSFilter, &DarkSubFilter::mask_frames_collected,
-            this, [this](){ this->collectDSFMask(); });
+    precisionBox = new QCheckBox("Precision Slider", this);
+    connect(precisionBox, SIGNAL(toggled(bool)), this, SLOT(setPrecision(bool)));
+
+    maskButton = new QPushButton("&Collect Mask Frames", this);
+    connect(maskButton, &QPushButton::released, this, &ControlsBox::collectDSFMask);
+    connect(frame_handler->DSFilter, &DarkSubFilter::mask_frames_collected, this, [this](){
+        this->collectDSFMask();
+    });
 
     QGridLayout *cboxLayout = new QGridLayout(this);
     cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
     cboxLayout->addWidget(ipLabel, 1, 0, 1, 1);
     cboxLayout->addWidget(portLabel, 2, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Range:"), 0, 1, 1, 1);
-    cboxLayout->addWidget(rangeSlider, 0, 2, 1, 5);
-    cboxLayout->addWidget(precisionBox, 0, 7, 1, 2);
-    cboxLayout->addWidget(maskButton, 0, 8, 1, 1);
+    cboxLayout->addWidget(min_box, 0, 2, 1, 1);
+    cboxLayout->addWidget(rangeSlider, 0, 3, 1, 5);
+    cboxLayout->addWidget(max_box, 0, 8, 1, 1);
+    cboxLayout->addWidget(precisionBox, 0, 9, 1, 2);
+    cboxLayout->addWidget(maskButton, 1, 9, 1, 1);
     this->setLayout(cboxLayout);
     this->setMaximumHeight(100);
+    tabChanged(0);
+
+    connect(rangeSlider, &ctkRangeSlider::minimumPositionChanged, this, &ControlsBox::setMinSpin);
+    connect(rangeSlider, &ctkRangeSlider::maximumPositionChanged, this, &ControlsBox::setMaxSpin);
+
+    connect(min_box, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &ControlsBox::setRangeSliderMin);
+    connect(max_box, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &ControlsBox::setRangeSliderMax);
+
+    connect(min_box, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int new_min){
+        if(new_min <= viewWidget->getCeiling())
+            viewWidget->setFloor(new_min);
+    });
+    connect(max_box, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, [this](int new_max) {
+        if(new_max >= viewWidget->getFloor())
+            viewWidget->setCeiling(new_max);
+    });
 }
 
-ControlsBox::~ControlsBox()
-{
-    delete fpsLabel;
-    delete rangeSlider;
-    delete precisionBox;
-    delete maskButton;
+void ControlsBox::setMinSpin(int new_min) {
+    min_box->blockSignals(true);
+    min_box->setValue((double)new_min * viewWidget->getDataMax() / 100.0);
+    min_box->blockSignals(false);
 }
+
+void ControlsBox::setMaxSpin(int new_max) {
+    max_box->blockSignals(true);
+    max_box->setValue((double)new_max * viewWidget->getDataMax() / 100.0);
+    max_box->blockSignals(false);
+}
+
+void ControlsBox::setRangeSliderMin(int new_min) {
+    if(new_min <= max_box->value()) {
+        rangeSlider->blockSignals(true);
+        rangeSlider->setMinimumPosition(new_min * 100.0 / viewWidget->getDataMax());
+        rangeSlider->blockSignals(false);
+    }
+}
+
+void ControlsBox::setRangeSliderMax(int new_max) {
+    if(new_max >= min_box->value()) {
+        rangeSlider->blockSignals(true);
+        rangeSlider->setMaximumPosition(new_max * 100.0 / viewWidget->getDataMax());
+        rangeSlider->blockSignals(false);
+    }
+}
+
+ControlsBox::~ControlsBox() {}
 
 void ControlsBox::tabChanged(int index)
 {
@@ -78,10 +119,16 @@ void ControlsBox::tabChanged(int index)
     precisionBox->setChecked(viewWidget->isPrecisionMode());
 
     // update the range slider positions
-    rangeSlider->setPositions((int)(viewWidget->getFloor()
-                                    / viewWidget->getDataMax() * 100.0),
-                              (int)(viewWidget->getCeiling()
-                                    / viewWidget->getDataMax() * 100.0));
+    rangeSlider->setPositions((int)(viewWidget->getFloor() / viewWidget->getDataMax() * 100.0),
+                              (int)(viewWidget->getCeiling() / viewWidget->getDataMax() * 100.0));
+
+    min_box->setMinimum(viewWidget->getDataMin());
+    min_box->setMaximum(viewWidget->getDataMax());
+    min_box->setValue(viewWidget->getFloor());
+
+    max_box->setMinimum(viewWidget->getDataMin());
+    max_box->setMaximum(viewWidget->getDataMax());
+    max_box->setValue(viewWidget->getCeiling());
 }
 
 void ControlsBox::setPrecision(bool isPrecise)
@@ -97,10 +144,16 @@ void ControlsBox::setPrecision(bool isPrecise)
     }
 
     // update the range slider positions
-    rangeSlider->setPositions(viewWidget->getFloor()
-                              / viewWidget->getDataMax() * 100,
-                              viewWidget->getCeiling()
-                              / viewWidget->getDataMax() * 100);
+    rangeSlider->setPositions(viewWidget->getFloor() / viewWidget->getDataMax() * 100,
+                              viewWidget->getCeiling() / viewWidget->getDataMax() * 100);
+
+    min_box->setMinimum(viewWidget->getDataMin());
+    min_box->setMaximum(viewWidget->getDataMax());
+    min_box->setValue(viewWidget->getFloor());
+
+    max_box->setMinimum(viewWidget->getDataMin());
+    max_box->setMaximum(viewWidget->getDataMax());
+    max_box->setValue(viewWidget->getCeiling());
 }
 
 void ControlsBox::collectDSFMask()
