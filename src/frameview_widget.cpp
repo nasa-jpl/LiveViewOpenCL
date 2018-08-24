@@ -65,7 +65,7 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     qcp->axisRect()->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
     colorScale->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
 
-    if (settings->value(QString("dark"), USE_DARK_STYLE).toInt()) {
+    if (settings->value(QString("dark"), USE_DARK_STYLE).toBool()) {
         qcp->setBackground(QBrush(QColor("#31363B")));
         qcp->xAxis->setTickLabelColor(Qt::white);
         qcp->xAxis->setBasePen(QPen(Qt::white));

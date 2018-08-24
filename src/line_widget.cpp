@@ -88,7 +88,7 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
     arrow->setSelectable(false);
     arrow->setVisible(false);
 
-    if (fw->settings->value(QString("dark"), USE_DARK_STYLE).toInt()) {
+    if (fw->settings->value(QString("dark"), USE_DARK_STYLE).toBool()) {
         qcp->graph(0)->setPen(QPen(Qt::lightGray));
         plotTitle->setTextColor(Qt::white);
 
