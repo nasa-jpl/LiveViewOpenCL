@@ -22,18 +22,6 @@ int main(int argc, char* argv[])
     QSettings settings(QStandardPaths::writableLocation(
                            QStandardPaths::AppConfigLocation)
                        + "/lvconfig.ini", QSettings::IniFormat);
-    //QString version_str = GIT_CURRENT_SHA1;
-
-    /*
-        update_status_text("started program.");
-        update_status_text(qobject::tr("source code compiled on " __date__ ", " __time__ " pdt by " uname "@" host  ));
-        version = git_current_sha1;
-        version.prepend("git commit sha1: ");
-        update_status_text(version);
-        version = git_current_sha1_short;
-        version.prepend("git commit sha1 short: ");
-        update_status_text(version);
-        */
 
     if (settings.value(QString("dark"), USE_DARK_STYLE).toBool()) {
         QFile f(":qdarkstyle/style.qss");
