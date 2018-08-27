@@ -100,10 +100,10 @@ void ControlsBox::tabChanged(int index)
     Q_UNUSED( index );
 
     // disconnect the signals associated with the pointer to the old tab
-    disconnect(rangeSlider, SIGNAL(minimumPositionChanged(int)),
-               viewWidget, SLOT(setFloorPos(int)));
-    disconnect(rangeSlider, SIGNAL(maximumPositionChanged(int)),
-               viewWidget, SLOT(setCeilingPos(int)));
+    disconnect(rangeSlider, &ctkRangeSlider::minimumPositionChanged,
+               viewWidget, &LVTabApplication::setFloorPos);
+    disconnect(rangeSlider, &ctkRangeSlider::maximumPositionChanged,
+               viewWidget, &LVTabApplication::setCeilingPos);
 
     // associate the GUI items with the pointer to the new tab
     viewWidget = getCurrentTab();
@@ -111,10 +111,10 @@ void ControlsBox::tabChanged(int index)
         return;
     }
 
-    connect(rangeSlider, SIGNAL(minimumPositionChanged(int)),
-            viewWidget, SLOT(setFloorPos(int)));
-    connect(rangeSlider, SIGNAL(maximumPositionChanged(int)),
-            viewWidget, SLOT(setCeilingPos(int)));
+    connect(rangeSlider, &ctkRangeSlider::minimumPositionChanged,
+            viewWidget, &LVTabApplication::setFloorPos);
+    connect(rangeSlider, &ctkRangeSlider::maximumPositionChanged,
+            viewWidget, &LVTabApplication::setCeilingPos);
 
     precisionBox->setChecked(viewWidget->isPrecisionMode());
 
