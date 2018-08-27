@@ -19,6 +19,7 @@
 #include "saveserver.h"
 #include "computedevdialog.h"
 #include "dsfprefdialog.h"
+#include "appearancedialog.h"
 
 class LVMainWindow : public QMainWindow
 {
@@ -43,6 +44,7 @@ private:
 
     QMenu *fileMenu;
     QMenu *prefMenu;
+    QMenu *viewMenu;
     QAction *openAct;
     QAction *saveAct;
     QAction *saveAsAct;
@@ -50,6 +52,7 @@ private:
     QAction *exitAct;
     QAction *compAct;
     QAction *dsfAct;
+    QAction *appearanceAct;
 
     FrameWorker *fw;
     QFuture<void> DSLoop;
@@ -70,6 +73,7 @@ private:
 
     ComputeDevDialog *compDialog;
     DSFPrefDialog *dsfDialog;
+    AppearanceDialog *appearanceDialog;
 
     QString default_dir;
     QString source_dir;
@@ -83,6 +87,7 @@ private slots:
     void reset();
     void show_deviceModelView();
     void show_dsfModelView();
+    void show_appearanceView();
     void change_compute_device(QString dev_name);
 };
 

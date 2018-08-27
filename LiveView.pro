@@ -92,7 +92,8 @@ HEADERS += \
         saveserver.h \
         saveclient.h \
         dsfprefdialog.h \
-    include/cameraselectdialog.h
+    include/cameraselectdialog.h \
+    include/appearancedialog.h
 unix:!macx {
     HEADERS += clcamera.h
 }

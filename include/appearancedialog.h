@@ -1,7 +1,5 @@
-#ifndef CAMERASELECTDIALOG_H
-#define CAMERASELECTDIALOG_H
-
-#include "lvmainwindow.h"
+#ifndef APPEARANCEDIALOG_H
+#define APPEARANCEDIALOG_H
 
 #include <QDialog>
 #include <QStringList>
@@ -13,16 +11,22 @@
 #include <QVBoxLayout>
 #include <QSettings>
 #include <QCheckBox>
+#include <qcustomplot.h>
 
-class CameraSelectDialog : public QDialog
+class AppearanceDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    CameraSelectDialog(QSettings *set) : s(set)
+    AppearanceDialog(QSettings *set) : s(set)
     {
-        this->cameraList = (QStringList() << QString("CL") << QString("SSD"));
-        this->setWindowTitle("Select Camera Model");
+        QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
+        this->cameraList = QStringList();
+        for (int i = 0; i < qme.keyCount(); ++i) {
+            this->cameraList << qme.key(i);
+        }
+
+        this->setWindowTitle("Change Appearance");
 
         cameraListView = new QListView(this);
         cameraListModel = new QStringListModel(this);
@@ -33,46 +37,35 @@ public:
 
         QPushButton *okButton = new QPushButton("&Ok", this);
         connect(okButton, &QPushButton::clicked, this,
-                &CameraSelectDialog::okButtonPressed);
+                &AppearanceDialog::okButtonPressed);
 
         QPushButton *cancelButton = new QPushButton("&Cancel", this);
         connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
-
-        doNotShowBox = new QCheckBox("Do Not Show Again", this);
-        if (s->value(QString("show_cam_dialog"), true).toBool()) {
-            doNotShowBox->setChecked(false);
-        } else {
-            doNotShowBox->setChecked(true);
-        }
 
         QHBoxLayout *buttonLayout = new QHBoxLayout;
         buttonLayout->addWidget(okButton);
         buttonLayout->addWidget(cancelButton);
 
         QVBoxLayout *dialogLayout = new QVBoxLayout(this);
-        dialogLayout->addWidget(new QLabel("Select a Camera Model"));
+        dialogLayout->addWidget(new QLabel("Select Color Gradient"));
         dialogLayout->addWidget(cameraListView);
-        dialogLayout->addWidget(doNotShowBox);
         dialogLayout->addLayout(buttonLayout);
     }
 
-    LVMainWindow *w;
     QSettings *s;
     QStringList cameraList;
     QListView *cameraListView;
     QStringListModel *cameraListModel;
-    QCheckBox *doNotShowBox;
+    QCheckBox *darkModeBox;
 
 private slots:
     void okButtonPressed()
     {
-        s->setValue(QString("cam_model"),
-                    cameraListModel->data(
-                        cameraListView->selectionModel()->selectedIndexes()[0],
-                        Qt::DisplayRole));
-        s->setValue(QString("show_cam_dialog"), doNotShowBox->checkState() == 0);
+        s->setValue(QString("gradient"),
+                    cameraListView->selectionModel()->currentIndex().row());
+        //s->setValue(QString("gradient"), 4);
         this->accept();
     }
 };
 
-#endif // CAMERASELECTDIALOG_H
+#endif // APPEARANCEDIALOG_H

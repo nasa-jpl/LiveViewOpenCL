@@ -101,6 +101,8 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
         fw->setMaskSettings(dsfDialog->getMaskFile(),
                             dsfDialog->getAvgdFrames());
     });
+
+    appearanceDialog = new AppearanceDialog(settings);
 }
 
 LVMainWindow::~LVMainWindow()
@@ -163,6 +165,10 @@ void LVMainWindow::createActions()
     dsfAct->setStatusTip("Modify settings when collecting dark subtraction frames.");
     connect(dsfAct, &QAction::triggered, this, &LVMainWindow::show_dsfModelView);
 
+    appearanceAct = new QAction("&Appearance", this);
+    appearanceAct->setStatusTip("Change application appearance.");
+    connect(appearanceAct, &QAction::triggered,
+            this, &LVMainWindow::show_appearanceView);
 }
 
 void LVMainWindow::createMenus()
@@ -181,6 +187,9 @@ void LVMainWindow::createMenus()
     prefMenu = menuBar()->addMenu("&Computation");
     prefMenu->addAction(compAct);
     prefMenu->addAction(dsfAct);
+
+    viewMenu = menuBar()->addMenu("&View");
+    viewMenu->addAction(appearanceAct);
 }
 
 #ifndef QT_NO_CONTEXTMENU
@@ -256,6 +265,11 @@ void LVMainWindow::show_deviceModelView()
 void LVMainWindow::show_dsfModelView()
 {
     dsfDialog->show();
+}
+
+void LVMainWindow::show_appearanceView()
+{
+    appearanceDialog->show();
 }
 
 void LVMainWindow::change_compute_device(QString dev_name)
