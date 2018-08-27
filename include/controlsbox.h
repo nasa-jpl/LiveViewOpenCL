@@ -47,6 +47,9 @@ private:
     QSpinBox *min_box;
     QSpinBox *max_box;
 
+    QLineEdit *saveFileNameEdit;
+    QSpinBox *numFramesEdit;
+
     QPushButton *maskButton;
     bool collecting_mask;
 };

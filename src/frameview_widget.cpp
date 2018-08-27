@@ -132,6 +132,9 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     bottomControls->addWidget(fpsLabel);
     bottomControls->addWidget(hideXbox);
     bottomControls->addWidget(zoomButtons);
+    fpsLabel->setMaximumHeight(20);
+    hideXbox->setMaximumHeight(20);
+    zoomButtons->setMaximumHeight(40);
     qvbl->addWidget(qcp, 10);
     qvbl->addLayout(bottomControls, 1);
 

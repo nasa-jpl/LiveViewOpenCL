@@ -82,7 +82,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
 
     QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->addWidget(tab_widget);
-    mainLayout->addWidget(cbox);
+    mainLayout->addWidget(cbox, 2);
 
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
