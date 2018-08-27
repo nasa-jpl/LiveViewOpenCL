@@ -67,20 +67,20 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
 
 void ControlsBox::setMinSpin(int new_min) {
     min_box->blockSignals(true);
-    min_box->setValue((double)new_min * viewWidget->getDataMax() / 100.0);
+    min_box->setValue(static_cast<int>(new_min * viewWidget->getDataMax() / 100.0));
     min_box->blockSignals(false);
 }
 
 void ControlsBox::setMaxSpin(int new_max) {
     max_box->blockSignals(true);
-    max_box->setValue((double)new_max * viewWidget->getDataMax() / 100.0);
+    max_box->setValue(static_cast<int>(new_max * viewWidget->getDataMax() / 100.0));
     max_box->blockSignals(false);
 }
 
 void ControlsBox::setRangeSliderMin(int new_min) {
     if(new_min <= max_box->value()) {
         rangeSlider->blockSignals(true);
-        rangeSlider->setMinimumPosition(new_min * 100.0 / viewWidget->getDataMax());
+        rangeSlider->setMinimumPosition(static_cast<int>(new_min * 100.0 / viewWidget->getDataMax()));
         rangeSlider->blockSignals(false);
     }
 }
@@ -88,7 +88,7 @@ void ControlsBox::setRangeSliderMin(int new_min) {
 void ControlsBox::setRangeSliderMax(int new_max) {
     if(new_max >= min_box->value()) {
         rangeSlider->blockSignals(true);
-        rangeSlider->setMaximumPosition(new_max * 100.0 / viewWidget->getDataMax());
+        rangeSlider->setMaximumPosition(static_cast<int>(new_max * 100.0 / viewWidget->getDataMax()));
         rangeSlider->blockSignals(false);
     }
 }
@@ -119,16 +119,16 @@ void ControlsBox::tabChanged(int index)
     precisionBox->setChecked(viewWidget->isPrecisionMode());
 
     // update the range slider positions
-    rangeSlider->setPositions((int)(viewWidget->getFloor() / viewWidget->getDataMax() * 100.0),
-                              (int)(viewWidget->getCeiling() / viewWidget->getDataMax() * 100.0));
+    rangeSlider->setPositions(static_cast<int>(viewWidget->getFloor() / viewWidget->getDataMax() * 100.0),
+                              static_cast<int>(viewWidget->getCeiling() / viewWidget->getDataMax() * 100.0));
 
-    min_box->setMinimum(viewWidget->getDataMin());
-    min_box->setMaximum(viewWidget->getDataMax());
-    min_box->setValue(viewWidget->getFloor());
+    min_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
+    min_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
+    min_box->setValue(static_cast<int>(viewWidget->getFloor()));
 
-    max_box->setMinimum(viewWidget->getDataMin());
-    max_box->setMaximum(viewWidget->getDataMax());
-    max_box->setValue(viewWidget->getCeiling());
+    max_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
+    max_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
+    max_box->setValue(static_cast<int>(viewWidget->getCeiling()));
 }
 
 void ControlsBox::setPrecision(bool isPrecise)
@@ -144,16 +144,16 @@ void ControlsBox::setPrecision(bool isPrecise)
     }
 
     // update the range slider positions
-    rangeSlider->setPositions(viewWidget->getFloor() / viewWidget->getDataMax() * 100,
-                              viewWidget->getCeiling() / viewWidget->getDataMax() * 100);
+    rangeSlider->setPositions(static_cast<int>(viewWidget->getFloor() / viewWidget->getDataMax() * 100.0),
+                              static_cast<int>(viewWidget->getCeiling() / viewWidget->getDataMax() * 100.0));
 
-    min_box->setMinimum(viewWidget->getDataMin());
-    min_box->setMaximum(viewWidget->getDataMax());
-    min_box->setValue(viewWidget->getFloor());
+    min_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
+    min_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
+    min_box->setValue(static_cast<int>(viewWidget->getFloor()));
 
-    max_box->setMinimum(viewWidget->getDataMin());
-    max_box->setMaximum(viewWidget->getDataMax());
-    max_box->setValue(viewWidget->getCeiling());
+    max_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
+    max_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
+    max_box->setValue(static_cast<int>(viewWidget->getCeiling()));
 }
 
 void ControlsBox::collectDSFMask()
@@ -170,7 +170,7 @@ void ControlsBox::collectDSFMask()
 
 void ControlsBox::updateFPS(float frameRate)
 {
-    if ((int)frameRate == -1) {
+    if (static_cast<int>(frameRate) == -1) {
         fpsLabel->setText(QString("Warning: No Frames Received"));
     } else {
         fpsLabel->setText(QString("FPS @ backend: %1")
