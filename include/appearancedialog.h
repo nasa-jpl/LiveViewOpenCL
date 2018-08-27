@@ -42,6 +42,9 @@ public:
         QPushButton *cancelButton = new QPushButton("&Cancel", this);
         connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
 
+        darkModeBox = new QCheckBox("Enable Dark Mode", this);
+        darkModeBox->setChecked(s->value(QString("dark"), false).toBool());
+
         QHBoxLayout *buttonLayout = new QHBoxLayout;
         buttonLayout->addWidget(okButton);
         buttonLayout->addWidget(cancelButton);
@@ -49,6 +52,7 @@ public:
         QVBoxLayout *dialogLayout = new QVBoxLayout(this);
         dialogLayout->addWidget(new QLabel("Select Color Gradient"));
         dialogLayout->addWidget(cameraListView);
+        dialogLayout->addWidget(darkModeBox);
         dialogLayout->addLayout(buttonLayout);
     }
 
@@ -63,7 +67,7 @@ private slots:
     {
         s->setValue(QString("gradient"),
                     cameraListView->selectionModel()->currentIndex().row());
-        //s->setValue(QString("gradient"), 4);
+        s->setValue(QString("dark"), darkModeBox->checkState() == 2);
         this->accept();
     }
 };
