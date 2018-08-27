@@ -42,7 +42,7 @@ public:
         QPushButton *cancelButton = new QPushButton("&Cancel", this);
         connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
 
-        darkModeBox = new QCheckBox("Enable Dark Mode", this);
+        darkModeBox = new QCheckBox("Enable Dark Mode (Takes Effect on App Reload", this);
         darkModeBox->setChecked(s->value(QString("dark"), false).toBool());
 
         QHBoxLayout *buttonLayout = new QHBoxLayout;
@@ -62,12 +62,16 @@ public:
     QStringListModel *cameraListModel;
     QCheckBox *darkModeBox;
 
+signals:
+    void changeGradientSignal();
+
 private slots:
     void okButtonPressed()
     {
         s->setValue(QString("gradient"),
                     cameraListView->selectionModel()->currentIndex().row());
         s->setValue(QString("dark"), darkModeBox->checkState() == 2);
+        emit changeGradientSignal();
         this->accept();
     }
 };

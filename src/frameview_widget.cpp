@@ -1,12 +1,12 @@
 #include "frameview_widget.h"
-#include <QSettings>
 
 frameview_widget::frameview_widget(FrameWorker *fw,
                                    image_t image_type,
-                                   QSettings *settings,
+                                   QSettings *set,
                                    QWidget *parent) :
         LVTabApplication(fw, parent),
         image_type(image_type),
+        settings(set),
         count(0), count_prev(0), fps(0)
 {
     switch(image_type) {
