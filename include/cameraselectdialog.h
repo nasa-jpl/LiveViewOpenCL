@@ -41,7 +41,6 @@ public:
         doNotShowBox = new QCheckBox("Do Not Show Again", this);
         if (s->value(QString("show_cam_dialog"), true).toBool()) {
             doNotShowBox->setChecked(false);
-            qDebug() << "unchecked";
         } else {
             doNotShowBox->setChecked(true);
         }
