@@ -26,9 +26,10 @@ TEMPLATE = app
 
 QMAKE_CXXFLAGS -= -std=gnu++11
 QMAKE_CXXFLAGS += -O3 -std=c++0x -Wno-inconsistent-missing-override -Wno-ignored-attributes
-DEFINES += HOST=\\\"`hostname`\\\" UNAME=\\\"`whoami`\\\"
-DEFINES += GIT_CURRENT_SHA1="\\\"$(shell git rev-parse HEAD)\\\""
-DEFINES += GIT_CURRENT_SHA1_SHORT="\\\"$(shell git rev-parse --short HEAD)\\\""
+DEFINES += \
+    HOST=\\\"`hostname`\\\" UNAME=\\\"`whoami`\\\" \
+    GIT_CURRENT_SHA1="\\\"$(shell git -C $$PWD rev-parse HEAD)\\\"" \
+    GIT_CURRENT_SHA1_SHORT="\\\"$(shell git -C $$PWD rev-parse --short HEAD)\\\""
 
 OBJECTS_DIR = ./obj
 MOC_DIR = ./obj
@@ -94,7 +95,7 @@ HEADERS += \
         saveserver.h \
         saveclient.h \
         dsfprefdialog.h \
-    include/cameraselectdialog.h
+        cameraselectdialog.h
 unix:!macx {
     HEADERS += clcamera.h
 }
