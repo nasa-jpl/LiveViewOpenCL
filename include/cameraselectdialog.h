@@ -68,12 +68,14 @@ private slots:
     void okButtonPressed()
     {
         s->setValue(QString("cam_model"),
-                    cameraListModel->data(
+                    source_t_name[cameraListModel->data(
                         cameraListView->selectionModel()->selectedIndexes()[0],
-                        Qt::DisplayRole));
+                        Qt::DisplayRole).toString().toStdString()]);
         s->setValue(QString("show_cam_dialog"), doNotShowBox->checkState() == 0);
         this->accept();
     }
+private:
+    std::unordered_map<std::string, source_t> source_t_name{{"SSD", SSD}, {"CL", CAMERA_LINK}, {"CAMERA_LINK", CAMERA_LINK}, {"Debug", DEBUG}};
 };
 
 #endif // CAMERASELECTDIALOG_H

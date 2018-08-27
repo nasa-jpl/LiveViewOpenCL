@@ -69,6 +69,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
       count(0), count_prev(0)
 {
     Camera = nullptr;
+    qDebug() << static_cast<source_t>(settings->value(QString("cam_model")).toInt());
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
     case SSD:
         Camera = new SSDCamera();
@@ -165,7 +166,9 @@ void FrameWorker::captureFrames()
 {
     qDebug("About to start capturing frames");
     high_resolution_clock::time_point beg, end;
+    high_resolution_clock::time_point last_frame;
     uint32_t duration;
+    double this_frame_duration;
 
     QTimer *fpsclock = new QTimer(this);
     connect(fpsclock, &QTimer::timeout, this, &FrameWorker::reportFPS);
@@ -176,7 +179,15 @@ void FrameWorker::captureFrames()
         lvframe_buffer->current()->raw_data = Camera->getFrame();
         end = high_resolution_clock::now();
 
-        duration = duration_cast<milliseconds>(end - beg).count();
+        duration = duration_cast<seconds>(end - beg).count();
+        this_frame_duration = duration_cast<microseconds>(end - last_frame).count();
+        last_frame = end;
+        {
+            std::unique_lock<std::mutex>  lock_time{time_mutex};
+            time[time_index] = this_frame_duration;
+            time_index++;
+            time_index %= FPS_FRAME_WIDTH;
+        }
         lvframe_buffer->incIndex();
 
         count++;
@@ -325,17 +336,19 @@ void FrameWorker::setMaskSettings(QString mask_name, quint64 avg_frames)
 
 void FrameWorker::reportFPS()
 {
-    uint64_t count_local = count.load();
-    windows_since_frame++;
     if (Camera->isRunning()) {
         isTimeout = false;
         //emit updateFPS((float)(count.load() - count_prev));
-        if(count_local != count_prev) {
-            emit updateFPS(1000.0f * (float)(count_local - count_prev)/(windows_since_frame * frame_period));
-            windows_since_frame = 0;
+        double total_time = 0;
+        {
+            //std::unique_lock<std::mutex> lock{time_mutex};
+            for(auto elem : time) {
+                total_time += elem;
+            }
         }
+
+        emit updateFPS(FPS_FRAME_WIDTH * 1000000.0/total_time);
     }
-    count_prev = count_local;
 }
 
 void FrameWorker::resetDir(const char *dirname)
