@@ -38,8 +38,9 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     qcp->heightForWidth(200);
     qcp->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
     qcp->axisRect()->setupFullAxesBox(true);
-    qcp->xAxis->setLabel("x");
-    qcp->yAxis->setLabel("y");
+    // Removing axis labels to provide more room for the display
+    // qcp->xAxis->setLabel("x");
+    // qcp->yAxis->setLabel("y");
     qcp->yAxis->setRangeReversed(true);
 
     colorMap = new QCPColorMap(qcp->xAxis, qcp->yAxis);
@@ -132,9 +133,6 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     bottomControls->addWidget(fpsLabel);
     bottomControls->addWidget(hideXbox);
     bottomControls->addWidget(zoomButtons);
-    fpsLabel->setMaximumHeight(20);
-    hideXbox->setMaximumHeight(20);
-    zoomButtons->setMaximumHeight(40);
     qvbl->addWidget(qcp, 10);
     qvbl->addLayout(bottomControls, 1);
 

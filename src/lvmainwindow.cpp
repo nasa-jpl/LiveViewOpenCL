@@ -4,7 +4,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     : QMainWindow(parent)
 {   
     // Hardcoded default window size
-    this->resize(1440, 900);
+    this->resize(1560, 1000);
 
     this->settings = new QSettings(QStandardPaths::writableLocation(
                                        QStandardPaths::AppConfigLocation)
@@ -23,8 +23,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     connect(workerThread, SIGNAL(started()), fw, SLOT(captureFrames()));
     connect(fw, SIGNAL(finished()), workerThread, SLOT(quit()));
     connect(fw, SIGNAL(finished()), fw, SLOT(deleteLater()));
-    connect(workerThread, SIGNAL(finished()),
-            workerThread, SLOT(deleteLater()));
+    connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
 
     connect(fw, &FrameWorker::startSaving, this, [&](){
         saveAct->setEnabled(false);
@@ -79,10 +78,12 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
      */
     cbox = new ControlsBox(fw, tab_widget,
                            server->ipAdress.toString(), server->port);
+    connect(cbox->browseButton, &QPushButton::clicked, this, &LVMainWindow::saveAs);
+    connect(this, &LVMainWindow::saveRequest, cbox, &ControlsBox::acceptSave);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->addWidget(tab_widget);
-    mainLayout->addWidget(cbox, 2);
+    mainLayout->addWidget(cbox);
 
     mainWidget->setLayout(mainLayout);
     this->setCentralWidget(mainWidget);
@@ -159,7 +160,7 @@ void LVMainWindow::createActions()
     connect(compAct, &QAction::triggered, this, &LVMainWindow::show_deviceModelView);
 
     dsfAct = new QAction("Dark Subtraction", this);
-    dsfAct->setShortcut(QKeySequence::Deselect); // This specifies the Ctrl+D key combo.
+    dsfAct->setShortcut(QKeySequence::Underline); // This specifies the Ctrl+U key combo.
     dsfAct->setStatusTip("Modify settings when collecting dark subtraction frames.");
     connect(dsfAct, &QAction::triggered, this, &LVMainWindow::show_dsfModelView);
 
@@ -219,28 +220,24 @@ void LVMainWindow::open()
 
 void LVMainWindow::save()
 {
-    if (save_filename.isEmpty()) {
+    // If there is no file name to save to file, open a filedialog.
+    if (cbox->saveFileNameEdit->text().isEmpty()) {
         saveAs();
-        if (save_filename.isEmpty()) {
-            return;
-        }
     } else {
-        fw->captureFramesRemote(save_filename, (quint64)10, (quint64)1);
+        // otherwise, just send the request to save frames.
+        emit saveRequest();
     }
 }
 
 void LVMainWindow::saveAs()
 {
-    save_filename = QFileDialog::getSaveFileName(
-                this, "Save Raw Frames", default_dir,
-                "Raw Camera Frames (*.raw);;All files (*.*)");
+    QString save_filename = QFileDialog::getSaveFileName(
+                                this, "Save Raw Frames", default_dir,
+                                "Raw Camera Frames (*.raw);;All files (*.*)");
 
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-
-    if (!save_filename.isEmpty()) {
-        // saveAct->setEnabled(true);
-        fw->captureFramesRemote(save_filename, (quint64)10, (quint64)1);
-    }
+    cbox->saveFileNameEdit->setText(save_filename);
+    emit saveRequest();
 }
 
 void LVMainWindow::reset()

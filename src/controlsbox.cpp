@@ -32,7 +32,7 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     saveFileNameEdit = new QLineEdit(this);
     numFramesEdit = new QSpinBox(this);
     numFramesEdit->setMaximum(1000000);
-    QPushButton *saveFramesButton = new QPushButton(this);
+    QPushButton *saveFramesButton = new QPushButton("Save Frames", this);
     saveFramesButton->setIcon(style()->standardIcon(QStyle::SP_DriveHDIcon));
     connect(saveFramesButton, &QPushButton::clicked, this, [this]() {
         const QString &fileName = saveFileNameEdit->text();
@@ -42,6 +42,9 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
         }
     });
 
+    browseButton = new QPushButton("...", this);
+    // calls a function of the parent, so this button is connected to a function in the parent.
+
     maskButton = new QPushButton("&Collect Mask Frames", this);
     connect(maskButton, &QPushButton::released, this, &ControlsBox::collectDSFMask);
     connect(frame_handler->DSFilter, &DarkSubFilter::mask_frames_collected, this, [this](){
@@ -49,21 +52,23 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     });
 
     QGridLayout *cboxLayout = new QGridLayout(this);
-    cboxLayout->addWidget(fpsLabel, 0, 0, 2, 1);
-    cboxLayout->addWidget(ipLabel, 2, 0, 2, 1);
-    cboxLayout->addWidget(new QLabel("Save File to:", this), 2, 1, 2, 1);
-    cboxLayout->addWidget(saveFileNameEdit, 2, 2, 2, 5);
-    cboxLayout->addWidget(numFramesEdit, 2, 7, 2, 1);
-    cboxLayout->addWidget(saveFramesButton, 2, 8, 2, 1);
-    cboxLayout->addWidget(portLabel, 4, 0, 1, 1);
-    cboxLayout->addWidget(new QLabel("Range:", this), 0, 1, 2, 1);
-    cboxLayout->addWidget(min_box, 0, 2, 2, 1);
-    cboxLayout->addWidget(rangeSlider, 0, 3, 2, 5);
-    cboxLayout->addWidget(max_box, 0, 8, 2, 1);
-    cboxLayout->addWidget(precisionBox, 0, 9, 2, 2);
-    cboxLayout->addWidget(maskButton, 2, 9, 2, 1);
+    cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
+    cboxLayout->addWidget(new QLabel("Range:", this), 0, 1, 1, 1);
+    cboxLayout->addWidget(min_box, 0, 2, 1, 1);
+    cboxLayout->addWidget(rangeSlider, 0, 3, 1, 5);
+    cboxLayout->addWidget(max_box, 0, 8, 1, 1);
+    cboxLayout->addWidget(precisionBox, 0, 9, 1, 2);
+    cboxLayout->addWidget(ipLabel, 1, 0, 1, 1);
+    cboxLayout->addWidget(new QLabel("Save File to:", this), 1, 1, 1, 1);
+    cboxLayout->addWidget(saveFileNameEdit, 1, 2, 1, 5);
+    cboxLayout->addWidget(browseButton, 1, 7, 1, 1);
+    cboxLayout->addWidget(numFramesEdit, 1, 8, 1, 1);
+    cboxLayout->addWidget(saveFramesButton, 1, 9, 1, 1);
+    cboxLayout->addWidget(portLabel, 2, 0, 1, 1);
+    cboxLayout->addWidget(maskButton, 2, 1, 1, 1);
+
     this->setLayout(cboxLayout);
-    this->setMaximumHeight(100);
+    this->setMaximumHeight(150);
     tabChanged(0);
 
     connect(rangeSlider, &ctkRangeSlider::minimumPositionChanged, this, &ControlsBox::setMinSpin);
@@ -80,34 +85,6 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
         if (new_max >= viewWidget->getFloor())
             viewWidget->setCeiling(new_max);
     });
-}
-
-void ControlsBox::setMinSpin(int new_min) {
-    min_box->blockSignals(true);
-    min_box->setValue(static_cast<int>(new_min * viewWidget->getDataMax() / 100.0));
-    min_box->blockSignals(false);
-}
-
-void ControlsBox::setMaxSpin(int new_max) {
-    max_box->blockSignals(true);
-    max_box->setValue(static_cast<int>(new_max * viewWidget->getDataMax() / 100.0));
-    max_box->blockSignals(false);
-}
-
-void ControlsBox::setRangeSliderMin(int new_min) {
-    if(new_min <= max_box->value()) {
-        rangeSlider->blockSignals(true);
-        rangeSlider->setMinimumPosition(static_cast<int>(new_min * 100.0 / viewWidget->getDataMax()));
-        rangeSlider->blockSignals(false);
-    }
-}
-
-void ControlsBox::setRangeSliderMax(int new_max) {
-    if(new_max >= min_box->value()) {
-        rangeSlider->blockSignals(true);
-        rangeSlider->setMaximumPosition(static_cast<int>(new_max * 100.0 / viewWidget->getDataMax()));
-        rangeSlider->blockSignals(false);
-    }
 }
 
 ControlsBox::~ControlsBox() {}
@@ -147,6 +124,44 @@ void ControlsBox::tabChanged(int index)
     max_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
     max_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
     max_box->setValue(static_cast<int>(viewWidget->getCeiling()));
+}
+
+void ControlsBox::acceptSave()
+{
+    if (saveFileNameEdit->text().isEmpty() || numFramesEdit->value() == 0) {
+        return;
+    } else {
+        frame_handler->saveFrames(saveFileNameEdit->text().toStdString(),
+                                  static_cast<uint64_t>(numFramesEdit->value()));
+    }
+}
+
+void ControlsBox::setMinSpin(int new_min) {
+    min_box->blockSignals(true);
+    min_box->setValue(static_cast<int>(new_min * viewWidget->getDataMax() / 100.0));
+    min_box->blockSignals(false);
+}
+
+void ControlsBox::setMaxSpin(int new_max) {
+    max_box->blockSignals(true);
+    max_box->setValue(static_cast<int>(new_max * viewWidget->getDataMax() / 100.0));
+    max_box->blockSignals(false);
+}
+
+void ControlsBox::setRangeSliderMin(int new_min) {
+    if(new_min <= max_box->value()) {
+        rangeSlider->blockSignals(true);
+        rangeSlider->setMinimumPosition(static_cast<int>(new_min * 100.0 / viewWidget->getDataMax()));
+        rangeSlider->blockSignals(false);
+    }
+}
+
+void ControlsBox::setRangeSliderMax(int new_max) {
+    if(new_max >= min_box->value()) {
+        rangeSlider->blockSignals(true);
+        rangeSlider->setMaximumPosition(static_cast<int>(new_max * 100.0 / viewWidget->getDataMax()));
+        rangeSlider->blockSignals(false);
+    }
 }
 
 void ControlsBox::setPrecision(bool isPrecise)

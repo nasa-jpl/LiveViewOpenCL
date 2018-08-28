@@ -21,9 +21,17 @@ public:
                          QString ipAddress, quint16 port, QWidget *parent = nullptr);
     ~ControlsBox();
 
+    /* This button shares functionality with the "Save As..." functionality
+     * in the Main Window. It is a public member so that it can be connected
+     * to the same "Save As..." function in the parent.
+     */
+    QPushButton *browseButton;
+    QLineEdit *saveFileNameEdit;
+
 public slots:
     void collectDSFMask();
     void tabChanged(int);
+    void acceptSave();
 
 private slots:
     void updateFPS(float frameRate);
@@ -47,7 +55,7 @@ private:
     QSpinBox *min_box;
     QSpinBox *max_box;
 
-    QLineEdit *saveFileNameEdit;
+
     QSpinBox *numFramesEdit;
 
     QPushButton *maskButton;
