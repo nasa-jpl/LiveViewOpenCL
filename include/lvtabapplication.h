@@ -14,7 +14,7 @@ class LVTabApplication : public QWidget
     Q_OBJECT
 public:
     LVTabApplication(FrameWorker *fw, QWidget *parent = nullptr) :
-        QWidget(parent), dataMax(float(UINT16_MAX)), dataMin(0.0),
+        QWidget(parent), dataMax(UINT16_MAX), dataMin(0.0),
         isPrecise(false), frame_handler(fw)
     {
         frHeight = frame_handler->getFrameHeight();
@@ -34,12 +34,12 @@ public:
     double getDataMin() { return dataMin; }
     bool isPrecisionMode() { return isPrecise; }
 
-    virtual void setCeiling(int c) {
-        ceiling = (double)c;
+    virtual void setCeiling(double c) {
+        ceiling = c;
         rescaleRange();
     }
-    virtual void setFloor(int f) {
-        floor = (double)f;
+    virtual void setFloor(double f) {
+        floor = f;
         rescaleRange();
     }
 
@@ -49,28 +49,28 @@ public:
             dataMin = -2000.0;
             dataMax = 2000.0;
             double c = ceiling > dataMax ? dataMax : ceiling;
-            setCeiling((int)c);
+            setCeiling(c);
             double f = floor < dataMin ? dataMin : floor;
-            setFloor((int)f);
+            setFloor(f);
         } else {
             dataMin = 0.0;
             dataMax = UINT16_MAX;
             double c = ceiling > dataMax ? dataMax : ceiling;
-            setCeiling((int)c);
+            setCeiling(c);
             double f = floor < dataMin ? dataMin : floor;
-            setFloor((int)f);
+            setFloor(f);
         }
     }
 
 public slots:
-    virtual void setFloorPos(int minPos) {
-        double f = dataMax * ((double)minPos / 100.0);
-        setFloor((int)f);
+    virtual void setFloorPos(double minPos) {
+        double f = dataMax * (minPos / 100.0);
+        setFloor(f);
     }
 
-    virtual void setCeilingPos(int maxPos) {
-        double c = dataMax * ((double)maxPos / 100.0);
-        setCeiling((int)c);
+    virtual void setCeilingPos(double maxPos) {
+        double c = dataMax * (maxPos / 100.0);
+        setCeiling(c);
     }
 
     virtual void rescaleRange() = 0;

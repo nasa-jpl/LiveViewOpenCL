@@ -31,6 +31,9 @@ public:
 public slots:
     void errorString(const QString &);
 
+signals:
+    void saveRequest();
+
 protected:
 #ifndef QT_NO_CONTEXTMENU
     void contextMenuEvent(QContextMenuEvent *event) override;
@@ -73,7 +76,6 @@ private:
 
     QString default_dir;
     QString source_dir;
-    QString save_filename;
     QSettings *settings;
 
 private slots:
