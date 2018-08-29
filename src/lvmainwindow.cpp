@@ -103,14 +103,8 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     });
 
     appearanceDialog = new AppearanceDialog(settings);
-    /*
-    connect(appearanceDialog, &AppearanceDialog::changeGradientSignal, this, [this](){
-        int value = settings->value( QString("gradient"), QCPColorGradient::gpJet).toInt();
-        raw_display->colorMap->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
-        dsf_display->colorMap->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
-        sdv_display->colorMap->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
-    });
-    */
+    connect(appearanceDialog, &AppearanceDialog::changeGradientSignal,
+            this, &LVMainWindow::changeGradients);
 }
 
 LVMainWindow::~LVMainWindow()
@@ -283,4 +277,12 @@ void LVMainWindow::show_appearanceView()
 void LVMainWindow::change_compute_device(QString dev_name)
 {
     fw->STDFilter->change_device(dev_name);
+}
+
+void LVMainWindow::changeGradients()
+{
+    int value = settings->value( QString("gradient"), QCPColorGradient::gpJet).toInt();
+    raw_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
+    dsf_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
+    sdv_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
 }

@@ -229,3 +229,8 @@ void frameview_widget::hideCrosshair(bool hide)
     crosshairX->setVisible(!hide);
     crosshairY->setVisible(!hide);
 }
+
+QCPColorMap* frameview_widget::getColorMap()
+{
+    return this->colorMap;
+}

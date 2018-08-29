@@ -33,6 +33,7 @@ public slots:
     void hideCrosshair(bool hide);
     void rescaleRange();
     void reportFPS();
+    QCPColorMap* getColorMap();
 
 private:
     std::vector<float> (FrameWorker::*p_getFrame)();

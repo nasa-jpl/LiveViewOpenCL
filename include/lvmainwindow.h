@@ -41,6 +41,7 @@ private:
     QThread *workerThread;
     void createActions();
     void createMenus();
+    void changeGradients();
 
     QMenu *fileMenu;
     QMenu *prefMenu;
