@@ -8,6 +8,7 @@
 #include <cameraselectdialog.h>
 
 #include <unistd.h>
+#include <signal.h>
 
 #include "lvmainwindow.h"
 

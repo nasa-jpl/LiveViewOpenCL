@@ -64,7 +64,7 @@ private:
 };
 
 FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *parent)
-    : settings(settings_arg), QObject(parent), thread(worker),
+    : QObject(parent), settings(settings_arg), thread(worker),
       useDSF(false), saving(false),
       count(0), count_prev(0)
 {
