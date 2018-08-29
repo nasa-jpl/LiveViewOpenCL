@@ -4,7 +4,10 @@
 #include <QSplashScreen>
 #include <QStyle>
 #include <QTextStream>
+#include <QFileInfo>
 #include <cameraselectdialog.h>
+
+#include <unistd.h>
 
 #include "lvmainwindow.h"
 
@@ -19,6 +22,28 @@
 int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
+    QFile lockfile{"/tmp/.LiveView-lock"};
+    QFileInfo lockfile_info{"/tmp/.LiveView-lock"};
+    QTextStream lockfile_stream{&lockfile};
+    if(lockfile_info.exists() || !lockfile.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        auto reply = QMessageBox::question(nullptr, "LiveView Cannot Start",
+                            "Only one instance of LiveView may be run at a time. Would you like the other LiveView instance to be stopped?",
+                                           QMessageBox::Yes|QMessageBox::Cancel);
+        if(reply == QMessageBox::Cancel) {
+            return EXIT_FAILURE;
+        } else {
+            lockfile.open(QIODevice::ReadWrite | QIODevice::Text);
+            QString line = lockfile_stream.readLine();
+            auto pid = line.toInt();
+            kill(pid, SIGKILL);
+        }
+    }
+    int my_pid = getpid();
+    qDebug() << "PID:" << my_pid;
+    lockfile.close();
+    lockfile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
+    lockfile_stream << my_pid;
+    lockfile.close();
     QSettings settings(QStandardPaths::writableLocation(
                            QStandardPaths::AppConfigLocation)
                        + "/lvconfig.ini", QSettings::IniFormat);
@@ -58,5 +83,7 @@ int main(int argc, char* argv[])
     w.show();
     splash.finish(&w);
 
-    return a.exec();
+    auto ret_val = a.exec();
+    lockfile.remove();
+    return ret_val;
 }
