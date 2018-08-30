@@ -2,15 +2,12 @@
 #define CAMERAMODEL_H
 
 #include <stdint.h>
+#include <atomic>
+
 #include <QObject>
 #include <QDebug>
-#include "image_type.h"
 
-#if (__GNUC__ > 4) || (__APPLE__ && __MACH__)
-    #include <atomic>
-#else
-    #include <cstdatomic>
-#endif
+#include "image_type.h"
 
 class CameraModel : public QObject
 {
