@@ -233,7 +233,7 @@ void LVMainWindow::saveAs()
 {
     QString save_filename = QFileDialog::getSaveFileName(
                                 this, "Save Raw Frames", default_dir,
-                                "Raw Camera Frames (*.raw);;All files (*.*)");
+                                "Raw Camera Frames (*.raw);;Data Files (*.dat);;All files (*.*)");
 
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
     cbox->saveFileNameEdit->setText(save_filename);

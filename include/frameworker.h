@@ -63,7 +63,7 @@ public:
     float* getSpatialMean();
     float* getFrameFFT();
 
-    void saveFrames(std::string frame_fname, uint64_t num_frames);
+    void saveFrames(std::string frame_fname, uint64_t num_frames, uint64_t num_avgs);
 
     void setCenter(double Xcoord, double Ycoord);
     QPointF* getCenter();
