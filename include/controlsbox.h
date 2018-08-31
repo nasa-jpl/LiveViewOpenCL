@@ -57,6 +57,7 @@ private:
 
 
     QSpinBox *numFramesEdit;
+    QSpinBox *numAvgsEdit;
 
     QPushButton *maskButton;
     bool collecting_mask;

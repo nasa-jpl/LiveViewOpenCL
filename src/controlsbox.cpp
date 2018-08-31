@@ -32,13 +32,19 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     saveFileNameEdit = new QLineEdit(this);
     numFramesEdit = new QSpinBox(this);
     numFramesEdit->setMaximum(1000000);
+    numAvgsEdit = new QSpinBox(this);
+    numAvgsEdit->setMinimum(1);
+    numAvgsEdit->setMaximum(1000000);
     QPushButton *saveFramesButton = new QPushButton("Save Frames", this);
     saveFramesButton->setIcon(style()->standardIcon(QStyle::SP_DriveHDIcon));
     connect(saveFramesButton, &QPushButton::clicked, this, [this]() {
         const QString &fileName = saveFileNameEdit->text();
         const int &numFrames = numFramesEdit->value();
+        const int &numAvgs = numAvgsEdit->value();
         if (!fileName.isEmpty() && numFrames > 0) {
-            frame_handler->saveFrames(fileName.toStdString(), static_cast<uint64_t>(numFrames));
+            frame_handler->saveFrames(fileName.toStdString(),
+                                      static_cast<uint64_t>(numFrames),
+                                      static_cast<uint64_t>(numAvgs));
         }
     });
 
@@ -51,21 +57,34 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
         this->collectDSFMask();
     });
 
+    QSlider *stdDevNSlider = new QSlider(this);
+    stdDevNSlider->setOrientation(Qt::Horizontal);
+    stdDevNSlider->setEnabled(false);
+    QSpinBox *stdDevNBox = new QSpinBox(this);
+    stdDevNBox->setMaximum(500);
+    stdDevNBox->setEnabled(false);
+
     QGridLayout *cboxLayout = new QGridLayout(this);
     cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Range:", this), 0, 1, 1, 1);
     cboxLayout->addWidget(min_box, 0, 2, 1, 1);
     cboxLayout->addWidget(rangeSlider, 0, 3, 1, 5);
     cboxLayout->addWidget(max_box, 0, 8, 1, 1);
-    cboxLayout->addWidget(precisionBox, 0, 9, 1, 2);
+    cboxLayout->addWidget(precisionBox, 0, 9, 1, 1);
+    cboxLayout->addWidget(maskButton, 0, 10, 1, 1);
     cboxLayout->addWidget(ipLabel, 1, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Save File to:", this), 1, 1, 1, 1);
     cboxLayout->addWidget(saveFileNameEdit, 1, 2, 1, 5);
     cboxLayout->addWidget(browseButton, 1, 7, 1, 1);
-    cboxLayout->addWidget(numFramesEdit, 1, 8, 1, 1);
-    cboxLayout->addWidget(saveFramesButton, 1, 9, 1, 1);
+    cboxLayout->addWidget(saveFramesButton, 1, 8, 1, 1);
+    cboxLayout->addWidget(new QLabel("Num. Frames:", this), 1, 9, 1, 1);
+    cboxLayout->addWidget(numFramesEdit, 1, 10, 1, 1);
     cboxLayout->addWidget(portLabel, 2, 0, 1, 1);
-    cboxLayout->addWidget(maskButton, 2, 1, 1, 1);
+    cboxLayout->addWidget(new QLabel("Std. Dev. N:", this), 2, 1, 1, 1);
+    cboxLayout->addWidget(stdDevNBox, 2, 2, 1, 1);
+    cboxLayout->addWidget(stdDevNSlider, 2, 3, 1, 5);
+    cboxLayout->addWidget(new QLabel("Num. Avgs:", this), 2, 9, 1, 1);
+    cboxLayout->addWidget(numAvgsEdit, 2, 10, 1, 1);
 
     this->setLayout(cboxLayout);
     this->setMaximumHeight(150);
@@ -132,7 +151,8 @@ void ControlsBox::acceptSave()
         return;
     } else {
         frame_handler->saveFrames(saveFileNameEdit->text().toStdString(),
-                                  static_cast<uint64_t>(numFramesEdit->value()));
+                                  static_cast<uint64_t>(numFramesEdit->value()),
+                                  static_cast<uint64_t>(numAvgsEdit->value()));
     }
 }
 

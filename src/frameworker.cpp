@@ -122,7 +122,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         if (!SaveQueue.empty()) {
             const save_req_t &req = SaveQueue.front();
             SaveQueue.pop();
-            QtConcurrent::run(this, &FrameWorker::saveFrames, req.file_name, req.nFrames); // no nAvgs for now.
+            QtConcurrent::run(this, &FrameWorker::saveFrames, req.file_name, req.nFrames, 1); // no nAvgs for now.
         } else {
             saving = false;
         }
@@ -243,14 +243,20 @@ void FrameWorker::captureSDFrames()
     }
 }
 
-void FrameWorker::saveFrames(std::string frame_fname, uint64_t num_frames)
+void FrameWorker::saveFrames(std::string frame_fname, uint64_t num_frames, uint64_t num_avgs = 1)
 {
     emit startSaving();
     saving = true;
-    unsigned int next_frame = count.load();
+    uint64_t next_frame = count.load();
     uint16_t* p_frame = nullptr;
     std::string hdr_fname;
     save_count.store(0);
+
+    std::vector<float> frame_accum;
+    if (num_avgs > 1) {
+        frame_accum.resize(frWidth * frHeight);
+        std::fill(frame_accum.begin(), frame_accum.end(), 0.0);
+    }
 
     if (frame_fname.find_last_of(".") != std::string::npos) {
         hdr_fname = frame_fname.substr(0, frame_fname.find_last_of(".") + 1) + "hdr";
@@ -266,7 +272,22 @@ void FrameWorker::saveFrames(std::string frame_fname, uint64_t num_frames)
         }
         if (!frame_fifo.empty()) {
             p_frame = frame_fifo.front();
-            p_file.write(reinterpret_cast<char*>(p_frame), frWidth * dataHeight * sizeof(uint16_t));
+            if (num_avgs <= 1) {
+                p_file.write(reinterpret_cast<char*>(p_frame), frWidth * dataHeight * sizeof(uint16_t));
+            } else {
+                if (save_count % num_avgs == 0) {
+                    for (unsigned int p = 0; p < frWidth * frWidth; p++) {
+                        frame_accum[p] /= static_cast<float>(num_avgs);
+                    }
+                    p_file.write(reinterpret_cast<char*>(frame_accum.data()), frWidth * dataHeight * sizeof(float));
+                    std::fill(frame_accum.begin(), frame_accum.end(), 0.0);
+                }
+                for (unsigned int p = 0; p < frWidth * frWidth; p++) {
+                    frame_accum[p] += p_frame[p];
+                }
+
+            }
+
             frame_fifo.pop();
             if (++next_frame == CPU_FRAME_BUFFER_SIZE) { next_frame = 0; }
             save_count++;
@@ -294,7 +315,7 @@ void FrameWorker::captureFramesRemote(const QString &fileName, const quint64 &nF
     SaveQueue.push({fileName.toStdString(), nFrames, nAvgs});
     if (!saving) {
         const save_req_t &req = SaveQueue.front();
-        QtConcurrent::run(this, &FrameWorker::saveFrames, req.file_name, req.nFrames); // no nAvgs for now.
+        QtConcurrent::run(this, &FrameWorker::saveFrames, req.file_name, req.nFrames, 1); // no nAvgs for now.
         SaveQueue.pop();
     }
 }
