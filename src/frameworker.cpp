@@ -107,7 +107,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     frSize = frWidth * dataHeight;
     lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frWidth, dataHeight);
     DSFilter = new DarkSubFilter(frSize);
-    stddev_N = MAX_N;
+    stddev_N = MAX_N; // arbitrary starting point
     STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
     MEFilter = new MeanFilter(frWidth, dataHeight);
     if (!STDFilter->start()) {
@@ -355,6 +355,16 @@ void FrameWorker::setMaskSettings(QString mask_name, quint64 avg_frames)
     avgd_frames = avg_frames;
 }
 
+void FrameWorker::setStdDevN(int new_N)
+{
+    if (new_N < 0) {
+        new_N = 0;
+    } else if (new_N > MAX_N) {
+        new_N = MAX_N;
+    }
+    stddev_N = static_cast<uint32_t>(new_N);
+}
+
 void FrameWorker::reportFPS()
 {
     if (Camera->isRunning()) {
@@ -441,4 +451,9 @@ void FrameWorker::setCenter(double Xcoord, double Ycoord)
 QPointF* FrameWorker::getCenter()
 {
     return &centerVal;
+}
+
+uint32_t FrameWorker::getStdDevN()
+{
+    return stddev_N;
 }

@@ -77,6 +77,8 @@ public:
     uint16_t getDataHeight() const { return dataHeight; }
     camera_t getCameraType() const { return cam_type; }
 
+    uint32_t getStdDevN();
+
     QSettings *settings;
 
 signals:
@@ -95,6 +97,7 @@ public slots:
     void reportFPS();
     void captureFramesRemote(const QString &fileName, const quint64 &nFrames, const quint64 &nAvgs);
     void applyMask(const QString &fileName);
+    void setStdDevN(int new_N);
 
 private:
     QThread *thread;
