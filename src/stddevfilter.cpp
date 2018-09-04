@@ -24,7 +24,7 @@ bool StdDevFilter::start()
         qWarning("No OpenCL platform found!");
         return false;
     } else {
-        qDebug() << "Found" << (int)platformIdCount << " platform(s)";
+        qDebug() << "Found" << platformIdCount << " platform(s)";
     }
 
     // List the platform names.
@@ -75,10 +75,10 @@ bool StdDevFilter::start()
 
     // use a reverse iterator to search for the last occurence of a GPU-type device on the device list
     ptrdiff_t pos = std::find(deviceTypes.rbegin(), deviceTypes.rend(), CL_DEVICE_TYPE_GPU) - deviceTypes.rbegin();
-    if ((size_t)pos >= deviceTypes.size()) {
+    if (static_cast<size_t>(pos) >= deviceTypes.size()) {
         // GPU not found on the system; fall back to using a CPU-type device.
         pos = std::find(deviceTypes.rbegin(), deviceTypes.rend(), CL_DEVICE_TYPE_CPU) - deviceTypes.rbegin();
-        if ((size_t)pos >= deviceTypes.size()) {
+        if (static_cast<size_t>(pos) >= deviceTypes.size()) {
             qWarning("No suitable (CPU or GPU) OpenCL devices found."); // will abort
             return false;
         }
@@ -237,7 +237,7 @@ std::string StdDevFilter::GetDeviceName(cl_device_id id)
 cl_uint StdDevFilter::getPlatformNum(cl_uint dev_num)
 {
     cl_uint plat_num = 0;
-    cl_int devcounter = (cl_int)dev_num;
+    cl_int devcounter = static_cast<cl_int>(dev_num);
     for (auto &dpp : devicesPerPlatform) {
         devcounter -= dpp;
         if (devcounter > 0) {

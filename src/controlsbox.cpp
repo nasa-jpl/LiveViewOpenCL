@@ -59,10 +59,19 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
 
     QSlider *stdDevNSlider = new QSlider(this);
     stdDevNSlider->setOrientation(Qt::Horizontal);
-    stdDevNSlider->setEnabled(false);
+    stdDevNSlider->setValue(100);
+    // stdDevNSlider->setEnabled(false);
     QSpinBox *stdDevNBox = new QSpinBox(this);
-    stdDevNBox->setMaximum(500);
-    stdDevNBox->setEnabled(false);
+    stdDevNBox->setMaximum(MAX_N);
+    stdDevNBox->setMinimum(1);
+    // stdDevNBox->setEnabled(false);
+    stdDevNBox->setValue(static_cast<int>(frame_handler->getStdDevN()));
+
+    // TODO: convert this to new style syntax. Ambiguity of valueChanged signal causes issues.
+    connect(stdDevNBox, SIGNAL(valueChanged(int)), frame_handler, SLOT(setStdDevN(int)));
+    connect(stdDevNSlider, &QSlider::valueChanged, this, [stdDevNBox, stdDevNSlider]() {
+        stdDevNBox->setValue((stdDevNSlider->value() / 2) + 1);
+    });
 
     QGridLayout *cboxLayout = new QGridLayout(this);
     cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
