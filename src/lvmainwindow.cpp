@@ -101,10 +101,6 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
         fw->setMaskSettings(dsfDialog->getMaskFile(),
                             dsfDialog->getAvgdFrames());
     });
-
-    appearanceDialog = new AppearanceDialog(settings);
-    connect(appearanceDialog, &AppearanceDialog::changeGradientSignal,
-            this, &LVMainWindow::changeGradients);
 }
 
 LVMainWindow::~LVMainWindow()
@@ -167,10 +163,15 @@ void LVMainWindow::createActions()
     dsfAct->setStatusTip("Modify settings when collecting dark subtraction frames.");
     connect(dsfAct, &QAction::triggered, this, &LVMainWindow::show_dsfModelView);
 
-    appearanceAct = new QAction("&Appearance", this);
-    appearanceAct->setStatusTip("Change application appearance.");
-    connect(appearanceAct, &QAction::triggered,
-            this, &LVMainWindow::show_appearanceView);
+    gradActs = QList<QAction*>();
+    QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
+    for (int i = 0; i < qme.keyCount(); ++i) {
+        gradActs.append(new QAction(qme.key(i), this));
+        connect(gradActs.at(i), &QAction::triggered, this, [this, i](){
+            settings->setValue(QString("gradient"), i);
+            changeGradients();
+        });
+    }
 }
 
 void LVMainWindow::createMenus()
@@ -191,7 +192,9 @@ void LVMainWindow::createMenus()
     prefMenu->addAction(dsfAct);
 
     viewMenu = menuBar()->addMenu("&View");
-    viewMenu->addAction(appearanceAct);
+    appearanceSubMenu = viewMenu->addMenu("&Gradient");
+    appearanceSubMenu->addActions(this->gradActs);
+
 }
 
 #ifndef QT_NO_CONTEXTMENU
@@ -269,11 +272,6 @@ void LVMainWindow::show_dsfModelView()
     dsfDialog->show();
 }
 
-void LVMainWindow::show_appearanceView()
-{
-    appearanceDialog->show();
-}
-
 void LVMainWindow::change_compute_device(QString dev_name)
 {
     fw->STDFilter->change_device(dev_name);
@@ -281,7 +279,7 @@ void LVMainWindow::change_compute_device(QString dev_name)
 
 void LVMainWindow::changeGradients()
 {
-    int value = settings->value( QString("gradient"), QCPColorGradient::gpJet).toInt();
+    int value = settings->value(QString("gradient"), QCPColorGradient::gpJet).toInt();
     raw_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
     dsf_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
     sdv_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
