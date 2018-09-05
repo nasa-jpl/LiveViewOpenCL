@@ -63,7 +63,8 @@ SOURCES += \
         line_widget.cpp \
         meanfilter.cpp \
         fft_widget.cpp \
-        saveserver.cpp
+        saveserver.cpp \
+        twoscomplimentfilter.cpp
 unix:!macx {
    SOURCES += clcamera.cpp
 }
@@ -95,7 +96,8 @@ HEADERS += \
         saveserver.h \
         saveclient.h \
         dsfprefdialog.h \
-        cameraselectdialog.h
+        cameraselectdialog.h \
+        twoscomplimentfilter.h
 unix:!macx {
     HEADERS += clcamera.h
 }

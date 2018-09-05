@@ -21,6 +21,7 @@
 #if !(__APPLE__ || __MACH__)
 #include "clcamera.h"
 #endif
+#include "twoscomplimentfilter.h"
 #include "darksubfilter.h"
 #include "stddevfilter.h"
 #include "meanfilter.h"
@@ -53,6 +54,7 @@ public:
 
     std::vector<float> getFrame();
 
+    TwosComplimentFilter* TwosFilter;
     DarkSubFilter* DSFilter;
     StdDevFilter* STDFilter;
     MeanFilter* MEFilter;
