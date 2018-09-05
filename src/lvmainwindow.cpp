@@ -164,6 +164,22 @@ void LVMainWindow::createActions()
     dsfAct->setStatusTip("Modify settings when collecting dark subtraction frames.");
     connect(dsfAct, &QAction::triggered, this, &LVMainWindow::show_dsfModelView);
 
+    darkModeAct = new QAction("&Dark Mode (Takes Effect on Restart)", this);
+    darkModeAct->setCheckable(true);
+    darkModeAct->setChecked(settings->value(QString("dark"), false).toBool());
+    connect(darkModeAct, &QAction::triggered, this, [this](){
+        settings->setValue(QString("dark"), darkModeAct->isChecked());
+    });
+
+    gradActs = QList<QAction*>();
+    QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
+    for (int i = 0; i < qme.keyCount(); ++i) {
+        gradActs.append(new QAction(qme.key(i), this));
+        connect(gradActs.at(i), &QAction::triggered, this, [this, i](){
+            settings->setValue(QString("gradient"), i);
+            changeGradients();
+        });
+    }
 }
 
 void LVMainWindow::createMenus()
@@ -182,6 +198,12 @@ void LVMainWindow::createMenus()
     prefMenu = menuBar()->addMenu("&Computation");
     prefMenu->addAction(compAct);
     prefMenu->addAction(dsfAct);
+
+    viewMenu = menuBar()->addMenu("&View");
+    viewMenu->addAction(darkModeAct);
+    gradientSubMenu = viewMenu->addMenu("&Gradient");
+    gradientSubMenu->addActions(gradActs);
+
 }
 
 #ifndef QT_NO_CONTEXTMENU
@@ -258,4 +280,12 @@ void LVMainWindow::show_dsfModelView()
 void LVMainWindow::change_compute_device(QString dev_name)
 {
     fw->STDFilter->change_device(dev_name);
+}
+
+void LVMainWindow::changeGradients()
+{
+    int value = settings->value(QString("gradient"), QCPColorGradient::gpJet).toInt();
+    raw_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
+    dsf_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
+    sdv_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
 }

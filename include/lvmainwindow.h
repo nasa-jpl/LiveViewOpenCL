@@ -43,9 +43,12 @@ private:
     QThread *workerThread;
     void createActions();
     void createMenus();
+    void changeGradients();
 
     QMenu *fileMenu;
     QMenu *prefMenu;
+    QMenu *viewMenu;
+    QMenu *gradientSubMenu;
     QAction *openAct;
     QAction *saveAct;
     QAction *saveAsAct;
@@ -53,6 +56,9 @@ private:
     QAction *exitAct;
     QAction *compAct;
     QAction *dsfAct;
+
+    QAction *darkModeAct;
+    QList<QAction*> gradActs;
 
     FrameWorker *fw;
     QFuture<void> DSLoop;
