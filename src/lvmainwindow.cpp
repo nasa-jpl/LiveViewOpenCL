@@ -163,6 +163,13 @@ void LVMainWindow::createActions()
     dsfAct->setStatusTip("Modify settings when collecting dark subtraction frames.");
     connect(dsfAct, &QAction::triggered, this, &LVMainWindow::show_dsfModelView);
 
+    darkModeAct = new QAction("&Dark Mode (Takes Effect on Restart)", this);
+    darkModeAct->setCheckable(true);
+    darkModeAct->setChecked(settings->value(QString("dark"), false).toBool());
+    connect(darkModeAct, &QAction::triggered, this, [this](){
+        settings->setValue(QString("dark"), darkModeAct->isChecked());
+    });
+
     gradActs = QList<QAction*>();
     QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
     for (int i = 0; i < qme.keyCount(); ++i) {
@@ -192,8 +199,9 @@ void LVMainWindow::createMenus()
     prefMenu->addAction(dsfAct);
 
     viewMenu = menuBar()->addMenu("&View");
-    appearanceSubMenu = viewMenu->addMenu("&Gradient");
-    appearanceSubMenu->addActions(this->gradActs);
+    viewMenu->addAction(darkModeAct);
+    gradientSubMenu = viewMenu->addMenu("&Gradient");
+    gradientSubMenu->addActions(gradActs);
 
 }
 
