@@ -7,6 +7,7 @@ TwosComplimentFilter::TwosComplimentFilter(unsigned int frame_height, unsigned i
 
 uint16_t* TwosComplimentFilter::apply_filter(uint16_t *pic_in)
 {
+    qDebug() << "hello";
     unsigned int row, col;
     for (row = 0; row < frHeight; row++) {
         for (col = 0; col< frWidth; col++) {

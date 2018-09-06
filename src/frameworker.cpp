@@ -179,7 +179,7 @@ void FrameWorker::captureFrames()
         beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
         end = high_resolution_clock::now();
-        TwosFilter->apply_filter(lvframe_buffer->current()->raw_data);
+        lvframe_buffer->current()->raw_data = TwosFilter->apply_filter(lvframe_buffer->current()->raw_data);
 
         duration = duration_cast<seconds>(end - beg).count();
         this_frame_duration = duration_cast<microseconds>(end - last_frame).count();
