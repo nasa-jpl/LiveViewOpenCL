@@ -256,7 +256,7 @@ void line_widget::setPlotMode(LV::PlotMode pm)
         p_getFrame = &FrameWorker::getDSFrame;
         break;
     case LV::pmSNR:
-        //p_getFrame = &FrameWorker::getSNRFrame;
+        p_getFrame = &FrameWorker::getSNRFrame;
         break;
     }
 

@@ -80,6 +80,8 @@ public:
 
     uint32_t getStdDevN();
 
+    inline void compute_snr(LVFrame *new_frame);
+
     QSettings *settings;
 
 signals:

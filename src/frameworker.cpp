@@ -43,13 +43,11 @@ public:
     LVFrame* recent() { return frame_vec.at(lastIndex.load()); }
     LVFrame* lastDSF() { return frame_vec.at(dsfIndex.load()); }
     LVFrame* lastSTD() { return frame_vec.at(stdIndex.load()); }
-    LVFrame* lastSNR() { return frame_vec.at(snrIndex.load()); }
 
     std::atomic<int> lastIndex;
     std::atomic<int> fbIndex;
     std::atomic<int> dsfIndex;
     std::atomic<int> stdIndex;
-    std::atomic<int> snrIndex;
 
 public slots:
     inline void incIndex()
@@ -61,7 +59,6 @@ public slots:
     }
     inline void setDSF(unsigned int f_num) { dsfIndex.store(f_num, std::memory_order_release); }
     inline void setSTD(unsigned int f_num) { stdIndex.store(f_num, std::memory_order_release); }
-    inline void setSNR(unsigned int f_num) { snrIndex.store(f_num, std::memory_order_release); }
 private:
     std::vector<LVFrame*> frame_vec;
 };
@@ -235,10 +232,10 @@ void FrameWorker::captureSDFrames()
         if (last_complete < count_framestart && STDFilter->isReadyRead()) {
             store_point = count_framestart % CPU_FRAME_BUFFER_SIZE;
             STDFilter->compute_stddev(lvframe_buffer->frame(store_point), stddev_N);
-            //SNRFilter->compute_stddev(lvframe_buffer->frame(store_point), stddev_N);
             // Move the read point in the buffer only if the data is "valid"
             if (STDFilter->isReadyDisplay()) {
                 lvframe_buffer->setSTD(store_point);
+                compute_snr(lvframe_buffer->frame(store_point));
             }
             last_complete = count_framestart;
         } else {
@@ -420,7 +417,7 @@ std::vector<float> FrameWorker::getSDFrame()
 std::vector<float> FrameWorker::getSNRFrame()
 {
     //Maintains reference to data by using vector for memory management
-    return std::vector<float>(lvframe_buffer->lastSNR()->snr_data, lvframe_buffer->lastSNR()->snr_data + frSize);
+    return std::vector<float>(lvframe_buffer->lastSTD()->snr_data, lvframe_buffer->lastSTD()->snr_data + frSize);
 }
 
 uint32_t* FrameWorker::getHistData()
@@ -466,4 +463,15 @@ QPointF* FrameWorker::getCenter()
 uint32_t FrameWorker::getStdDevN()
 {
     return stddev_N;
+}
+
+void FrameWorker::compute_snr(LVFrame *new_frame)
+{
+    for (unsigned int i = 0; i < new_frame->frSize; ++i) {
+        if (new_frame->sdv_data > 0) {
+            new_frame->snr_data[i] = new_frame->dsf_data[i] / new_frame->sdv_data[i] * 1000;
+        } else {
+            new_frame->snr_data[i] = 0;
+        }
+    }
 }
