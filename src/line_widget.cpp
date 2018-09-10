@@ -95,12 +95,6 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
     plotModeBox->addItem("Signal-to-Noise Ratio Data");
     connect(plotModeBox, SIGNAL(currentIndexChanged(int)),
             this, SLOT(setPlotMode(int)));
-           /* [this](){
-        qDebug() << plotModeBox->currentIndex();
-
-        this->setPlotMode(static_cast<LV::PlotMode>(plotModeBox->currentIndex()));
-    });
-            */
 
     QHBoxLayout *bottomButtons = new QHBoxLayout;
     bottomButtons->addWidget(hideTracer);
