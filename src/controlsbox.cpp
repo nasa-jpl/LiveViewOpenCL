@@ -139,9 +139,7 @@ void ControlsBox::tabChanged(int index)
     connect(rangeSlider, &ctkRangeSlider::maximumPositionChanged,
             viewWidget, &LVTabApplication::setCeilingPos);
 
-    precisionBox->blockSignals(true);
     precisionBox->setChecked(viewWidget->isPrecisionMode());
-    precisionBox->blockSignals(false);
 
     // update the range slider positions
     rangeSlider->blockSignals(true);
