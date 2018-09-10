@@ -15,11 +15,6 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
     qcp->addGraph(0, 0);
 
     switch (image_type) {
-    case SPECTRAL_PROFILE:
-        xAxisMax = frHeight;
-        qcp->xAxis->setLabel("Spectral index");
-        p_getLine = &line_widget::getSpectralLine;
-        break;
     case SPATIAL_PROFILE:
         xAxisMax = frWidth;
         qcp->xAxis->setLabel("Spatial index");
@@ -37,6 +32,7 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
         p_getLine = &line_widget::getSpatialMean;
         plotTitle->setText(QString("Spatial Mean of Single Frame"));
         break;
+    case SPECTRAL_PROFILE:
     default:
         xAxisMax = frHeight;
         qcp->xAxis->setLabel("Spectral index");
@@ -88,53 +84,27 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
     arrow->setSelectable(false);
     arrow->setVisible(false);
 
-    if (fw->settings->value(QString("dark"), USE_DARK_STYLE).toBool()) {
-        qcp->graph(0)->setPen(QPen(Qt::lightGray));
-        plotTitle->setTextColor(Qt::white);
-
-        qcp->setBackground(QBrush(QColor("#31363B")));
-        qcp->xAxis->setTickLabelColor(Qt::white);
-        qcp->xAxis->setBasePen(QPen(Qt::white));
-        qcp->xAxis->setLabelColor(Qt::white);
-        qcp->xAxis->setTickPen(QPen(Qt::white));
-        qcp->xAxis->setSubTickPen(QPen(Qt::white));
-        qcp->yAxis->setTickLabelColor(Qt::white);
-        qcp->yAxis->setBasePen(QPen(Qt::white));
-        qcp->yAxis->setLabelColor(Qt::white);
-        qcp->yAxis->setTickPen(QPen(Qt::white));
-        qcp->yAxis->setSubTickPen(QPen(Qt::white));
-        qcp->xAxis2->setTickLabelColor(Qt::white);
-        qcp->xAxis2->setBasePen(QPen(Qt::white));
-        qcp->xAxis2->setTickPen(QPen(Qt::white));
-        qcp->xAxis2->setSubTickPen(QPen(Qt::white));
-        qcp->yAxis2->setTickLabelColor(Qt::white);
-        qcp->yAxis2->setBasePen(QPen(Qt::white));
-        qcp->yAxis2->setTickPen(QPen(Qt::white));
-        qcp->yAxis2->setSubTickPen(QPen(Qt::white));
-
-        callout->setColor(Qt::white);
-        callout->setPen(QPen(Qt::white));
-        callout->setBrush(QBrush(QColor("#31363B")));
-        callout->setSelectedBrush(QBrush(QColor("#31363B")));
-        callout->setSelectedPen(QPen(Qt::white));
-        callout->setSelectedColor(Qt::white);
-
-        arrow->setPen(QPen(Qt::white));
-    } else {
-        callout->setPen(QPen(Qt::black));
-        callout->setBrush(Qt::white);
-        callout->setSelectedBrush(Qt::white);
-        callout->setSelectedPen(QPen(Qt::black));
-        callout->setSelectedColor(Qt::black);
-    }
+    setDarkMode(fw->settings->value(QString("dark"), USE_DARK_STYLE).toBool());
 
     hideTracer = new QCheckBox("Hide Callout Box", this);
     connect(hideTracer, SIGNAL(toggled(bool)), this, SLOT(hideCallout(bool)));
-    QCheckBox *dsfBox = new QCheckBox("Use Dark Subtracted Data", this);
-    connect(dsfBox, SIGNAL(toggled(bool)), this, SLOT(useDSF(bool)));
+
+    plotModeBox = new QComboBox();
+    plotModeBox->addItem("Raw Data");
+    plotModeBox->addItem("Dark Subtracted Data");
+    plotModeBox->addItem("Signal-to-Noise Ratio Data");
+    connect(plotModeBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(setPlotMode(int)));
+           /* [this](){
+        qDebug() << plotModeBox->currentIndex();
+
+        this->setPlotMode(static_cast<LV::PlotMode>(plotModeBox->currentIndex()));
+    });
+            */
+
     QHBoxLayout *bottomButtons = new QHBoxLayout;
     bottomButtons->addWidget(hideTracer);
-    bottomButtons->addWidget(dsfBox);
+    bottomButtons->addWidget(plotModeBox);
 
     QVBoxLayout *qvbl = new QVBoxLayout(this);
     qvbl->addWidget(qcp);
@@ -277,12 +247,67 @@ void line_widget::hideCallout(bool toggled)
     arrow->setVisible(!toggled);
 }
 
-void line_widget::useDSF(bool toggled)
+void line_widget::setPlotMode(int pm)
 {
-    if (toggled) {
-        p_getFrame = &FrameWorker::getDSFrame;
-    } else {
+    setPlotMode(static_cast<LV::PlotMode>(pm));
+}
+
+void line_widget::setPlotMode(LV::PlotMode pm)
+{
+    switch (pm) {
+    case LV::pmRAW:
         p_getFrame = &FrameWorker::getFrame;
+        break;
+    case LV::pmDSF:
+        p_getFrame = &FrameWorker::getDSFrame;
+        break;
+    case LV::pmSNR:
+        //p_getFrame = &FrameWorker::getSNRFrame;
+        break;
     }
-    frame_handler->setDSF(toggled);
+
+    frame_handler->setPlotMode(pm);
+}
+
+void line_widget::setDarkMode(bool dm)
+{
+    if (dm) {
+        qcp->graph(0)->setPen(QPen(Qt::lightGray));
+        plotTitle->setTextColor(Qt::white);
+
+        qcp->setBackground(QBrush(QColor("#31363B")));
+        qcp->xAxis->setTickLabelColor(Qt::white);
+        qcp->xAxis->setBasePen(QPen(Qt::white));
+        qcp->xAxis->setLabelColor(Qt::white);
+        qcp->xAxis->setTickPen(QPen(Qt::white));
+        qcp->xAxis->setSubTickPen(QPen(Qt::white));
+        qcp->yAxis->setTickLabelColor(Qt::white);
+        qcp->yAxis->setBasePen(QPen(Qt::white));
+        qcp->yAxis->setLabelColor(Qt::white);
+        qcp->yAxis->setTickPen(QPen(Qt::white));
+        qcp->yAxis->setSubTickPen(QPen(Qt::white));
+        qcp->xAxis2->setTickLabelColor(Qt::white);
+        qcp->xAxis2->setBasePen(QPen(Qt::white));
+        qcp->xAxis2->setTickPen(QPen(Qt::white));
+        qcp->xAxis2->setSubTickPen(QPen(Qt::white));
+        qcp->yAxis2->setTickLabelColor(Qt::white);
+        qcp->yAxis2->setBasePen(QPen(Qt::white));
+        qcp->yAxis2->setTickPen(QPen(Qt::white));
+        qcp->yAxis2->setSubTickPen(QPen(Qt::white));
+
+        callout->setColor(Qt::white);
+        callout->setPen(QPen(Qt::white));
+        callout->setBrush(QBrush(QColor("#31363B")));
+        callout->setSelectedBrush(QBrush(QColor("#31363B")));
+        callout->setSelectedPen(QPen(Qt::white));
+        callout->setSelectedColor(Qt::white);
+
+        arrow->setPen(QPen(Qt::white));
+    } else {
+        callout->setPen(QPen(Qt::black));
+        callout->setBrush(Qt::white);
+        callout->setSelectedBrush(Qt::white);
+        callout->setSelectedPen(QPen(Qt::black));
+        callout->setSelectedColor(Qt::black);
+    }
 }

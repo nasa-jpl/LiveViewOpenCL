@@ -43,11 +43,13 @@ public:
     LVFrame* recent() { return frame_vec.at(lastIndex.load()); }
     LVFrame* lastDSF() { return frame_vec.at(dsfIndex.load()); }
     LVFrame* lastSTD() { return frame_vec.at(stdIndex.load()); }
+    LVFrame* lastSNR() { return frame_vec.at(snrIndex.load()); }
 
     std::atomic<int> lastIndex;
     std::atomic<int> fbIndex;
     std::atomic<int> dsfIndex;
     std::atomic<int> stdIndex;
+    std::atomic<int> snrIndex;
 
 public slots:
     inline void incIndex()
@@ -59,13 +61,14 @@ public slots:
     }
     inline void setDSF(unsigned int f_num) { dsfIndex.store(f_num, std::memory_order_release); }
     inline void setSTD(unsigned int f_num) { stdIndex.store(f_num, std::memory_order_release); }
+    inline void setSNR(unsigned int f_num) { snrIndex.store(f_num, std::memory_order_release); }
 private:
     std::vector<LVFrame*> frame_vec;
 };
 
 FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *parent)
     : QObject(parent), settings(settings_arg), thread(worker),
-      useDSF(false), saving(false),
+      plotMode(LV::pmRAW), saving(false),
       count(0), count_prev(0)
 {
     Camera = nullptr;
@@ -151,9 +154,9 @@ bool FrameWorker::running()
     return isRunning;
 }
 
-void FrameWorker::setDSF(bool toggled)
+void FrameWorker::setPlotMode(LV::PlotMode pm)
 {
-    useDSF = toggled;
+    plotMode = pm;
 }
 
 void FrameWorker::reportTimeout()
@@ -212,7 +215,7 @@ void FrameWorker::captureDSFrames()
             DSFilter->dsf_callback(lvframe_buffer->frame(store_point)->raw_data, lvframe_buffer->frame(store_point)->dsf_data);
             if(Camera->isRunning())
                 MEFilter->compute_mean(lvframe_buffer->frame(store_point), QPointF((qreal)0, (qreal)0),
-                                       QPointF((qreal)frWidth, (qreal)dataHeight), useDSF);
+                                       QPointF((qreal)frWidth, (qreal)dataHeight), plotMode);
             lvframe_buffer->setDSF(store_point);
             last_complete = count_framestart;
         } else {
@@ -232,6 +235,7 @@ void FrameWorker::captureSDFrames()
         if (last_complete < count_framestart && STDFilter->isReadyRead()) {
             store_point = count_framestart % CPU_FRAME_BUFFER_SIZE;
             STDFilter->compute_stddev(lvframe_buffer->frame(store_point), stddev_N);
+            //SNRFilter->compute_stddev(lvframe_buffer->frame(store_point), stddev_N);
             // Move the read point in the buffer only if the data is "valid"
             if (STDFilter->isReadyDisplay()) {
                 lvframe_buffer->setSTD(store_point);
@@ -411,6 +415,12 @@ std::vector<float> FrameWorker::getSDFrame()
     //Maintains reference to data by using vector for memory management
 
     return std::vector<float>(lvframe_buffer->lastSTD()->sdv_data, lvframe_buffer->lastSTD()->sdv_data + frSize);
+}
+
+std::vector<float> FrameWorker::getSNRFrame()
+{
+    //Maintains reference to data by using vector for memory management
+    return std::vector<float>(lvframe_buffer->lastSNR()->snr_data, lvframe_buffer->lastSNR()->snr_data + frSize);
 }
 
 uint32_t* FrameWorker::getHistData()

@@ -21,7 +21,9 @@ public slots:
     void setTracer(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
     void moveCallout(QMouseEvent *e);
     void hideCallout(bool toggled);
-    void useDSF(bool toggled);
+    void setPlotMode(int pm);
+    void setPlotMode(LV::PlotMode pm);
+    void setDarkMode(bool dm);
 
 private:
     QVector<double> (line_widget::*p_getLine)(QPointF);
@@ -34,6 +36,7 @@ private:
 
     QCPTextElement *plotTitle;
 
+    QComboBox *plotModeBox;
     QCheckBox *hideTracer;
 
     QCPItemTracer *tracer;

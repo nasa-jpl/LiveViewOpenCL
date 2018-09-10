@@ -7,7 +7,7 @@ MeanFilter::MeanFilter(unsigned int frame_width, unsigned int frame_height)
 
 MeanFilter::~MeanFilter() {}
 
-void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight, bool useDSF)
+void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight, LV::PlotMode pm)
 {
     unsigned int r, c, k;
     float nSamps = bottomRight.x() - topLeft.x();
@@ -15,10 +15,16 @@ void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRig
     float frame_mean = 0.0;
     float data_point = 0.0;
 
-    if (useDSF) {
-        p_getPixel = &MeanFilter::getDSFPixel;
-    } else {
+    switch (pm) {
+    case LV::pmRAW:
         p_getPixel = &MeanFilter::getRawPixel;
+        break;
+    case LV::pmDSF:
+        p_getPixel = &MeanFilter::getDSFPixel;
+        break;
+    case LV::pmSNR:
+        p_getPixel = &MeanFilter::getSNRPixel;
+        break;
     }
     curFrame = frame;
 
@@ -69,6 +75,11 @@ float MeanFilter::getRawPixel(uint32_t index)
 float MeanFilter::getDSFPixel(uint32_t index)
 {
     return curFrame->dsf_data[index];
+}
+
+float MeanFilter::getSNRPixel(uint32_t index)
+{
+    return curFrame->snr_data[index];
 }
 
 bool MeanFilter::dftReady()

@@ -16,6 +16,7 @@ struct LVFrame
     uint16_t *raw_data;
     float *dsf_data;
     float *sdv_data;
+    float *snr_data;
     uint32_t *hist_data;
     float *spectral_mean;
     float *spatial_mean;
@@ -28,6 +29,7 @@ struct LVFrame
             raw_data = new uint16_t[frSize];
             dsf_data = new float[frSize];
             sdv_data = new float[frSize];
+            snr_data = new float[frSize];
             hist_data = new uint32_t[NUMBER_OF_BINS];
             spectral_mean = new float[frame_height];
             spatial_mean = new float[frame_width];
@@ -50,6 +52,7 @@ struct LVFrame
         checkError(munlock(sdv_data, frSize * sizeof(float)));
         delete dsf_data;
         delete sdv_data;
+        delete snr_data;
         delete hist_data;
         delete spectral_mean;
         delete spatial_mean;

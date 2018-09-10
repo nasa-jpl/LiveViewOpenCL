@@ -23,4 +23,8 @@ static const unsigned int MAX_FFT_SIZE = 4096;
 static const unsigned int FFT_INPUT_LENGTH = 512; // Must be 256, will fail silently otherwise
 static const unsigned int FFT_MEAN_BUFFER_LENGTH = 512;
 
+namespace LV {
+    enum PlotMode { pmRAW, pmDSF, pmSNR };
+}
+
 #endif // CONSTANTS_H
