@@ -7,7 +7,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     this->resize(1560, 1000);
 
     this->settings = new QSettings(QStandardPaths::writableLocation(
-                                       QStandardPaths::AppConfigLocation)
+                                       QStandardPaths::ConfigLocation)
                                    + "/lvconfig.ini", QSettings::IniFormat);
 
     QPixmap icon_pixmap(":images/icon.png");
@@ -172,14 +172,14 @@ void LVMainWindow::createActions()
     });
 
     gradActs = QList<QAction*>();
-    QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
+    /*QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
     for (int i = 0; i < qme.keyCount(); ++i) {
         gradActs.append(new QAction(qme.key(i), this));
         connect(gradActs.at(i), &QAction::triggered, this, [this, i](){
             settings->setValue(QString("gradient"), i);
             changeGradients();
         });
-    }
+    }*/
 }
 
 void LVMainWindow::createMenus()
