@@ -69,7 +69,6 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
       count(0), count_prev(0)
 {
     Camera = nullptr;
-    qDebug() << static_cast<source_t>(settings->value(QString("cam_model")).toInt());
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
     case SSD:
         Camera = new SSDCamera();

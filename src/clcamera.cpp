@@ -46,6 +46,7 @@ bool CLCamera::start()
     pdv_multibuf(dev_p, numbufs);
     numbufs = 16;
     pdv_start_images(dev_p, numbufs);
+    pdv_set_timeout(dev_p, 2000);
 
     return true;
 }
