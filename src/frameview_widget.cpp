@@ -48,8 +48,10 @@ frameview_widget::frameview_widget(FrameWorker *fw,
 
     colorScale = new QCPColorScale(qcp);
     qcp->plotLayout()->addElement(0, 1, colorScale);
-
     colorScale->setType(QCPAxis::atRight);
+    colorScale->setRangeDrag(false);
+    colorScale->setRangeZoom(false);
+
     colorMap->setColorScale(colorScale);
     colorMap->data()->setValueRange(QCPRange(0, frHeight-1));
     colorMap->data()->setKeyRange(QCPRange(0, frWidth-1));
