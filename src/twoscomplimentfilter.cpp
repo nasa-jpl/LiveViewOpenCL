@@ -5,15 +5,13 @@ TwosComplimentFilter::TwosComplimentFilter(unsigned int frame_height, unsigned i
 {
 }
 
-uint16_t* TwosComplimentFilter::apply_filter(uint16_t *pic_in)
+void TwosComplimentFilter::apply_filter(uint16_t *pic_in)
 {
-    qDebug() << "hello";
     unsigned int row, col;
     for (row = 0; row < frHeight; row++) {
         for (col = 0; col< frWidth; col++) {
-            pic_buffer[col + row * frWidth] = pic_in[col + row * frWidth] ^ 1<<15;
+            pic_buffer[col + row * frWidth] = pic_in[col + row * frWidth] ^ 0xFFFF;
         }
     }
-    memcpy(pic_in, pic_buffer, MAX_SIZE * sizeof(uint16_t));
-    return pic_in;
+    memcpy(pic_in, pic_buffer, frWidth * frHeight * sizeof(uint16_t));
 }
