@@ -81,6 +81,7 @@ public:
 
     uint32_t getStdDevN();
 
+    volatile bool pixRemap;
     QSettings *settings;
 
 signals:
@@ -107,7 +108,6 @@ private:
     CameraModel *Camera;
     void delay(int msecs);
 
-    bool pixRemap;
     volatile bool useDSF;
     bool saving;
     volatile bool isRunning;

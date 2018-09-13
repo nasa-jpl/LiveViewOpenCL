@@ -164,6 +164,14 @@ void LVMainWindow::createActions()
     dsfAct->setStatusTip("Modify settings when collecting dark subtraction frames.");
     connect(dsfAct, &QAction::triggered, this, &LVMainWindow::show_dsfModelView);
 
+    remapAct = new QAction("Remap Pixels", this);
+    remapAct->setStatusTip("Take the two's compliment of data.");
+    remapAct->setCheckable(true);
+    remapAct->setChecked(false);
+    connect(remapAct, &QAction::triggered, this, [this]() {
+        fw->pixRemap = remapAct->isChecked();
+    });
+
 }
 
 void LVMainWindow::createMenus()
@@ -182,6 +190,7 @@ void LVMainWindow::createMenus()
     prefMenu = menuBar()->addMenu("&Computation");
     prefMenu->addAction(compAct);
     prefMenu->addAction(dsfAct);
+    prefMenu->addAction(remapAct);
 }
 
 #ifndef QT_NO_CONTEXTMENU
@@ -198,6 +207,7 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
     QMenu compMenu(this);
     compMenu.addAction(compAct);
     compMenu.addAction(dsfAct);
+    compMenu.addAction(remapAct);
     compMenu.exec(event->globalPos());
 }
 #endif // QT_NO_CONTEXTMENU

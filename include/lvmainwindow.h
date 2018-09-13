@@ -53,6 +53,7 @@ private:
     QAction *exitAct;
     QAction *compAct;
     QAction *dsfAct;
+    QAction *remapAct;
 
     FrameWorker *fw;
     QFuture<void> DSLoop;

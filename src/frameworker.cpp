@@ -64,12 +64,10 @@ private:
 };
 
 FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *parent)
-    : QObject(parent), settings(settings_arg), thread(worker),
-      useDSF(false), saving(false),
-      count(0), count_prev(0)
+    : QObject(parent), pixRemap(false), settings(settings_arg), thread(worker),
+      useDSF(false), saving(false), count(0), count_prev(0)
 {
     Camera = nullptr;
-    qDebug() << static_cast<source_t>(settings->value(QString("cam_model")).toInt());
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
     case SSD:
         Camera = new SSDCamera();
@@ -179,9 +177,9 @@ void FrameWorker::captureFrames()
         beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
         end = high_resolution_clock::now();
-        /* if (Camera->isRunning()) {
+        if (Camera->isRunning() && pixRemap) {
             TwosFilter->apply_filter(lvframe_buffer->current()->raw_data);
-        } */
+        }
 
 
         duration = duration_cast<seconds>(end - beg).count();
