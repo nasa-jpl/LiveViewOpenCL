@@ -1,3 +1,5 @@
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
+
 __kernel void
 std_dev_filter_kernel(__global const ushort *d_ipic,
                       __global float *d_opic,

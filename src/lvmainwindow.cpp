@@ -7,7 +7,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     this->resize(1560, 1000);
 
     this->settings = new QSettings(QStandardPaths::writableLocation(
-                                       QStandardPaths::AppConfigLocation)
+                                       QStandardPaths::ConfigLocation)
                                    + "/lvconfig.ini", QSettings::IniFormat);
 
     QPixmap icon_pixmap(":images/icon.png");
@@ -172,6 +172,23 @@ void LVMainWindow::createActions()
         fw->pixRemap = remapAct->isChecked();
     });
 
+    darkModeAct = new QAction("&Dark Mode (Takes Effect on Restart)", this);
+    darkModeAct->setCheckable(true);
+    darkModeAct->setChecked(settings->value(QString("dark"), false).toBool());
+    connect(darkModeAct, &QAction::triggered, this, [this](){
+        settings->setValue(QString("dark"), darkModeAct->isChecked());
+    });
+
+    gradActs = QList<QAction*>();
+    /*QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
+    for (int i = 0; i < qme.keyCount(); ++i) {
+        gradActs.append(new QAction(qme.key(i), this));
+        connect(gradActs.at(i), &QAction::triggered, this, [this, i](){
+            settings->setValue(QString("gradient"), i);
+            changeGradients();
+        });
+    }*/
+
 }
 
 void LVMainWindow::createMenus()
@@ -191,6 +208,12 @@ void LVMainWindow::createMenus()
     prefMenu->addAction(compAct);
     prefMenu->addAction(dsfAct);
     prefMenu->addAction(remapAct);
+
+    viewMenu = menuBar()->addMenu("&View");
+    viewMenu->addAction(darkModeAct);
+    gradientSubMenu = viewMenu->addMenu("&Gradient");
+    gradientSubMenu->addActions(gradActs);
+
 }
 
 #ifndef QT_NO_CONTEXTMENU
@@ -268,4 +291,12 @@ void LVMainWindow::show_dsfModelView()
 void LVMainWindow::change_compute_device(QString dev_name)
 {
     fw->STDFilter->change_device(dev_name);
+}
+
+void LVMainWindow::changeGradients()
+{
+    int value = settings->value(QString("gradient"), QCPColorGradient::gpJet).toInt();
+    raw_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
+    dsf_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
+    sdv_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
 }

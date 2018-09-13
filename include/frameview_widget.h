@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QGroupBox>
 #include <QRadioButton>
+#include <QSettings>
 
 #include <stdint.h>
 #include <functional>
@@ -19,7 +20,7 @@ class frameview_widget : public LVTabApplication
 public:
     explicit frameview_widget(FrameWorker *fw,
                               image_t image_type,
-                              QSettings *settings,
+                              QSettings *set,
                               QWidget *parent = nullptr);
     ~frameview_widget();
 
@@ -32,6 +33,7 @@ public slots:
     void hideCrosshair(bool hide);
     void rescaleRange();
     void reportFPS();
+    QCPColorMap* getColorMap();
 
 private:
     std::vector<float> (FrameWorker::*p_getFrame)();
@@ -50,6 +52,8 @@ private:
     unsigned int count_prev;
     double fps;
     QString fps_string;
+
+    QSettings *settings;
 };
 
 #endif // FRAMEVIEW_WIDGET_H

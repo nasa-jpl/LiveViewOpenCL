@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
     lockfile_stream << my_pid;
     lockfile.close();
     QSettings settings(QStandardPaths::writableLocation(
-                           QStandardPaths::AppConfigLocation)
+                           QStandardPaths::ConfigLocation)
                        + "/lvconfig.ini", QSettings::IniFormat);
 
     if (settings.value(QString("dark"), USE_DARK_STYLE).toBool()) {
