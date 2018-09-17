@@ -472,7 +472,7 @@ uint32_t FrameWorker::getStdDevN()
 void FrameWorker::compute_snr(LVFrame *new_frame)
 {
     for (unsigned int i = 0; i < new_frame->frSize; ++i) {
-        if (new_frame->sdv_data > 0) {
+        if (new_frame->sdv_data[i] > 0) {
             new_frame->snr_data[i] = new_frame->dsf_data[i] / new_frame->sdv_data[i] * 1000;
         } else {
             new_frame->snr_data[i] = 0;
