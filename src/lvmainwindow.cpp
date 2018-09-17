@@ -7,7 +7,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     this->resize(1560, 1000);
 
     this->settings = new QSettings(QStandardPaths::writableLocation(
-                                       QStandardPaths::AppConfigLocation)
+                                       QStandardPaths::ConfigLocation)
                                    + "/lvconfig.ini", QSettings::IniFormat);
 
     QPixmap icon_pixmap(":images/icon.png");
@@ -164,6 +164,14 @@ void LVMainWindow::createActions()
     dsfAct->setStatusTip("Modify settings when collecting dark subtraction frames.");
     connect(dsfAct, &QAction::triggered, this, &LVMainWindow::show_dsfModelView);
 
+    remapAct = new QAction("Remap Pixels", this);
+    remapAct->setStatusTip("Take the two's compliment of data.");
+    remapAct->setCheckable(true);
+    remapAct->setChecked(false);
+    connect(remapAct, &QAction::triggered, this, [this]() {
+        fw->pixRemap = remapAct->isChecked();
+    });
+
     darkModeAct = new QAction("&Dark Mode (Takes Effect on Restart)", this);
     darkModeAct->setCheckable(true);
     darkModeAct->setChecked(settings->value(QString("dark"), false).toBool());
@@ -172,14 +180,15 @@ void LVMainWindow::createActions()
     });
 
     gradActs = QList<QAction*>();
-    QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
+    /*QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
     for (int i = 0; i < qme.keyCount(); ++i) {
         gradActs.append(new QAction(qme.key(i), this));
         connect(gradActs.at(i), &QAction::triggered, this, [this, i](){
             settings->setValue(QString("gradient"), i);
             changeGradients();
         });
-    }
+    }*/
+
 }
 
 void LVMainWindow::createMenus()
@@ -198,6 +207,7 @@ void LVMainWindow::createMenus()
     prefMenu = menuBar()->addMenu("&Computation");
     prefMenu->addAction(compAct);
     prefMenu->addAction(dsfAct);
+    prefMenu->addAction(remapAct);
 
     viewMenu = menuBar()->addMenu("&View");
     viewMenu->addAction(darkModeAct);
@@ -220,6 +230,7 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
     QMenu compMenu(this);
     compMenu.addAction(compAct);
     compMenu.addAction(dsfAct);
+    compMenu.addAction(remapAct);
     compMenu.exec(event->globalPos());
 }
 #endif // QT_NO_CONTEXTMENU

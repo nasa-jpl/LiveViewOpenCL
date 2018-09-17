@@ -142,16 +142,22 @@ void ControlsBox::tabChanged(int index)
     precisionBox->setChecked(viewWidget->isPrecisionMode());
 
     // update the range slider positions
+    rangeSlider->blockSignals(true);
     rangeSlider->setPositions(static_cast<int>(viewWidget->getFloor() / viewWidget->getDataMax() * 100.0),
                               static_cast<int>(viewWidget->getCeiling() / viewWidget->getDataMax() * 100.0));
+    rangeSlider->blockSignals(false);
 
+    min_box->blockSignals(true);
     min_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
     min_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
     min_box->setValue(static_cast<int>(viewWidget->getFloor()));
+    min_box->blockSignals(false);
 
+    max_box->blockSignals(true);
     max_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
     max_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
     max_box->setValue(static_cast<int>(viewWidget->getCeiling()));
+    max_box->blockSignals(false);
 }
 
 void ControlsBox::acceptSave()

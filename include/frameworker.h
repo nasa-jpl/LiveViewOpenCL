@@ -21,6 +21,7 @@
 #if !(__APPLE__ || __MACH__)
 #include "clcamera.h"
 #endif
+#include "twoscomplimentfilter.h"
 #include "darksubfilter.h"
 #include "stddevfilter.h"
 #include "meanfilter.h"
@@ -53,6 +54,7 @@ public:
 
     std::vector<float> getFrame();
 
+    TwosComplimentFilter* TwosFilter;
     DarkSubFilter* DSFilter;
     StdDevFilter* STDFilter;
     MeanFilter* MEFilter;
@@ -82,6 +84,7 @@ public:
 
     inline void compute_snr(LVFrame *new_frame);
 
+    volatile bool pixRemap;
     QSettings *settings;
 
 signals:
@@ -108,7 +111,6 @@ private:
     CameraModel *Camera;
     void delay(int msecs);
 
-    bool pixRemap;
     volatile LV::PlotMode plotMode;
     bool saving;
     volatile bool isRunning;

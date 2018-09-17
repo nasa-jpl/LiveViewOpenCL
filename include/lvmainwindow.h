@@ -56,6 +56,7 @@ private:
     QAction *exitAct;
     QAction *compAct;
     QAction *dsfAct;
+    QAction *remapAct;
 
     QAction *darkModeAct;
     QList<QAction*> gradActs;

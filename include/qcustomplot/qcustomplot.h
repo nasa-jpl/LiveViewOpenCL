@@ -4458,7 +4458,7 @@ public:
                         ,gpJet       ///< Hue variation similar to a spectrum, often used in numerical visualization (creates banding illusion but allows more precise magnitude estimates)
                         ,gpHues      ///< Full hue cycle, with highest and lowest color red (suitable for periodic data, such as angles and phases, see \ref setPeriodic)
                       };
-  Q_ENUM(GradientPreset)
+  Q_ENUMS(GradientPreset)
   
   QCPColorGradient();
   QCPColorGradient(GradientPreset preset);
