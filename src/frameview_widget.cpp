@@ -66,32 +66,7 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     qcp->axisRect()->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
     colorScale->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
 
-    if (settings->value(QString("dark"), USE_DARK_STYLE).toBool()) {
-        qcp->setBackground(QBrush(QColor("#31363B")));
-        qcp->xAxis->setTickLabelColor(Qt::white);
-        qcp->xAxis->setBasePen(QPen(Qt::white));
-        qcp->xAxis->setLabelColor(Qt::white);
-        qcp->xAxis->setTickPen(QPen(Qt::white));
-        qcp->xAxis->setSubTickPen(QPen(Qt::white));
-        qcp->yAxis->setTickLabelColor(Qt::white);
-        qcp->yAxis->setBasePen(QPen(Qt::white));
-        qcp->yAxis->setLabelColor(Qt::white);
-        qcp->yAxis->setTickPen(QPen(Qt::white));
-        qcp->yAxis->setSubTickPen(QPen(Qt::white));
-        qcp->xAxis2->setTickLabelColor(Qt::white);
-        qcp->xAxis2->setBasePen(QPen(Qt::white));
-        qcp->xAxis2->setTickPen(QPen(Qt::white));
-        qcp->xAxis2->setSubTickPen(QPen(Qt::white));
-        qcp->yAxis2->setTickLabelColor(Qt::white);
-        qcp->yAxis2->setBasePen(QPen(Qt::white));
-        qcp->yAxis2->setTickPen(QPen(Qt::white));
-        qcp->yAxis2->setSubTickPen(QPen(Qt::white));
-        colorScale->axis()->setTickLabelColor(Qt::white);
-        colorScale->axis()->setBasePen(QPen(Qt::white));
-        colorScale->axis()->setLabelColor(Qt::white);
-        colorScale->axis()->setTickPen(QPen(Qt::white));
-        colorScale->axis()->setSubTickPen(QPen(Qt::white));
-    }
+    setDarkMode();
 
     qcp->rescaleAxes();
     qcp->axisRect()->setBackgroundScaled(false);
@@ -118,6 +93,7 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     crosshairY->bottomRight->setCoords(-100, -100);
     crosshairY->topLeft->setCoords(-100, -100);
 
+
     QCheckBox *hideXbox = new QCheckBox("Hide Crosshair", this);
     connect(hideXbox, SIGNAL(toggled(bool)), this, SLOT(hideCrosshair(bool)));
     hideXbox->setFixedWidth(150);
@@ -132,7 +108,17 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     QHBoxLayout *bottomControls = new QHBoxLayout;
     bottomControls->addWidget(fpsLabel);
     bottomControls->addWidget(hideXbox);
+
+    if (p_getFrame == &FrameWorker::getDSFrame) { //Dark Sub Widget Only
+        QCheckBox *plotModeCheckbox =
+                new QCheckBox("Plot Signal-to-Noise Ratio", this);
+        connect(plotModeCheckbox, SIGNAL(isChecked(bool)),
+                this, SLOT(setPlotMode(bool)));
+        bottomControls->addWidget(plotModeCheckbox);
+    }
+
     bottomControls->addWidget(zoomButtons);
+
     qvbl->addWidget(qcp, 10);
     qvbl->addLayout(bottomControls, 1);
 
@@ -231,7 +217,43 @@ void frameview_widget::hideCrosshair(bool hide)
     crosshairY->setVisible(!hide);
 }
 
+void frameview_widget::setPlotMode(bool checked)
+{
+    p_getFrame = checked ? &FrameWorker::getDSFrame
+                         : &FrameWorker::getSNRFrame;
+}
+
 QCPColorMap* frameview_widget::getColorMap()
 {
     return this->colorMap;
+}
+
+void frameview_widget::setDarkMode()
+{
+    if (settings->value(QString("dark"), USE_DARK_STYLE).toBool()) {
+        qcp->setBackground(QBrush(QColor("#31363B")));
+        qcp->xAxis->setTickLabelColor(Qt::white);
+        qcp->xAxis->setBasePen(QPen(Qt::white));
+        qcp->xAxis->setLabelColor(Qt::white);
+        qcp->xAxis->setTickPen(QPen(Qt::white));
+        qcp->xAxis->setSubTickPen(QPen(Qt::white));
+        qcp->yAxis->setTickLabelColor(Qt::white);
+        qcp->yAxis->setBasePen(QPen(Qt::white));
+        qcp->yAxis->setLabelColor(Qt::white);
+        qcp->yAxis->setTickPen(QPen(Qt::white));
+        qcp->yAxis->setSubTickPen(QPen(Qt::white));
+        qcp->xAxis2->setTickLabelColor(Qt::white);
+        qcp->xAxis2->setBasePen(QPen(Qt::white));
+        qcp->xAxis2->setTickPen(QPen(Qt::white));
+        qcp->xAxis2->setSubTickPen(QPen(Qt::white));
+        qcp->yAxis2->setTickLabelColor(Qt::white);
+        qcp->yAxis2->setBasePen(QPen(Qt::white));
+        qcp->yAxis2->setTickPen(QPen(Qt::white));
+        qcp->yAxis2->setSubTickPen(QPen(Qt::white));
+        colorScale->axis()->setTickLabelColor(Qt::white);
+        colorScale->axis()->setBasePen(QPen(Qt::white));
+        colorScale->axis()->setLabelColor(Qt::white);
+        colorScale->axis()->setTickPen(QPen(Qt::white));
+        colorScale->axis()->setSubTickPen(QPen(Qt::white));
+    }
 }

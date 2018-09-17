@@ -33,9 +33,11 @@ public slots:
     void hideCrosshair(bool hide);
     void rescaleRange();
     void reportFPS();
+    void setPlotMode(bool checked);
     QCPColorMap* getColorMap();
 
 private:
+    inline void setDarkMode();
     std::vector<float> (FrameWorker::*p_getFrame)();
     image_t image_type;
 
