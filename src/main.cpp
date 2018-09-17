@@ -35,10 +35,15 @@ int main(int argc, char* argv[])
         } else {
             lockfile.open(QIODevice::ReadWrite | QIODevice::Text);
             QString line = lockfile_stream.readLine();
+	    //Do some error checking here so it doesn't just die if the process isn't owned by the user
             auto pid = line.toInt();
-            kill(pid, SIGKILL);
+            if(pid == 0 || kill(pid, SIGKILL) == -1) {
+                QMessageBox::information(nullptr, "Cannot kill LiveView", "The currently open LiveView process cannot be killed. To resolve this, manually end the other LiveView process or restart your system. LiveView will now Close.", QMessageBox::Button::Abort);
+                return -1;
+            }
         }
     }
+
     int my_pid = getpid();
     qDebug() << "PID:" << my_pid;
     lockfile.close();
@@ -64,7 +69,10 @@ int main(int argc, char* argv[])
     CameraSelectDialog csd(&settings);
     if (settings.value(QString("show_cam_dialog"), true).toBool()) {
         int retval = csd.exec();
-        if (!retval) return -1;
+        if (!retval) {
+            lockfile.remove();
+            return -1;
+        }
     }
 
     QPixmap logo_pixmap(":images/aviris-logo-transparent.png");
