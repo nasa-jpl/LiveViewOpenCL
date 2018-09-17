@@ -64,8 +64,9 @@ private:
 };
 
 FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *parent)
-    : QObject(parent), pixRemap(false), settings(settings_arg), thread(worker),
-      useDSF(false), saving(false), count(0), count_prev(0)
+    : QObject(parent), settings(settings_arg), thread(worker),
+      plotMode(LV::pmRAW), saving(false),
+      count(0), count_prev(0)
 {
     Camera = nullptr;
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
@@ -150,9 +151,9 @@ bool FrameWorker::running()
     return isRunning;
 }
 
-void FrameWorker::setDSF(bool toggled)
+void FrameWorker::setPlotMode(LV::PlotMode pm)
 {
-    useDSF = toggled;
+    plotMode = pm;
 }
 
 void FrameWorker::reportTimeout()
@@ -215,7 +216,7 @@ void FrameWorker::captureDSFrames()
             DSFilter->dsf_callback(lvframe_buffer->frame(store_point)->raw_data, lvframe_buffer->frame(store_point)->dsf_data);
             if(Camera->isRunning())
                 MEFilter->compute_mean(lvframe_buffer->frame(store_point), QPointF((qreal)0, (qreal)0),
-                                       QPointF((qreal)frWidth, (qreal)dataHeight), useDSF);
+                                       QPointF((qreal)frWidth, (qreal)dataHeight), plotMode);
             lvframe_buffer->setDSF(store_point);
             last_complete = count_framestart;
         } else {
@@ -238,6 +239,7 @@ void FrameWorker::captureSDFrames()
             // Move the read point in the buffer only if the data is "valid"
             if (STDFilter->isReadyDisplay()) {
                 lvframe_buffer->setSTD(store_point);
+                compute_snr(lvframe_buffer->frame(store_point));
             }
             last_complete = count_framestart;
         } else {
@@ -416,6 +418,12 @@ std::vector<float> FrameWorker::getSDFrame()
     return std::vector<float>(lvframe_buffer->lastSTD()->sdv_data, lvframe_buffer->lastSTD()->sdv_data + frSize);
 }
 
+std::vector<float> FrameWorker::getSNRFrame()
+{
+    //Maintains reference to data by using vector for memory management
+    return std::vector<float>(lvframe_buffer->lastSTD()->snr_data, lvframe_buffer->lastSTD()->snr_data + frSize);
+}
+
 uint32_t* FrameWorker::getHistData()
 {
     return lvframe_buffer->lastSTD()->hist_data;
@@ -459,4 +467,15 @@ QPointF* FrameWorker::getCenter()
 uint32_t FrameWorker::getStdDevN()
 {
     return stddev_N;
+}
+
+void FrameWorker::compute_snr(LVFrame *new_frame)
+{
+    for (unsigned int i = 0; i < new_frame->frSize; ++i) {
+        if (new_frame->sdv_data[i] > 0) {
+            new_frame->snr_data[i] = new_frame->dsf_data[i] / new_frame->sdv_data[i] * 1000;
+        } else {
+            new_frame->snr_data[i] = 0;
+        }
+    }
 }

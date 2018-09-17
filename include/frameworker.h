@@ -60,6 +60,7 @@ public:
     MeanFilter* MEFilter;
     std::vector<float> getDSFrame();
     std::vector<float> getSDFrame();
+    std::vector<float> getSNRFrame();
     uint32_t* getHistData();
     float* getSpectralMean();
     float* getSpatialMean();
@@ -69,7 +70,7 @@ public:
 
     void setCenter(double Xcoord, double Ycoord);
     QPointF* getCenter();
-    void setDSF(bool toggled);
+    void setPlotMode(LV::PlotMode pm);
     void collectMask();
     void stopCollectingMask();
     void setMaskSettings(QString mask_name, quint64 avg_frames);
@@ -80,6 +81,8 @@ public:
     camera_t getCameraType() const { return cam_type; }
 
     uint32_t getStdDevN();
+
+    inline void compute_snr(LVFrame *new_frame);
 
     volatile bool pixRemap;
     QSettings *settings;
@@ -108,7 +111,7 @@ private:
     CameraModel *Camera;
     void delay(int msecs);
 
-    volatile bool useDSF;
+    volatile LV::PlotMode plotMode;
     bool saving;
     volatile bool isRunning;
     bool isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
