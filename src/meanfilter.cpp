@@ -7,7 +7,8 @@ MeanFilter::MeanFilter(unsigned int frame_width, unsigned int frame_height)
 
 MeanFilter::~MeanFilter() {}
 
-void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight, LV::PlotMode pm)
+void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight,
+                              LV::PlotMode pm, bool cam_running)
 {
     unsigned int r, c, k;
     float nSamps = bottomRight.x() - topLeft.x();
@@ -50,7 +51,7 @@ void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRig
     frame_mean /= (frWidth * frHeight);
 
     dft_ready_read = dft.update(frame_mean);
-    if (dft_ready_read) {
+    if (dft_ready_read && cam_running) {
         dft.get(frame->frame_fft);
     } else {
         for (k = 0; k < FFT_INPUT_LENGTH; k++) {

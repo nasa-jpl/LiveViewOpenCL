@@ -16,7 +16,8 @@ public:
     MeanFilter(unsigned int frame_width, unsigned int frame_height);
     ~MeanFilter();
 
-    void compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight, LV::PlotMode pm);
+    void compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight,
+                      LV::PlotMode pm, bool cam_running);
     bool dftReady();
 
 private:

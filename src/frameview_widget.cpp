@@ -6,12 +6,12 @@ frameview_widget::frameview_widget(FrameWorker *fw,
                                    QWidget *parent) :
         LVTabApplication(fw, parent),
         image_type(image_type),
-        settings(set),
-        count(0), count_prev(0), fps(0)
+        count(0), count_prev(0),
+        fps(0), settings(set)
 {
     switch(image_type) {
     case BASE:
-        ceiling = float(UINT16_MAX);
+        ceiling = UINT16_MAX;
         p_getFrame = &FrameWorker::getFrame;
         break;
     case DSF:
@@ -23,7 +23,7 @@ frameview_widget::frameview_widget(FrameWorker *fw,
         p_getFrame = &FrameWorker::getSDFrame;
         break;
     default:
-        ceiling = float(UINT16_MAX);
+        ceiling = UINT16_MAX;
         p_getFrame = &FrameWorker::getFrame;
     }
 

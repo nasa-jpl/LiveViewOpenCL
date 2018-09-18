@@ -36,7 +36,7 @@ public:
         fbIndex.store(0, std::memory_order_release);
     }
 
-    uint16_t size() const { return frame_vec.size(); }
+    size_t size() const { return frame_vec.size(); }
 
     LVFrame* frame(uint16_t i) { return frame_vec.at(i); }
     LVFrame* current() { return frame_vec.at(fbIndex.load()); }
@@ -53,7 +53,7 @@ public slots:
     inline void incIndex()
     {
         lastIndex.store(fbIndex, std::memory_order_release);
-        if (++fbIndex == (int)frame_vec.size()) {
+        if (++fbIndex == static_cast<int>(frame_vec.size())) {
             fbIndex.store(0, std::memory_order_release);
         }
     }
@@ -214,9 +214,8 @@ void FrameWorker::captureDSFrames()
         if (last_complete < count_framestart) {
             store_point = count_framestart % CPU_FRAME_BUFFER_SIZE;
             DSFilter->dsf_callback(lvframe_buffer->frame(store_point)->raw_data, lvframe_buffer->frame(store_point)->dsf_data);
-            if(Camera->isRunning())
-                MEFilter->compute_mean(lvframe_buffer->frame(store_point), QPointF((qreal)0, (qreal)0),
-                                       QPointF((qreal)frWidth, (qreal)dataHeight), plotMode);
+            MEFilter->compute_mean(lvframe_buffer->frame(store_point), QPointF(0, 0),
+                                   QPointF(frWidth, dataHeight), plotMode, Camera->isRunning());
             lvframe_buffer->setDSF(store_point);
             last_complete = count_framestart;
         } else {

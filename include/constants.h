@@ -8,7 +8,7 @@ static const bool USE_DARK_STYLE = false; // dark style does not display some wi
 #endif
 static const unsigned int CPU_FRAME_BUFFER_SIZE = 200;
 static const unsigned int MAX_SIZE = 2560*2560;
-static const unsigned int MAX_N = 50;
+static const int MAX_N = 50;
 static const unsigned int GPU_FRAME_BUFFER_SIZE = MAX_N;
 static const unsigned int BLOCK_SIZE = 20;
 static const unsigned int NUMBER_OF_BINS = 1024;
