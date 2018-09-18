@@ -139,13 +139,18 @@ void ControlsBox::tabChanged(int index)
     connect(rangeSlider, &ctkRangeSlider::maximumPositionChanged,
             viewWidget, &LVTabApplication::setCeilingPos);
 
+    rangeSlider->blockSignals(true);
+    min_box->blockSignals(true);
+    max_box->blockSignals(true);
     precisionBox->setChecked(viewWidget->isPrecisionMode());
+    rangeSlider->blockSignals(false);
+    min_box->blockSignals(false);
+    max_box->blockSignals(false);
+
 
     // update the range slider positions
-    rangeSlider->blockSignals(true);
     rangeSlider->setPositions(static_cast<int>(viewWidget->getFloor() / viewWidget->getDataMax() * 100.0),
                               static_cast<int>(viewWidget->getCeiling() / viewWidget->getDataMax() * 100.0));
-    rangeSlider->blockSignals(false);
 
     min_box->blockSignals(true);
     min_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
@@ -201,7 +206,6 @@ void ControlsBox::setRangeSliderMax(int new_max) {
 
 void ControlsBox::setPrecision(bool isPrecise)
 {
-    rangeSlider->blockSignals(true);
     viewWidget->setPrecision(isPrecise);
 
     if (isPrecise) {
@@ -222,7 +226,6 @@ void ControlsBox::setPrecision(bool isPrecise)
     max_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
     max_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
     max_box->setValue(static_cast<int>(viewWidget->getCeiling()));
-    rangeSlider->blockSignals(false);
 }
 
 void ControlsBox::collectDSFMask()
