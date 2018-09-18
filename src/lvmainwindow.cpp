@@ -180,14 +180,14 @@ void LVMainWindow::createActions()
     });
 
     gradActs = QList<QAction*>();
-    /*QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
+    QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
     for (int i = 0; i < qme.keyCount(); ++i) {
         gradActs.append(new QAction(qme.key(i), this));
         connect(gradActs.at(i), &QAction::triggered, this, [this, i](){
             settings->setValue(QString("gradient"), i);
             changeGradients();
         });
-    }*/
+    }
 
 }
 

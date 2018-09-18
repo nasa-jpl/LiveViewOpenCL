@@ -111,11 +111,11 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     bottomControls->addWidget(fpsLabel);
     bottomControls->addWidget(hideXbox);
 
-    if (p_getFrame == &FrameWorker::getDSFrame) { //Dark Sub Widget Only
+    if (image_type == DSF) { //Dark Sub Widget Only
         QCheckBox *plotModeCheckbox =
                 new QCheckBox("Plot Signal-to-Noise Ratio", this);
-        connect(plotModeCheckbox, SIGNAL(isChecked(bool)),
-                this, SLOT(setPlotMode(bool)));
+        connect(plotModeCheckbox, &QCheckBox::toggled,
+                this, &frameview_widget::setPlotMode);
         bottomControls->addWidget(plotModeCheckbox);
     }
 
