@@ -201,6 +201,7 @@ void ControlsBox::setRangeSliderMax(int new_max) {
 
 void ControlsBox::setPrecision(bool isPrecise)
 {
+    rangeSlider->blockSignals(true);
     viewWidget->setPrecision(isPrecise);
 
     if (isPrecise) {
@@ -221,6 +222,7 @@ void ControlsBox::setPrecision(bool isPrecise)
     max_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
     max_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
     max_box->setValue(static_cast<int>(viewWidget->getCeiling()));
+    rangeSlider->blockSignals(false);
 }
 
 void ControlsBox::collectDSFMask()

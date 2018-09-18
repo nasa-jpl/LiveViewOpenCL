@@ -64,8 +64,8 @@ private:
 };
 
 FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *parent)
-    : QObject(parent), settings(settings_arg), thread(worker),
-      plotMode(LV::pmRAW), saving(false),
+    : QObject(parent), pixRemap(false), settings(settings_arg),
+      thread(worker), plotMode(LV::pmRAW), saving(false),
       count(0), count_prev(0)
 {
     Camera = nullptr;
@@ -135,8 +135,8 @@ FrameWorker::~FrameWorker()
     delete Camera;
     delete lvframe_buffer;
     delete DSFilter;
-    delete STDFilter;
     delete MEFilter;
+    delete STDFilter;
 }
 
 void FrameWorker::stop()

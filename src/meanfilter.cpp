@@ -5,7 +5,11 @@ MeanFilter::MeanFilter(unsigned int frame_width, unsigned int frame_height)
     : dft_ready_read(false), frWidth(frame_width), frHeight(frame_height)
 {}
 
-MeanFilter::~MeanFilter() {}
+MeanFilter::~MeanFilter()
+{
+    p_getPixel = nullptr;
+    delete curFrame;
+}
 
 void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight,
                               LV::PlotMode pm, bool cam_running)

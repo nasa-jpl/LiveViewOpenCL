@@ -18,6 +18,8 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
     qgl->addWidget(qcp, 0, 0, 8, 8);
     qgl->addWidget(DCMaskBox, 8, 0, 1, 2);
     this->setLayout(qgl);
+    setCeiling(100.0);
+    setPrecision(true);
 
     if (fw->settings->value(QString("dark"), USE_DARK_STYLE).toBool()) {
         fft_bars->setPen(QPen(Qt::lightGray));
