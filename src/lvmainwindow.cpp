@@ -18,11 +18,12 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     workerThread = new QThread;
     fw = new FrameWorker(settings, workerThread);
     fw->moveToThread(workerThread);
+    QFutureWatcher<void> fwWatcher;
     // Reserve proper take object error handling for later
     connect(fw, SIGNAL(error(QString)), this, SLOT(errorString(QString)));
     connect(workerThread, SIGNAL(started()), fw, SLOT(captureFrames()));
     connect(fw, SIGNAL(finished()), workerThread, SLOT(quit()));
-    connect(fw, SIGNAL(finished()), fw, SLOT(deleteLater()));
+
     connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
 
     connect(fw, &FrameWorker::startSaving, this, [&](){
@@ -38,6 +39,10 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
         workerThread->start();
         DSLoop = QtConcurrent::run(fw, &FrameWorker::captureDSFrames);
         SDLoop = QtConcurrent::run(fw, &FrameWorker::captureSDFrames);
+        fwWatcher.setFuture(SDLoop);
+        connect(&fwWatcher, &QFutureWatcher<void>::finished, fw, &FrameWorker::deleteLater);
+    } else {
+        connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
     }
 
     QWidget* mainWidget = new QWidget(this);
@@ -107,8 +112,10 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
 LVMainWindow::~LVMainWindow()
 {
     fw->stop();
-    DSLoop.waitForFinished();
-    SDLoop.waitForFinished();
+    if (DSLoop.isStarted())
+        DSLoop.waitForFinished();
+    if (SDLoop.isStarted())
+        SDLoop.waitForFinished();
     delete cbox;
     delete raw_display;
     delete dsf_display;
