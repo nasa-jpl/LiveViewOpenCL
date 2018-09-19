@@ -26,9 +26,6 @@ public:
 
 public slots:
     void handleNewFrame();
-    void setScrollBoth();
-    void setScrollX();
-    void setScrollY();
     void drawCrosshair(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
     void hideCrosshair(bool hide);
     void rescaleRange();

@@ -76,14 +76,30 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     fpsLabel = new QLabel("Starting...");
     fpsLabel->setFixedWidth(150);
 
-    QGroupBox* zoomButtons = new QGroupBox("Zoom Controls");
-    QRadioButton* zoomXButton = new QRadioButton("Zoom on &X axis only");
-    connect(zoomXButton, SIGNAL(released()), this, SLOT(setScrollX()));
-    QRadioButton* zoomYButton = new QRadioButton("Zoom on &Y axis only");
-    connect(zoomYButton, SIGNAL(released()), this, SLOT(setScrollY()));
-    QRadioButton* zoomBothButton = new QRadioButton("Zoom on &Both axes");
-    connect(zoomBothButton, SIGNAL(released()), this, SLOT(setScrollBoth()));
-    zoomBothButton->setChecked(true);
+    QComboBox *zoomOptions = new QComboBox();
+    zoomOptions->addItem("Zoom on Both axes");
+    zoomOptions->addItem("Zoom on X axis only");
+    zoomOptions->addItem("Zoom on Y axis only");
+    connect(zoomOptions, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            [=](int index) {
+        switch (index) {
+        case 0:
+            qcp->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+            qcp->axisRect()->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+            break;
+        case 1:
+            qcp->axisRect()->setRangeZoom(Qt::Horizontal);
+            qcp->axisRect()->setRangeDrag(Qt::Horizontal);
+            break;
+        case 2:
+            qcp->axisRect()->setRangeZoom(Qt::Vertical);
+            qcp->axisRect()->setRangeDrag(Qt::Vertical);
+            break;
+        default:
+            qcp->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
+            qcp->axisRect()->setRangeDrag(Qt::Horizontal | Qt::Vertical);
+        }
+    });
 
     crosshairX = new QCPItemRect(qcp);
     crosshairX->setPen(QPen(Qt::white));
@@ -100,12 +116,6 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     connect(hideXbox, SIGNAL(toggled(bool)), this, SLOT(hideCrosshair(bool)));
     hideXbox->setFixedWidth(150);
 
-    QHBoxLayout *boxLayout = new QHBoxLayout(this);
-    boxLayout->addWidget(zoomBothButton);
-    boxLayout->addWidget(zoomXButton);
-    boxLayout->addWidget(zoomYButton);
-    zoomButtons->setLayout(boxLayout);
-
     QVBoxLayout *qvbl = new QVBoxLayout(this);
     QHBoxLayout *bottomControls = new QHBoxLayout;
     bottomControls->addWidget(fpsLabel);
@@ -116,10 +126,11 @@ frameview_widget::frameview_widget(FrameWorker *fw,
                 new QCheckBox("Plot Signal-to-Noise Ratio", this);
         connect(plotModeCheckbox, &QCheckBox::toggled,
                 this, &frameview_widget::setPlotMode);
+        plotModeCheckbox->setFixedWidth(150);
         bottomControls->addWidget(plotModeCheckbox);
     }
 
-    bottomControls->addWidget(zoomButtons);
+    bottomControls->addWidget(zoomOptions);
 
     qvbl->addWidget(qcp, 10);
     qvbl->addLayout(bottomControls, 1);
@@ -175,24 +186,6 @@ void frameview_widget::reportFPS()
     count_prev = count;
     fps_string = QString::number(fps, 'f', 1);
     fpsLabel->setText(QString("Display: %1 fps").arg(fps_string));
-}
-
-void frameview_widget::setScrollBoth()
-{
-    qcp->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
-    qcp->axisRect()->setRangeDrag(Qt::Horizontal | Qt::Vertical);
-}
-
-void frameview_widget::setScrollX()
-{
-    qcp->axisRect()->setRangeZoom(Qt::Horizontal);
-    qcp->axisRect()->setRangeDrag(Qt::Horizontal);
-}
-
-void frameview_widget::setScrollY()
-{
-    qcp->axisRect()->setRangeZoom(Qt::Vertical);
-    qcp->axisRect()->setRangeDrag(Qt::Vertical);
 }
 
 void frameview_widget::rescaleRange()
