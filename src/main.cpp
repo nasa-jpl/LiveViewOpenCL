@@ -78,9 +78,11 @@ int main(int argc, char* argv[])
     QPixmap logo_pixmap(":images/aviris-logo-transparent.png");
     QSplashScreen splash(logo_pixmap);
     splash.show();
-    splash.showMessage(QObject::tr("Loading LiveView... Compiled on " __DATE__ ", " __TIME__ " PDT by " UNAME "@" HOST), Qt::AlignCenter | Qt::AlignBottom, Qt::gray);
+    splash.showMessage(QObject::tr("Loading LiveView... Compiled on " __DATE__ ", " __TIME__ " PDT by " UNAME "@" HOST),
+                       Qt::AlignCenter | Qt::AlignBottom, Qt::gray);
 
-    qDebug() << "This version (" << GIT_CURRENT_SHA1_SHORT << ") of LiveView was compiled on" << __DATE__ << "at" << __TIME__ << "using gcc" << __GNUC__;
+    qDebug() << "This version (" << GIT_CURRENT_SHA1_SHORT << ") of LiveView was compiled on"
+             << __DATE__ << "at" << __TIME__ << "using gcc" << __GNUC__;
     qDebug() << "The compilation was performed by" << UNAME << "@" << HOST;
 
     LVMainWindow w(&settings);

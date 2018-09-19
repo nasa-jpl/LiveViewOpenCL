@@ -24,7 +24,7 @@ void DarkSubFilter::start_mask_collection(const quint64 &avgf)
 void DarkSubFilter::finish_mask_collection()
 {
     for (size_t i = 0; i < frSize; i++) {
-        mask[i] = mask_accum[i] / (float)nSamples;
+        mask[i] = static_cast<float>(mask_accum[i] / nSamples);
     }
     mask_collected = true;
 
@@ -45,7 +45,7 @@ void DarkSubFilter::collect_mask(uint16_t* in_frame)
 void DarkSubFilter::dark_subtract(uint16_t* in_frame, float* out_frame)
 {
     for (size_t i = 0; i < frSize; i++) {
-        out_frame[i] = (float)in_frame[i] - mask[i];
+        out_frame[i] = in_frame[i] - mask[i];
     }
 }
 
@@ -56,7 +56,7 @@ void DarkSubFilter::dsf_callback(uint16_t *in_frame, float *out_frame)
     } else {
         mask_mutex.lock();
         for (size_t i = 0; i < frSize; i++) {
-            out_frame[i] = (float)in_frame[i];
+            out_frame[i] = in_frame[i];
         }
         collect_mask(in_frame);
         mask_mutex.unlock();

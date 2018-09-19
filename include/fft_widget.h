@@ -14,6 +14,7 @@ public:
 
 public slots:
     void handleNewFrame();
+    void barsScrolledY(const QCPRange &newRange);
     void rescaleRange();
 
 private:

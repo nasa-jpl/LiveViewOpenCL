@@ -12,29 +12,33 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
     plotTitle->setFont(QFont(font().family(), 20));
     qcp->plotLayout()->addElement(0, 0, plotTitle);
 
-    qcp->addGraph(0, 0);
+    qcp->addGraph(nullptr, nullptr);
 
     switch (image_type) {
     case SPATIAL_PROFILE:
-        xAxisMax = frWidth;
+        xAxisMax = static_cast<int>(frWidth);
         qcp->xAxis->setLabel("Spatial index");
         p_getLine = &line_widget::getSpatialLine;
         break;
     case SPECTRAL_MEAN:
-        xAxisMax = frHeight;
+        xAxisMax = static_cast<int>(frHeight);
         qcp->xAxis->setLabel("Spectral index");
         p_getLine = &line_widget::getSpectralMean;
         plotTitle->setText(QString("Spectral Mean of Single Frame"));
         break;
     case SPATIAL_MEAN:
-        xAxisMax = frWidth;
+        xAxisMax = static_cast<int>(frWidth);
         qcp->xAxis->setLabel("Spatial index");
         p_getLine = &line_widget::getSpatialMean;
         plotTitle->setText(QString("Spatial Mean of Single Frame"));
         break;
     case SPECTRAL_PROFILE:
+        xAxisMax = static_cast<int>(frHeight);
+        qcp->xAxis->setLabel("Spectral index");
+        p_getLine = &line_widget::getSpectralLine;
+        break;
     default:
-        xAxisMax = frHeight;
+        xAxisMax = static_cast<int>(frHeight);
         qcp->xAxis->setLabel("Spectral index");
         p_getLine = &line_widget::getSpectralLine;
     }
@@ -120,22 +124,22 @@ line_widget::~line_widget() {}
 
 QVector<double> line_widget::getSpectralLine(QPointF coord)
 {
-    QVector<double> graphData(frHeight);
-    size_t col = (size_t)coord.y();
+    QVector<double> graphData(static_cast<int>(frHeight));
+    size_t col = static_cast<size_t>(coord.y());
     std::vector<float> image_data = (frame_handler->*p_getFrame)();
     for (size_t r = 0; r < frHeight; r++) {
-        graphData[r] = image_data[r * frWidth + col];
+        graphData[r] = static_cast<double>(image_data[r * frWidth + col]);
     }
     return graphData;
 }
 
 QVector<double> line_widget::getSpatialLine(QPointF coord)
 {
-    QVector<double> graphData(frWidth);
-    size_t row = (size_t)coord.x();
+    QVector<double> graphData(static_cast<int>(frWidth));
+    size_t row = static_cast<size_t>(coord.x());
     std::vector<float> image_data = (frame_handler->*p_getFrame)();
     for (size_t c = 0; c < frWidth; c++) {
-        graphData[c] = image_data[row * frWidth + c];
+        graphData[c] = static_cast<double>(image_data[row * frWidth + c]);
     }
     return graphData;
 }
@@ -143,10 +147,10 @@ QVector<double> line_widget::getSpatialLine(QPointF coord)
 QVector<double> line_widget::getSpectralMean(QPointF coord)
 {
     Q_UNUSED(coord);
-    QVector<double> graphData(frHeight);
+    QVector<double> graphData(static_cast<int>(frHeight));
     float *mean_data = frame_handler->getSpectralMean();
     for (size_t r = 0; r < frHeight; r++) {
-        graphData[r] = mean_data[r];
+        graphData[r] = static_cast<double>(mean_data[r]);
     }
     return graphData;
 }
@@ -154,10 +158,10 @@ QVector<double> line_widget::getSpectralMean(QPointF coord)
 QVector<double> line_widget::getSpatialMean(QPointF coord)
 {
     Q_UNUSED(coord);
-    QVector<double> graphData(frWidth);
+    QVector<double> graphData(static_cast<int>(frWidth));
     float *mean_data = frame_handler->getSpatialMean();
     for (size_t c = 0; c < frWidth; c++) {
-        graphData[c] = mean_data[c];
+        graphData[c] = static_cast<double>(mean_data[c]);
     }
     return graphData;
 }
@@ -175,7 +179,8 @@ void line_widget::handleNewFrame()
             qcp->replot();
         }
         if (!hideTracer->isChecked()) {
-            callout->setText(QString(" x: %1 \n y: %2 ").arg((int)tracer->graphKey()).arg((int)y[(int)tracer->graphKey()]));
+            callout->setText(QString(" x: %1 \n y: %2 ").arg(static_cast<int>(tracer->graphKey()))
+                             .arg(y[static_cast<int>(tracer->graphKey())]));
         }
     }
 }
@@ -198,10 +203,10 @@ void line_widget::updatePlotTitle(const QPointF &coord)
 {
     switch(image_type) {
     case SPECTRAL_PROFILE:
-        plotTitle->setText(QString("Spectral Profile centered at x = %1").arg((int)coord.x()));
+        plotTitle->setText(QString("Spectral Profile centered at x = %1").arg(static_cast<int>(coord.x())));
         break;
     case SPATIAL_PROFILE:
-        plotTitle->setText(QString("Spatial Profile centered at y = %1").arg((int)coord.y()));
+        plotTitle->setText(QString("Spatial Profile centered at y = %1").arg(static_cast<int>(coord.y())));
         break;
     default:
         break;
@@ -215,7 +220,7 @@ void line_widget::setTracer(QCPAbstractPlottable *plottable, int dataIndex, QMou
     double dataX = qcp->xAxis->pixelToCoord(event->pos().x());
     double dataY = qcp->yAxis->pixelToCoord(event->pos().y());
     tracer->setGraphKey(dataX);
-    callout->setText(QString("x: %1 \n y: %2 ").arg((int)dataX).arg((int)dataY));
+    callout->setText(QString("x: %1 \n y: %2 ").arg(static_cast<int>(dataX)).arg(static_cast<int>(dataY)));
     if (callout->position->coords().y() > getCeiling() || callout->position->coords().y() < getFloor()) {
         callout->position->setCoords(callout->position->coords().x(), (getCeiling() - getFloor()) * 0.9 + getFloor());
     }

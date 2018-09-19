@@ -46,6 +46,9 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
         qcp->yAxis2->setSubTickPen(QPen(Qt::white));
     }
 
+    connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledX(QCPRange)));
+    connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(barsScrolledY(QCPRange)));
+
     connect(&renderTimer, &QTimer::timeout, this, &fft_widget::handleNewFrame);
     renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
 }
@@ -62,13 +65,13 @@ void fft_widget::handleNewFrame()
         double increment = nyquist_freq / (FFT_INPUT_LENGTH / 2);
         fft_bars->setWidth(increment);
 
-        for (unsigned int i = 0; i < FFT_INPUT_LENGTH / 2; i++) {
+        for (int i = 0; i < FFT_INPUT_LENGTH / 2; i++) {
             freq_bins[i] = increment * i;
         }
 
         float *fft_data_ptr = frame_handler->getFrameFFT();
-        for (unsigned int b = 0; b < FFT_INPUT_LENGTH / 2; b++) {
-            rfft_data_vec[b] = fft_data_ptr[b];
+        for (int b = 0; b < FFT_INPUT_LENGTH / 2; b++) {
+            rfft_data_vec[b] = static_cast<double>(fft_data_ptr[b]);
         }
         if (DCMaskBox->isChecked()) {
             rfft_data_vec[0] = 0;
@@ -79,7 +82,15 @@ void fft_widget::handleNewFrame()
     }
 }
 
+void fft_widget::barsScrolledY(const QCPRange &newRange)
+{
+    Q_UNUSED(newRange);
+    rescaleRange();
+}
+
 void fft_widget::rescaleRange()
 {
-    qcp->yAxis->setRange(QCPRange(floor, ceiling));
+    qcp->yAxis->setRange(QCPRange(getFloor(), getCeiling()));
 }
+
+

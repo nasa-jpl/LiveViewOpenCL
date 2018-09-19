@@ -15,8 +15,8 @@ void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRig
                               LV::PlotMode pm, bool cam_running)
 {
     unsigned int r, c, k;
-    float nSamps = bottomRight.x() - topLeft.x();
-    float nBands = bottomRight.y() - topLeft.y();
+    double nSamps = bottomRight.x() - topLeft.x();
+    double nBands = bottomRight.y() - topLeft.y();
     float frame_mean = 0.0;
     float data_point = 0.0;
 

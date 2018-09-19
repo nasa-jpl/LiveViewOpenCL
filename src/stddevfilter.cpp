@@ -83,9 +83,9 @@ bool StdDevFilter::start()
             return false;
         }
         // since pos is the result of a reverse iterator, the index in the forward list is the opposite
-        device_num = (ptrdiff_t)deviceTypes.size() - pos - 1;
+        device_num = static_cast<unsigned int>(int(deviceTypes.size()) - pos - 1);
     } else {
-        device_num = (ptrdiff_t)deviceTypes.size() - pos - 1;
+        device_num = static_cast<unsigned int>(int(deviceTypes.size()) - pos - 1);
     }
     platform_num = getPlatformNum(device_num);
 
@@ -103,7 +103,8 @@ bool StdDevFilter::start()
         };
 
         cl_uint ndx = 0;
-        for (auto it = devicesPerPlatform.begin(); it != devicesPerPlatform.end() - (platformIdCount - p); ++it) {
+        for (auto it = devicesPerPlatform.begin();
+             it != devicesPerPlatform.end() - (platformIdCount - ptrdiff_t(p)); ++it) {
             ndx += *it;
         }
 
@@ -366,7 +367,7 @@ void StdDevFilter::compute_stddev(LVFrame *new_frame, cl_uint new_N)
         currentN = 0;
     }
 
-    size_t devMemOffset = gpu_buffer_head * frWidth * frHeight * sizeof(cl_ushort);
+    size_t devMemOffset = cl_uint(gpu_buffer_head) * frWidth * frHeight * sizeof(cl_ushort);
     CheckError(clEnqueueWriteBuffer(commandQueue, devInputBuffer, CL_FALSE, devMemOffset, frWidth * frHeight * sizeof(cl_ushort),
                          new_frame->raw_data, 0, nullptr, &frame_written), __LINE__);
     CheckError(clEnqueueWriteBuffer(commandQueue, devOutputHist, CL_FALSE, 0, NUMBER_OF_BINS * sizeof(cl_uint),
@@ -411,7 +412,7 @@ void StdDevFilter::change_device(QString dev_name)
 {
     if (!QString::compare(QString(GetDeviceName(deviceIds[device_num]).data()), dev_name, Qt::CaseInsensitive)
             && !dev_name.isEmpty()) {
-        for (size_t d = 0; d < deviceIds.size(); d++) {
+        for (cl_uint d = 0; d < deviceIds.size(); d++) {
             if (dev_name == GetDeviceName(deviceIds[d]).data()) {
                 device_num = d;
             }

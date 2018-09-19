@@ -25,7 +25,7 @@ TEMPLATE = app
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 QMAKE_CXXFLAGS -= -std=gnu++11
-QMAKE_CXXFLAGS += -O3 -std=c++0x -Wno-inconsistent-missing-override -Wno-ignored-attributes
+QMAKE_CXXFLAGS += -O3 -std=c++0x -Wno-inconsistent-missing-override -Wno-ignored-attributes -Wno-date-time
 DEFINES += \
     HOST=\\\"`hostname`\\\" UNAME=\\\"`whoami`\\\" \
     GIT_CURRENT_SHA1="\\\"$(shell git -C $$PWD rev-parse HEAD)\\\"" \
