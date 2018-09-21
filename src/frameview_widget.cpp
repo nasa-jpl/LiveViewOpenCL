@@ -111,6 +111,40 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     crosshairY->bottomRight->setCoords(-100, -100);
     crosshairY->topLeft->setCoords(-100, -100);
 
+    tlBox = new QCPItemRect(qcp);
+    trBox = new QCPItemRect(qcp);
+    blBox = new QCPItemRect(qcp);
+    brBox = new QCPItemRect(qcp);
+
+    tlBox->topLeft->setCoords(-100, -100);
+    tlBox->bottomRight->setCoords(-100, -100);
+    trBox->bottomRight->setCoords(-100, -100);
+    trBox->topLeft->setCoords(-100, -100);
+
+    blBox->bottomRight->setCoords(-100, -100);
+    blBox->topLeft->setCoords(-100, -100);
+    brBox->bottomRight->setCoords(-100, -100);
+    brBox->topLeft->setCoords(-100, -100);
+
+    s_0 = frame_handler->getCenter()->x();
+    s_1 = frame_handler->getCenter()->x();
+
+    l_0 = frame_handler->getCenter()->y();
+    l_1 = frame_handler->getCenter()->y();
+
+    QPen pen(QColor(230,230,230));
+    tlBox->setPen(pen);
+    trBox->setPen(pen);
+    blBox->setPen(pen);
+    brBox->setPen(pen);
+
+    /*QBrush brush(QColor(126, 126, 126, 192));
+    tlBox->setBrush(brush);
+    trBox->setBrush(brush);
+    blBox->setBrush(brush);
+    brBox->setBrush(brush);*/
+
+    crosshairX->setPen(QPen(Qt::white));
 
     QCheckBox *hideXbox = new QCheckBox("Hide Crosshair", this);
     connect(hideXbox, SIGNAL(toggled(bool)), this, SLOT(hideCrosshair(bool)));
@@ -141,6 +175,10 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     connect(&fpsclock, SIGNAL(timeout()), this, SLOT(reportFPS()));
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledY(QCPRange)));
     connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledX(QCPRange)));
+
+    connect(qcp, &QCustomPlot::mousePress, this, &frameview_widget::mouse_down);
+    connect(qcp, &QCustomPlot::mouseMove, this, &frameview_widget::mouse_move);
+    connect(qcp, &QCustomPlot::mouseRelease, this, &frameview_widget::mouse_up);
     if (image_type == BASE) {
         connect(qcp, SIGNAL(plottableDoubleClick(QCPAbstractPlottable*, int, QMouseEvent*)),
                 this, SLOT(drawCrosshair(QCPAbstractPlottable*, int, QMouseEvent*)));
@@ -195,15 +233,36 @@ void frameview_widget::rescaleRange()
 
 void frameview_widget::drawCrosshair(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event)
 {
-    Q_UNUSED(plottable);
-    Q_UNUSED(dataIndex);
-    double dataX = qcp->xAxis->pixelToCoord(event->pos().x());
-    double dataY = qcp->yAxis->pixelToCoord(event->pos().y());
-    crosshairX->bottomRight->setCoords(dataX, 0);
-    crosshairX->topLeft->setCoords(dataX, frHeight);
-    crosshairY->bottomRight->setCoords(0, dataY);
-    crosshairY->topLeft->setCoords(frWidth, dataY);
-    frame_handler->setCenter(dataX, dataY);
+    if(event->button()== Qt::RightButton) {
+        return;
+    } else {
+        Q_UNUSED(plottable);
+        Q_UNUSED(dataIndex);
+        double dataX = qcp->xAxis->pixelToCoord(event->pos().x());
+        double dataY = qcp->yAxis->pixelToCoord(event->pos().y());
+        crosshairX->bottomRight->setCoords(dataX, 0);
+        crosshairX->topLeft->setCoords(dataX, frHeight);
+        crosshairY->bottomRight->setCoords(0, dataY);
+        crosshairY->topLeft->setCoords(frWidth, dataY);
+        s_0 += qcp->xAxis->pixelToCoord(event->pos().x()) - frame_handler->getCenter()->x();
+        s_1 += qcp->xAxis->pixelToCoord(event->pos().x()) - frame_handler->getCenter()->x();
+
+        l_0 += qcp->yAxis->pixelToCoord(event->pos().y()) - frame_handler->getCenter()->y();
+        l_1 += qcp->yAxis->pixelToCoord(event->pos().y()) - frame_handler->getCenter()->y();
+
+        frame_handler->setCenter(dataX, dataY);
+        if(boxes_enabled) {
+            tlBox->topLeft->setCoords(0, 0);
+            tlBox->bottomRight->setCoords(s_0, l_0);
+            trBox->topLeft->setCoords(s_1, 0);
+            trBox->bottomRight->setCoords(frWidth, l_0);
+
+            blBox->topLeft->setCoords(0, l_1);
+            blBox->bottomRight->setCoords(s_0, frHeight);
+            brBox->topLeft->setCoords(s_1, l_1);
+            brBox->bottomRight->setCoords(frWidth, frHeight);
+        }
+    }
 }
 
 void frameview_widget::hideCrosshair(bool hide)
@@ -251,4 +310,79 @@ void frameview_widget::setDarkMode()
         colorScale->axis()->setTickPen(QPen(Qt::white));
         colorScale->axis()->setSubTickPen(QPen(Qt::white));
     }
+}
+
+void frameview_widget::mouse_down(QMouseEvent *event) {
+    if(event->button()== Qt::RightButton) {
+        bool just_enabled = false;
+        if(crosshairX->visible() && !boxes_enabled) {
+            boxes_enabled = true;
+            just_enabled = true;
+        }
+        if(boxes_enabled) {
+            if((abs(event->pos().x() - qcp->xAxis->coordToPixel(frame_handler->getCenter()->x())) < 50 && just_enabled) ||
+               (abs(event->pos().x() - qcp->xAxis->coordToPixel(tlBox->bottomRight->coords().x())) < 50 && event->pos().y() < qcp->yAxis->coordToPixel(tlBox->bottomRight->coords().y()) + 50) ||
+               (abs(event->pos().x() - qcp->xAxis->coordToPixel(blBox->bottomRight->coords().x())) < 50 && event->pos().y() > qcp->yAxis->coordToPixel(blBox->topLeft->coords().y()) - 50) ||
+               (abs(event->pos().x() - qcp->xAxis->coordToPixel(trBox->topLeft->coords().x())) < 50 && event->pos().y() < qcp->yAxis->coordToPixel(trBox->bottomRight->coords().y()) + 50) ||
+               (abs(event->pos().x() - qcp->xAxis->coordToPixel(brBox->topLeft->coords().x())) < 50 && event->pos().y() > qcp->yAxis->coordToPixel(brBox->topLeft->coords().y()) - 50)) {
+                dragging_horizontal_box = true;
+            }
+            if((abs(event->pos().y() - qcp->yAxis->coordToPixel(frame_handler->getCenter()->y())) < 50 && just_enabled) ||
+               (abs(event->pos().y() - qcp->yAxis->coordToPixel(tlBox->bottomRight->coords().y())) < 50 && event->pos().x() < qcp->xAxis->coordToPixel(tlBox->bottomRight->coords().x()) + 50) ||
+               (abs(event->pos().y() - qcp->yAxis->coordToPixel(blBox->bottomRight->coords().y())) < 50 && event->pos().x() > qcp->xAxis->coordToPixel(blBox->bottomRight->coords().x()) - 50) ||
+               (abs(event->pos().y() - qcp->yAxis->coordToPixel(trBox->bottomRight->coords().y())) < 50 && event->pos().x() < qcp->xAxis->coordToPixel(trBox->bottomRight->coords().x()) + 50) ||
+               (abs(event->pos().y() - qcp->yAxis->coordToPixel(brBox->bottomRight->coords().y())) < 50 && event->pos().x() > qcp->xAxis->coordToPixel(brBox->bottomRight->coords().x()) - 50)) {
+                dragging_vertical_box = true;
+            }
+            if((abs(event->pos().y() - qcp->yAxis->coordToPixel(frame_handler->getCenter()->y())) < 50 && just_enabled) ||
+               abs(event->pos().y() - qcp->yAxis->coordToPixel(tlBox->bottomRight->coords().y())) < 50 ||
+               abs(event->pos().y() - qcp->yAxis->coordToPixel(trBox->bottomRight->coords().y())) < 50 ||
+               abs(event->pos().y() - qcp->yAxis->coordToPixel(blBox->topLeft->coords().y())) < 50 ||
+               abs(event->pos().y() - qcp->yAxis->coordToPixel(brBox->topLeft->coords().y())) < 50) {
+                dragging_vertical_box = true;
+            }
+        }
+    }
+}
+
+void frameview_widget::mouse_move(QMouseEvent *event) {
+    if(boxes_enabled) {
+        if(dragging_horizontal_box) {
+            double limitx = qcp->xAxis->pixelToCoord(event->pos().x());
+            if(limitx < frame_handler->getCenter()->x()) {
+                s_0 = limitx; //2a - b = a + (a - b)
+                s_1 = 2 * frame_handler->getCenter()->x() - limitx; //2a - b = a + (a - b)
+            } else {
+                s_1 = limitx; //2a - b = a - (b - a)
+                s_0 = 2 * frame_handler->getCenter()->x() - limitx; //2a - b = a + (a - b)
+            }
+        }
+
+        if(dragging_vertical_box) {
+            double limity = qcp->yAxis->pixelToCoord(event->pos().y());
+            if(limity < frame_handler->getCenter()->y()) {
+                l_0 = limity; //2a - b = a + (a - b)
+                l_1 = 2 * frame_handler->getCenter()->y() - limity; //2a - b = a + (a - b)
+            } else {
+                l_1 = limity; //2a - b = a + (a - b)
+                l_0 = 2 * frame_handler->getCenter()->y() - limity; //2a - b = a + (a - b)
+            }
+        }
+
+        tlBox->topLeft->setCoords(0, 0);
+        tlBox->bottomRight->setCoords(s_0, l_0);
+        trBox->topLeft->setCoords(s_1, 0);
+        trBox->bottomRight->setCoords(frWidth, l_0);
+
+        blBox->topLeft->setCoords(0, l_1);
+        blBox->bottomRight->setCoords(s_0, frHeight);
+        brBox->topLeft->setCoords(s_1, l_1);
+        brBox->bottomRight->setCoords(frWidth, frHeight);
+    }
+}
+
+void frameview_widget::mouse_up(QMouseEvent *event) {
+   mouse_move(event);
+   dragging_horizontal_box = false;
+   dragging_vertical_box = false;
 }
