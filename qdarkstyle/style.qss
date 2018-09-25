@@ -944,7 +944,8 @@ QListView::indicator:indeterminate:pressed {
     image: url(:/qss_icons/rc/checkbox_indeterminate_focus.png);
 }
 
-/*QSlider::groove:horizontal {
+/*
+QSlider::groove:horizontal {
     border: 1px solid #565a5e;
     height: 4px;
     background: #565a5e;
@@ -976,7 +977,8 @@ QSlider::handle:vertical {
     height: 16px;
     margin: 0 -8px;
     border-radius: 9px;
-}*/
+}
+*/
 
 QToolButton {
     background-color: transparent;

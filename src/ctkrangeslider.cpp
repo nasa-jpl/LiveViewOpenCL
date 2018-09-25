@@ -274,12 +274,12 @@ void ctkRangeSliderPrivate::drawMinimumSlider( QStylePainter* painter ) const
     option.activeSubControls = QStyle::SC_SliderHandle;
     option.state |= QStyle::State_Sunken;
     }
-#ifdef Q_OS_MAC
+//#ifdef Q_OS_MAC
   // On mac style, drawing just the handle actually draws also the groove.
   QRect clip = q->style()->subControlRect(QStyle::CC_Slider, &option,
                                           QStyle::SC_SliderHandle, q);
   painter->setClipRect(clip);
-#endif
+//#endif
   painter->drawComplexControl(QStyle::CC_Slider, option);
 }
 
@@ -299,12 +299,12 @@ void ctkRangeSliderPrivate::drawMaximumSlider( QStylePainter* painter ) const
     option.activeSubControls = QStyle::SC_SliderHandle;
     option.state |= QStyle::State_Sunken;
     }
-#ifdef Q_OS_MAC
+//#ifdef Q_OS_MAC
   // On mac style, drawing just the handle actually draws also the groove.
   QRect clip = q->style()->subControlRect(QStyle::CC_Slider, &option,
                                           QStyle::SC_SliderHandle, q);
   painter->setClipRect(clip);
-#endif
+//#endif
   painter->drawComplexControl(QStyle::CC_Slider, option);
 }
 
