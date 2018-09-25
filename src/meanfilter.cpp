@@ -1,7 +1,7 @@
 #include "meanfilter.h"
 #include <cmath>
 
-MeanFilter::MeanFilter(unsigned int frame_width, unsigned int frame_height)
+MeanFilter::MeanFilter(int frame_width, int frame_height)
     : dft_ready_read(false), frWidth(frame_width), frHeight(frame_height)
 {}
 
@@ -14,7 +14,7 @@ MeanFilter::~MeanFilter()
 void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight,
                               LV::PlotMode pm, bool cam_running)
 {
-    unsigned int r, c, k;
+    int r, c, k;
     double nSamps = bottomRight.x() - topLeft.x();
     double nBands = bottomRight.y() - topLeft.y();
     float frame_mean = 0.0;
@@ -42,11 +42,11 @@ void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRig
 
     for (r = 0; r < frHeight; r++) {
         for (c = 0; c < frWidth; c++) {
-            data_point = (this->*p_getPixel)(r * frWidth + c);
-            if (c > topLeft.x() && c < bottomRight.x()) {
+            data_point = (this->*p_getPixel)(static_cast<uint32_t>(r * frWidth + c));
+            if (c > int(topLeft.x()) && c <= int(bottomRight.x())) {
                 frame->spectral_mean[r] += data_point;
             }
-            if (r > topLeft.y() && r < bottomRight.y()) {
+            if (r > int(topLeft.y()) && r <= int(bottomRight.y())) {
                 frame->spatial_mean[c] += data_point;
             }
             frame_mean += data_point;

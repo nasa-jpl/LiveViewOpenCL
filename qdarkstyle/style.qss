@@ -266,9 +266,9 @@ QMenuBar:focus {
 QTabWidget:focus,
 QCheckBox:focus,
 QRadioButton:focus,
-QSlider:focus {
+/*QSlider:focus {
     border: none;
-}
+}*/
 
 QLineEdit {
     background-color: #232629;
