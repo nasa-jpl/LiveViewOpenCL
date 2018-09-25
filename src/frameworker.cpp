@@ -85,7 +85,6 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
 #endif
     }
 
-
     bool cam_started = Camera->start();
 
     if (!cam_started) {
@@ -109,13 +108,15 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     DSFilter = new DarkSubFilter(frSize);
     stddev_N = MAX_N; // arbitrary starting point
     STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
-    MEFilter = new MeanFilter(frWidth, dataHeight);
+    MEFilter = new MeanFilter(int(frWidth), int(dataHeight));
     if (!STDFilter->start()) {
         qWarning("Unable to start OpenCL kernel.");
         qWarning("Standard Deviation and Histogram computation will be disabled.");
     }
 
-    centerVal += QPointF(-1.0, -1.0);
+    centerVal = QPointF(-1.0, -1.0);
+    topLeft = QPointF(0, 0);
+    bottomRight = QPointF(frWidth, frHeight);
 
     connect(this, &FrameWorker::doneSaving, this, [&]()
     {
@@ -214,8 +215,8 @@ void FrameWorker::captureDSFrames()
         if (last_complete < count_framestart) {
             store_point = count_framestart % CPU_FRAME_BUFFER_SIZE;
             DSFilter->dsf_callback(lvframe_buffer->frame(store_point)->raw_data, lvframe_buffer->frame(store_point)->dsf_data);
-            MEFilter->compute_mean(lvframe_buffer->frame(store_point), QPointF(0, 0),
-                                   QPointF(frWidth, dataHeight), plotMode, Camera->isRunning());
+            MEFilter->compute_mean(lvframe_buffer->frame(store_point), topLeft,
+                                   bottomRight, plotMode, Camera->isRunning());
             lvframe_buffer->setDSF(store_point);
             last_complete = count_framestart;
         } else {

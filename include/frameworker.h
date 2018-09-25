@@ -86,6 +86,8 @@ public:
 
     volatile bool pixRemap;
     QSettings *settings;
+    QPointF bottomRight;
+    QPointF topLeft;
 
 signals:
     void finished();

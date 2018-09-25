@@ -83,29 +83,34 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     connect(zoomOptions, QOverload<int>::of(&QComboBox::currentIndexChanged),
             [=](int index) {
         switch (index) {
-        case 0:
+        case 0: // Zoom on Both Axes
             qcp->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
             qcp->axisRect()->setRangeDrag(Qt::Horizontal | Qt::Vertical);
             break;
-        case 1:
+        case 1: // Zoom on X Axis Only
             qcp->axisRect()->setRangeZoom(Qt::Horizontal);
             qcp->axisRect()->setRangeDrag(Qt::Horizontal);
             break;
-        case 2:
+        case 2: // Zoom on Y Axis Only
             qcp->axisRect()->setRangeZoom(Qt::Vertical);
             qcp->axisRect()->setRangeDrag(Qt::Vertical);
             break;
-        default:
+        default: // default behavior is to zoom on both axes
             qcp->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
             qcp->axisRect()->setRangeDrag(Qt::Horizontal | Qt::Vertical);
         }
     });
 
+    // Create a crosshair made of two 0-width boxes
+    // that allows users to select lines of data to
+    // view in detail in the "profile" panes
     crosshairX = new QCPItemRect(qcp);
     crosshairX->setPen(QPen(Qt::white));
     crosshairY = new QCPItemRect(qcp);
     crosshairY->setPen(QPen(Qt::white));
 
+    // To start, chuck these crosshair items off the
+    // edge of the screen so they can't be seen
     crosshairX->bottomRight->setCoords(-100, -100);
     crosshairX->topLeft->setCoords(-100, -100);
     crosshairY->bottomRight->setCoords(-100, -100);
@@ -126,25 +131,17 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     brBox->bottomRight->setCoords(-100, -100);
     brBox->topLeft->setCoords(-100, -100);
 
-    s_0 = frame_handler->getCenter()->x();
-    s_1 = frame_handler->getCenter()->x();
+    loBoundX = frame_handler->getCenter()->x();
+    hiBoundX = frame_handler->getCenter()->x();
 
-    l_0 = frame_handler->getCenter()->y();
-    l_1 = frame_handler->getCenter()->y();
+    loBoundY = frame_handler->getCenter()->y();
+    hiBoundY = frame_handler->getCenter()->y();
 
-    QPen pen(QColor(230,230,230));
-    tlBox->setPen(pen);
-    trBox->setPen(pen);
-    blBox->setPen(pen);
-    brBox->setPen(pen);
-
-    /*QBrush brush(QColor(126, 126, 126, 192));
-    tlBox->setBrush(brush);
-    trBox->setBrush(brush);
-    blBox->setBrush(brush);
-    brBox->setBrush(brush);*/
-
-    crosshairX->setPen(QPen(Qt::white));
+    QPen sideCrossPen(QColor(230, 230, 230));
+    tlBox->setPen(sideCrossPen);
+    trBox->setPen(sideCrossPen);
+    blBox->setPen(sideCrossPen);
+    brBox->setPen(sideCrossPen);
 
     QCheckBox *hideXbox = new QCheckBox("Hide Crosshair", this);
     connect(hideXbox, SIGNAL(toggled(bool)), this, SLOT(hideCrosshair(bool)));
@@ -155,6 +152,12 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     bottomControls->addWidget(fpsLabel);
     bottomControls->addWidget(hideXbox);
 
+    /* In the dark subtraction mode, add an additional checkbox
+     * at the bottom of the pane that allows the user to toggle
+     * whether to display the dark subtracted data or the SNR
+     * data. The SNR calculation is performed in the
+     * FrameWorker::captureSDFrames loop function.
+     */
     if (image_type == DSF) { //Dark Sub Widget Only
         QCheckBox *plotModeCheckbox =
                 new QCheckBox("Plot Signal-to-Noise Ratio", this);
@@ -233,33 +236,33 @@ void frameview_widget::rescaleRange()
 
 void frameview_widget::drawCrosshair(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event)
 {
+    Q_UNUSED(plottable);
+    Q_UNUSED(dataIndex);
     if(event->button()== Qt::RightButton) {
         return;
     } else {
-        Q_UNUSED(plottable);
-        Q_UNUSED(dataIndex);
         double dataX = qcp->xAxis->pixelToCoord(event->pos().x());
         double dataY = qcp->yAxis->pixelToCoord(event->pos().y());
         crosshairX->bottomRight->setCoords(dataX, 0);
         crosshairX->topLeft->setCoords(dataX, frHeight);
         crosshairY->bottomRight->setCoords(0, dataY);
         crosshairY->topLeft->setCoords(frWidth, dataY);
-        s_0 += qcp->xAxis->pixelToCoord(event->pos().x()) - frame_handler->getCenter()->x();
-        s_1 += qcp->xAxis->pixelToCoord(event->pos().x()) - frame_handler->getCenter()->x();
+        loBoundX += qcp->xAxis->pixelToCoord(event->pos().x()) - frame_handler->getCenter()->x();
+        hiBoundX += qcp->xAxis->pixelToCoord(event->pos().x()) - frame_handler->getCenter()->x();
 
-        l_0 += qcp->yAxis->pixelToCoord(event->pos().y()) - frame_handler->getCenter()->y();
-        l_1 += qcp->yAxis->pixelToCoord(event->pos().y()) - frame_handler->getCenter()->y();
+        loBoundY += qcp->yAxis->pixelToCoord(event->pos().y()) - frame_handler->getCenter()->y();
+        hiBoundY += qcp->yAxis->pixelToCoord(event->pos().y()) - frame_handler->getCenter()->y();
 
         frame_handler->setCenter(dataX, dataY);
         if(boxes_enabled) {
             tlBox->topLeft->setCoords(0, 0);
-            tlBox->bottomRight->setCoords(s_0, l_0);
-            trBox->topLeft->setCoords(s_1, 0);
-            trBox->bottomRight->setCoords(frWidth, l_0);
+            tlBox->bottomRight->setCoords(loBoundX, loBoundY);
+            trBox->topLeft->setCoords(hiBoundX, 0);
+            trBox->bottomRight->setCoords(frWidth, loBoundY);
 
-            blBox->topLeft->setCoords(0, l_1);
-            blBox->bottomRight->setCoords(s_0, frHeight);
-            brBox->topLeft->setCoords(s_1, l_1);
+            blBox->topLeft->setCoords(0, hiBoundY);
+            blBox->bottomRight->setCoords(loBoundX, frHeight);
+            brBox->topLeft->setCoords(hiBoundX, hiBoundY);
             brBox->bottomRight->setCoords(frWidth, frHeight);
         }
     }
@@ -350,33 +353,33 @@ void frameview_widget::mouse_move(QMouseEvent *event) {
         if(dragging_horizontal_box) {
             double limitx = qcp->xAxis->pixelToCoord(event->pos().x());
             if(limitx < frame_handler->getCenter()->x()) {
-                s_0 = limitx; //2a - b = a + (a - b)
-                s_1 = 2 * frame_handler->getCenter()->x() - limitx; //2a - b = a + (a - b)
+                loBoundX = limitx; //2a - b = a + (a - b)
+                hiBoundX = 2 * frame_handler->getCenter()->x() - limitx; //2a - b = a + (a - b)
             } else {
-                s_1 = limitx; //2a - b = a - (b - a)
-                s_0 = 2 * frame_handler->getCenter()->x() - limitx; //2a - b = a + (a - b)
+                hiBoundX = limitx; //2a - b = a - (b - a)
+                loBoundX = 2 * frame_handler->getCenter()->x() - limitx; //2a - b = a + (a - b)
             }
         }
 
         if(dragging_vertical_box) {
             double limity = qcp->yAxis->pixelToCoord(event->pos().y());
             if(limity < frame_handler->getCenter()->y()) {
-                l_0 = limity; //2a - b = a + (a - b)
-                l_1 = 2 * frame_handler->getCenter()->y() - limity; //2a - b = a + (a - b)
+                loBoundY = limity; //2a - b = a + (a - b)
+                hiBoundY = 2 * frame_handler->getCenter()->y() - limity; //2a - b = a + (a - b)
             } else {
-                l_1 = limity; //2a - b = a + (a - b)
-                l_0 = 2 * frame_handler->getCenter()->y() - limity; //2a - b = a + (a - b)
+                hiBoundY = limity; //2a - b = a + (a - b)
+                loBoundY = 2 * frame_handler->getCenter()->y() - limity; //2a - b = a + (a - b)
             }
         }
 
         tlBox->topLeft->setCoords(0, 0);
-        tlBox->bottomRight->setCoords(s_0, l_0);
-        trBox->topLeft->setCoords(s_1, 0);
-        trBox->bottomRight->setCoords(frWidth, l_0);
+        tlBox->bottomRight->setCoords(loBoundX, loBoundY);
+        trBox->topLeft->setCoords(hiBoundX, 0);
+        trBox->bottomRight->setCoords(frWidth, loBoundY);
 
-        blBox->topLeft->setCoords(0, l_1);
-        blBox->bottomRight->setCoords(s_0, frHeight);
-        brBox->topLeft->setCoords(s_1, l_1);
+        blBox->topLeft->setCoords(0, hiBoundY);
+        blBox->bottomRight->setCoords(loBoundX, frHeight);
+        brBox->topLeft->setCoords(hiBoundX, hiBoundY);
         brBox->bottomRight->setCoords(frWidth, frHeight);
     }
 }
@@ -385,4 +388,21 @@ void frameview_widget::mouse_up(QMouseEvent *event) {
    mouse_move(event);
    dragging_horizontal_box = false;
    dragging_vertical_box = false;
+   double brx = hiBoundX;
+   double bry = hiBoundY;
+   double tlx = loBoundX;
+   double tly = loBoundY;
+   // if the side cross hairs have not been moved in a particular
+   // dimension, treat it as though the whole range of values is
+   // selected rather than just a single line.
+   if (int(hiBoundX) == int(loBoundX)) {
+        brx = frWidth;
+        tlx = 0;
+   }
+   if (int(hiBoundY) == int(loBoundY)) {
+        bry = frHeight;
+        tly = 0;
+   }
+   frame_handler->bottomRight = QPointF(brx, bry);
+   frame_handler->topLeft = QPointF(tlx, tly);
 }

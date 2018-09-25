@@ -62,11 +62,11 @@ private:
     bool dragging_vertical_box = false;
     bool dragging_horizontal_box = false;
 
-    double s_0;
-    double s_1;
+    double loBoundX;
+    double hiBoundX;
 
-    double l_0;
-    double l_1;
+    double loBoundY;
+    double hiBoundY;
 
 private slots:
     void mouse_down(QMouseEvent *event);

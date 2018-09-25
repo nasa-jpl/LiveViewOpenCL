@@ -13,7 +13,7 @@
 class MeanFilter
 {
 public:
-    MeanFilter(unsigned int frame_width, unsigned int frame_height);
+    MeanFilter(int frame_width, int frame_height);
     ~MeanFilter();
 
     void compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight,
@@ -31,8 +31,8 @@ private:
     SlidingDFT<float, FFT_INPUT_LENGTH> dft;
     bool dft_ready_read;
 
-    unsigned int frWidth;
-    unsigned int frHeight;
+    int frWidth;
+    int frHeight;
 };
 
 
