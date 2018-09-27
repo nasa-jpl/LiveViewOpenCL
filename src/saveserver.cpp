@@ -79,8 +79,8 @@ void SaveServer::sessionOpened()
 void SaveServer::startClient()
 {
     SaveClient *client = new SaveClient(tcpServer->nextPendingConnection());
-    connect(client, &SaveClient::saveFrames, this, [&](QString fname, quint64 nframes, quint64 navgs)
+    connect(client, &SaveClient::saveFrames, this, [&](save_req_t req)
     {
-        emit startSavingRemote(fname, nframes, navgs);
+        emit startSavingRemote(req);
     });
 }

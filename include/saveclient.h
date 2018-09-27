@@ -8,6 +8,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include "image_type.h"
+
 class SaveClient : public QObject
 {
     Q_OBJECT
@@ -23,12 +25,12 @@ public:
     }
 
 signals:
-    void saveFrames(QString, quint64, quint64);
+    void saveFrames(save_req_t);
 
 public slots:
     void receiveAction()
     {
-        if (clientConnection->bytesAvailable() > (qint64)sizeof(quint16)) {
+        if (clientConnection->bytesAvailable() > static_cast<qint64>(sizeof(quint16))) {
             const QByteArray clientRequest = qUncompress(clientConnection->readAll());
             const QJsonObject rootObj = QJsonDocument::fromJson(clientRequest).object();
             QJsonObject responseObj;
@@ -36,10 +38,11 @@ public slots:
             if (rootObj.contains("requestType") && rootObj["requestType"].isString()) {
                 const QString &requestType = rootObj["requestType"].toString();
                 if (QString::compare(requestType, QString("\"Save\""), Qt::CaseInsensitive)) {
-                    const QString &fname = rootObj["fileName"].toString();
-                    const quint64 &nFrames = (quint64)rootObj["numFrames"].toInt();
-                    const quint64 &nAvgs = rootObj.contains("numAvgs") ? (quint64)rootObj["numAvgs"].toInt() : 1;
-                    emit saveFrames(fname, nFrames, nAvgs);
+                    const std::string &fname = rootObj["fileName"].toString().toStdString();
+                    const int64_t &nFrames = rootObj["numFrames"].toInt();
+                    const int64_t &nAvgs = rootObj.contains("numAvgs") ? rootObj["numAvgs"].toInt() : 1;
+                    save_req_t new_req = {fwBIL, fname, nFrames, nAvgs};
+                    emit saveFrames(new_req);
                     responseObj["status"] = 200;
                     responseObj["message"] = "OK";
                     responseDoc.setObject(responseObj);

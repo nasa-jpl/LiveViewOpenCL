@@ -5,6 +5,8 @@
 #include <QtNetwork>
 #include <QThreadPool>
 
+#include "image_type.h"
+
 class SaveServer : public QObject
 {
     Q_OBJECT
@@ -16,9 +18,7 @@ public:
     quint16 port;           // May have a value 0 to 65535
 
 signals:
-    void startSavingRemote(const QString &unverifiedName,
-                           const quint64 &nFrames,
-                           const quint64 &numAvgs);
+    void startSavingRemote(save_req_t req);
 
 private slots:
     void sessionOpened();

@@ -38,13 +38,13 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     QPushButton *saveFramesButton = new QPushButton("Save Frames", this);
     saveFramesButton->setIcon(style()->standardIcon(QStyle::SP_DriveHDIcon));
     connect(saveFramesButton, &QPushButton::clicked, this, [this]() {
-        const QString &fileName = saveFileNameEdit->text();
-        const int &numFrames = numFramesEdit->value();
-        const int &numAvgs = numAvgsEdit->value();
-        if (!fileName.isEmpty() && numFrames > 0) {
-            frame_handler->saveFrames(fileName.toStdString(),
-                                      static_cast<uint64_t>(numFrames),
-                                      static_cast<uint64_t>(numAvgs));
+        const std::string &fileName = saveFileNameEdit->text().toStdString();
+        const int64_t &numFrames = numFramesEdit->value();
+        const int64_t &numAvgs = numAvgsEdit->value();
+        save_req_t new_req = {fwBIL, fileName, numFrames, numAvgs};
+
+        if (!fileName.empty() && numFrames > 0) {
+            frame_handler->saveFrames(new_req);
         }
     });
 
@@ -171,9 +171,10 @@ void ControlsBox::acceptSave()
     if (saveFileNameEdit->text().isEmpty() || numFramesEdit->value() == 0) {
         return;
     } else {
-        frame_handler->saveFrames(saveFileNameEdit->text().toStdString(),
-                                  static_cast<uint64_t>(numFramesEdit->value()),
-                                  static_cast<uint64_t>(numAvgsEdit->value()));
+        save_req_t new_req = {fwBIL, saveFileNameEdit->text().toStdString(),
+                              static_cast<int64_t>(numFramesEdit->value()),
+                              static_cast<int64_t>(numAvgsEdit->value())};
+        frame_handler->saveFrames(new_req);
     }
 }
 

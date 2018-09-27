@@ -123,7 +123,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         if (!SaveQueue.empty()) {
             const save_req_t &req = SaveQueue.front();
             SaveQueue.pop();
-            QtConcurrent::run(this, &FrameWorker::saveFrames, req.file_name, req.nFrames, 1); // no nAvgs for now.
+            QtConcurrent::run(this, &FrameWorker::saveFrames, req);
         } else {
             saving = false;
         }
@@ -248,46 +248,48 @@ void FrameWorker::captureSDFrames()
     }
 }
 
-void FrameWorker::saveFrames(std::string frame_fname, uint64_t num_frames, uint64_t num_avgs = 1)
+void FrameWorker::saveFrames(save_req_t req)
 {
     emit startSaving();
     saving = true;
     uint64_t next_frame = count.load();
-    uint16_t* p_frame = nullptr;
+    std::vector<uint16_t> p_frame;
     std::string hdr_fname;
     save_count.store(0);
 
     std::vector<float> frame_accum;
-    if (num_avgs > 1) {
-        frame_accum.resize(frWidth * frHeight);
+    if (req.nAvgs > 1) {
+        frame_accum.resize(frSize);
         std::fill(frame_accum.begin(), frame_accum.end(), 0.0);
     }
 
-    if (frame_fname.find_last_of(".") != std::string::npos) {
-        hdr_fname = frame_fname.substr(0, frame_fname.find_last_of(".") + 1) + "hdr";
+    if (req.file_name.find_last_of(".") != std::string::npos) {
+        hdr_fname = req.file_name.substr(0, req.file_name.find_last_of(".") + 1) + "hdr";
     } else {
-        hdr_fname = frame_fname + ".hdr";
+        hdr_fname = req.file_name + ".hdr";
     }
 
     std::ofstream p_file;
-    p_file.open(frame_fname, std::ofstream::binary);
-    while (save_count.load() < num_frames) {
+    p_file.open(req.file_name, std::ofstream::binary);
+    while (save_count.load() < req.nFrames) {
         if (count.load() > next_frame) {
             frame_fifo.push(lvframe_buffer->frame(next_frame % CPU_FRAME_BUFFER_SIZE)->raw_data);
         }
         if (!frame_fifo.empty()) {
-            p_frame = frame_fifo.front();
-            if (num_avgs <= 1) {
-                p_file.write(reinterpret_cast<char*>(p_frame), frWidth * dataHeight * sizeof(uint16_t));
+            p_frame = (this->*p_getSaveFrame)(); // frame_fifo.front();
+            if (req.nAvgs <= 1) {
+                p_file.write(reinterpret_cast<char*>(p_frame.data()),
+                             frSize * sizeof(uint16_t));
             } else {
-                if (save_count % num_avgs == 0) {
-                    for (unsigned int p = 0; p < frWidth * frWidth; p++) {
-                        frame_accum[p] /= static_cast<float>(num_avgs);
+                if (save_count % req.nAvgs == 0) {
+                    for (size_t p = 0; p < frSize; p++) {
+                        frame_accum[p] /= static_cast<float>(req.nAvgs);
                     }
-                    p_file.write(reinterpret_cast<char*>(frame_accum.data()), frWidth * dataHeight * sizeof(float));
+                    p_file.write(reinterpret_cast<char*>(frame_accum.data()),
+                                 frSize * sizeof(float));
                     std::fill(frame_accum.begin(), frame_accum.end(), 0.0);
                 }
-                for (unsigned int p = 0; p < frWidth * frWidth; p++) {
+                for (size_t p = 0; p < frSize; p++) {
                     frame_accum[p] += p_frame[p];
                 }
 
@@ -300,9 +302,10 @@ void FrameWorker::saveFrames(std::string frame_fname, uint64_t num_frames, uint6
     }
     p_file.close();
 
-    std::string hdr_text = "ENVI\ndescription = {LIVEVIEW raw export file, " + std::to_string(num_frames) + " frame mean per acquisition}\n";
+    std::string hdr_text = "ENVI\ndescription = {LIVEVIEW raw export file, " +
+            std::to_string(req.nFrames) + " frame mean per acquisition}\n";
     hdr_text += "samples = " + std::to_string(frWidth) + "\n";
-    hdr_text += "lines   = " + std::to_string(num_frames) + "\n";
+    hdr_text += "lines   = " + std::to_string(req.nFrames) + "\n";
     hdr_text += "bands   = " + std::to_string(dataHeight) + "\n";
     hdr_text += "header offset = 0\nfile type = ENVI Standard\n";
     hdr_text += "data type = 12\n";
@@ -315,12 +318,12 @@ void FrameWorker::saveFrames(std::string frame_fname, uint64_t num_frames, uint6
     emit doneSaving();
 }
 
-void FrameWorker::captureFramesRemote(const QString &fileName, const quint64 &nFrames, const quint64 &nAvgs)
+void FrameWorker::captureFramesRemote(save_req_t new_req)
 {
-    SaveQueue.push({fileName.toStdString(), nFrames, nAvgs});
+    SaveQueue.push(new_req);
     if (!saving) {
         const save_req_t &req = SaveQueue.front();
-        QtConcurrent::run(this, &FrameWorker::saveFrames, req.file_name, req.nFrames, 1); // no nAvgs for now.
+        QtConcurrent::run(this, &FrameWorker::saveFrames, req); // no nAvgs for now.
         SaveQueue.pop();
     }
 }
@@ -442,6 +445,33 @@ float* FrameWorker::getSpectralMean()
 float* FrameWorker::getFrameFFT()
 {
     return lvframe_buffer->lastDSF()->frame_fft;
+}
+
+std::vector<uint16_t> FrameWorker::getBILSaveFrame()
+{
+    std::vector<uint16_t> BIL_frame;
+    BIL_frame.resize(frSize);
+    uint16_t *p_frame = frame_fifo.front();
+    // idempotent operation because data is in BIL
+    // format by default. Simply convert to vector.
+    for (size_t i = 0; i < frSize; i++) {
+        BIL_frame[i] = p_frame[i];
+    }
+    return BIL_frame;
+}
+
+std::vector<uint16_t> FrameWorker::getBIPSaveFrame()
+{
+    std::vector<uint16_t> BIP_frame;
+    BIP_frame.resize(frSize);
+    uint16_t *p_frame = frame_fifo.front();
+    // transpose the image to convert to BIP
+    for (size_t i = 0; i < frHeight; i++) {
+        for (size_t j = 0; j < frWidth; j++) {
+            BIP_frame[i * frHeight + j] = p_frame[j * frWidth + i];
+        }
+    }
+    return BIP_frame;
 }
 
 void FrameWorker::delay(int64_t msecs)

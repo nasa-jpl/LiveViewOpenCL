@@ -33,13 +33,6 @@ class LVFrameBuffer;
 
 using namespace std::chrono;
 
-struct save_req_t
-{
-    std::string file_name;
-    uint64_t nFrames;
-    uint64_t nAvgs;
-};
-
 class FrameWorker : public QObject
 {
     Q_OBJECT
@@ -66,7 +59,7 @@ public:
     float* getSpatialMean();
     float* getFrameFFT();
 
-    void saveFrames(std::string frame_fname, uint64_t num_frames, uint64_t num_avgs);
+    void saveFrames(save_req_t req);
 
     void setCenter(double Xcoord, double Ycoord);
     QPointF* getCenter();
@@ -103,7 +96,7 @@ public slots:
     void captureDSFrames();
     void captureSDFrames();
     void reportFPS();
-    void captureFramesRemote(const QString &fileName, const quint64 &nFrames, const quint64 &nAvgs);
+    void captureFramesRemote(save_req_t new_req);
     void applyMask(const QString &fileName);
     void setStdDevN(int new_N);
 
@@ -112,6 +105,9 @@ private:
     LVFrameBuffer *lvframe_buffer;
     CameraModel *Camera;
     void delay(int64_t msecs);
+    std::vector<uint16_t> (FrameWorker::*p_getSaveFrame)();
+    std::vector<uint16_t> getBILSaveFrame();
+    std::vector<uint16_t> getBIPSaveFrame();
 
     volatile LV::PlotMode plotMode;
     bool saving;
