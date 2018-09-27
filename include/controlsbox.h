@@ -34,7 +34,7 @@ public slots:
     void acceptSave();
 
 private slots:
-    void updateFPS(float frameRate);
+    void updateFPS(double frameRate);
     void setPrecision(bool isPrecise);
     void setMinSpin(int new_min);
     void setMaxSpin(int new_max);

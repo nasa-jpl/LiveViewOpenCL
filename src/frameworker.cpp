@@ -39,10 +39,10 @@ public:
     size_t size() const { return frame_vec.size(); }
 
     LVFrame* frame(uint16_t i) { return frame_vec.at(i); }
-    LVFrame* current() { return frame_vec.at(fbIndex.load()); }
-    LVFrame* recent() { return frame_vec.at(lastIndex.load()); }
-    LVFrame* lastDSF() { return frame_vec.at(dsfIndex.load()); }
-    LVFrame* lastSTD() { return frame_vec.at(stdIndex.load()); }
+    LVFrame* current() { return frame_vec.at(uint32_t(fbIndex.load())); }
+    LVFrame* recent() { return frame_vec.at(uint32_t(lastIndex.load())); }
+    LVFrame* lastDSF() { return frame_vec.at(uint32_t(dsfIndex.load())); }
+    LVFrame* lastSTD() { return frame_vec.at(uint32_t(stdIndex.load())); }
 
     std::atomic<int> lastIndex;
     std::atomic<int> fbIndex;
@@ -57,8 +57,8 @@ public slots:
             fbIndex.store(0, std::memory_order_release);
         }
     }
-    inline void setDSF(unsigned int f_num) { dsfIndex.store(f_num, std::memory_order_release); }
-    inline void setSTD(unsigned int f_num) { stdIndex.store(f_num, std::memory_order_release); }
+    inline void setDSF(int f_num) { dsfIndex.store(f_num, std::memory_order_release); }
+    inline void setSTD(int f_num) { stdIndex.store(f_num, std::memory_order_release); }
 private:
     std::vector<LVFrame*> frame_vec;
 };
@@ -168,7 +168,7 @@ void FrameWorker::captureFrames()
     qDebug("About to start capturing frames");
     high_resolution_clock::time_point beg, end;
     high_resolution_clock::time_point last_frame;
-    uint32_t duration;
+    int64_t duration;
     double this_frame_duration;
 
     QTimer *fpsclock = new QTimer(this);
@@ -211,7 +211,7 @@ void FrameWorker::captureDSFrames()
     int64_t last_complete = 1;
 
     while (isRunning) {
-        count_framestart = count.load() - 1;
+        count_framestart = int64_t(count.load()) - 1;
         if (last_complete < count_framestart) {
             store_point = count_framestart % CPU_FRAME_BUFFER_SIZE;
             DSFilter->dsf_callback(lvframe_buffer->frame(store_point)->raw_data, lvframe_buffer->frame(store_point)->dsf_data);
@@ -232,7 +232,7 @@ void FrameWorker::captureSDFrames()
     int64_t last_complete = 0;
 
     while (isRunning) {
-        count_framestart = count.load() - 1;
+        count_framestart = int64_t(count.load()) - 1;
         if (last_complete < count_framestart && STDFilter->isReadyRead()) {
             store_point = count_framestart % CPU_FRAME_BUFFER_SIZE;
             STDFilter->compute_stddev(lvframe_buffer->frame(store_point), stddev_N);
@@ -400,7 +400,7 @@ std::vector<float> FrameWorker::getFrame()
 
     std::vector<float> raw_data(frSize);
     for (unsigned int i = 0; i < frSize; i++) {
-        raw_data[i] = (float)lvframe_buffer->recent()->raw_data[i];
+        raw_data[i] = float(lvframe_buffer->recent()->raw_data[i]);
     }
     return raw_data;
 }
@@ -444,9 +444,9 @@ float* FrameWorker::getFrameFFT()
     return lvframe_buffer->lastDSF()->frame_fft;
 }
 
-void FrameWorker::delay(int msecs)
+void FrameWorker::delay(int64_t msecs)
 {
-    QTime remTime = QTime::currentTime().addMSecs(msecs);
+    QTime remTime = QTime::currentTime().addMSecs(int(msecs));
     while(QTime::currentTime() < remTime) {
         QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
     }

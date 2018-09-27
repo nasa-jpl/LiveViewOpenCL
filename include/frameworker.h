@@ -75,9 +75,9 @@ public:
     void stopCollectingMask();
     void setMaskSettings(QString mask_name, quint64 avg_frames);
 
-    uint16_t getFrameWidth() const { return frWidth; }
-    uint16_t getFrameHeight() const { return frHeight; }
-    uint16_t getDataHeight() const { return dataHeight; }
+    unsigned int getFrameWidth() const { return frWidth; }
+    unsigned int getFrameHeight() const { return frHeight; }
+    unsigned int getDataHeight() const { return dataHeight; }
     camera_t getCameraType() const { return cam_type; }
 
     uint32_t getStdDevN();
@@ -92,7 +92,7 @@ public:
 signals:
     void finished();
     void error(const QString &error);
-    void updateFPS(float fps);
+    void updateFPS(double fps);
     void startSaving();
     void doneSaving();
     void crosshairChanged(const QPointF &coord);
@@ -111,7 +111,7 @@ private:
     QThread *thread;
     LVFrameBuffer *lvframe_buffer;
     CameraModel *Camera;
-    void delay(int msecs);
+    void delay(int64_t msecs);
 
     volatile LV::PlotMode plotMode;
     bool saving;
@@ -137,7 +137,7 @@ private:
 
 
     std::mutex time_index_lock;
-    int time_index{0};
+    size_t time_index{0};
     std::mutex time_mutex;
     std::array<double, FPS_FRAME_WIDTH> time;
 

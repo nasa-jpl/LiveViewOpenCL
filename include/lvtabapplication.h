@@ -64,12 +64,13 @@ public:
 
 public slots:
     virtual void setFloorPos(double minPos) {
-        double f = dataMax * (minPos / 100.0);
+        double f = dataMax * (minPos / 99.0);
         setFloor(f);
     }
 
     virtual void setCeilingPos(double maxPos) {
-        double c = dataMax * (maxPos / 100.0);
+        double c = dataMax * (maxPos / 99.0);
+        qDebug() << "Max pos:" << maxPos << "New ceiling:" << c;
         setCeiling(c);
     }
 

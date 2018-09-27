@@ -149,8 +149,8 @@ void ControlsBox::tabChanged(int index)
 
 
     // update the range slider positions
-    rangeSlider->setPositions(static_cast<int>(viewWidget->getFloor() / viewWidget->getDataMax() * 100.0),
-                              static_cast<int>(viewWidget->getCeiling() / viewWidget->getDataMax() * 100.0));
+    rangeSlider->setPositions(static_cast<int>(viewWidget->getFloor() / viewWidget->getDataMax() * 99.0),
+                              static_cast<int>(viewWidget->getCeiling() / viewWidget->getDataMax() * 99.0));
 
     min_box->blockSignals(true);
     min_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
@@ -162,6 +162,7 @@ void ControlsBox::tabChanged(int index)
     max_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
     max_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
     max_box->setValue(static_cast<int>(viewWidget->getCeiling()));
+    qDebug() << "Max box:" << max_box->value();
     max_box->blockSignals(false);
 }
 
@@ -178,20 +179,20 @@ void ControlsBox::acceptSave()
 
 void ControlsBox::setMinSpin(int new_min) {
     min_box->blockSignals(true);
-    min_box->setValue(static_cast<int>(new_min * viewWidget->getDataMax() / 100.0));
+    min_box->setValue(static_cast<int>(new_min * viewWidget->getDataMax() / 99.0));
     min_box->blockSignals(false);
 }
 
 void ControlsBox::setMaxSpin(int new_max) {
     max_box->blockSignals(true);
-    max_box->setValue(static_cast<int>(new_max * viewWidget->getDataMax() / 100.0));
+    max_box->setValue(static_cast<int>(new_max * viewWidget->getDataMax() / 99.0));
     max_box->blockSignals(false);
 }
 
 void ControlsBox::setRangeSliderMin(int new_min) {
     if(new_min <= max_box->value()) {
         rangeSlider->blockSignals(true);
-        rangeSlider->setMinimumPosition(static_cast<int>(new_min * 100.0 / viewWidget->getDataMax()));
+        rangeSlider->setMinimumPosition(static_cast<int>(new_min * 99.0 / viewWidget->getDataMax()));
         rangeSlider->blockSignals(false);
     }
 }
@@ -199,7 +200,7 @@ void ControlsBox::setRangeSliderMin(int new_min) {
 void ControlsBox::setRangeSliderMax(int new_max) {
     if(new_max >= min_box->value()) {
         rangeSlider->blockSignals(true);
-        rangeSlider->setMaximumPosition(static_cast<int>(new_max * 100.0 / viewWidget->getDataMax()));
+        rangeSlider->setMaximumPosition(static_cast<int>(new_max * 99.0 / viewWidget->getDataMax()));
         rangeSlider->blockSignals(false);
     }
 }
@@ -216,8 +217,8 @@ void ControlsBox::setPrecision(bool isPrecise)
     }
 
     // update the range slider positions
-    rangeSlider->setPositions(static_cast<int>(viewWidget->getFloor() / viewWidget->getDataMax() * 100.0),
-                              static_cast<int>(viewWidget->getCeiling() / viewWidget->getDataMax() * 100.0));
+    rangeSlider->setPositions(static_cast<int>(viewWidget->getFloor() / viewWidget->getDataMax() * 99.0),
+                              static_cast<int>(viewWidget->getCeiling() / viewWidget->getDataMax() * 99.0));
 
     min_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
     min_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
@@ -240,7 +241,7 @@ void ControlsBox::collectDSFMask()
     }
 }
 
-void ControlsBox::updateFPS(float frameRate)
+void ControlsBox::updateFPS(double frameRate)
 {
     if (static_cast<int>(frameRate) == -1) {
         fpsLabel->setText(QString("Warning: No Frames Received"));
