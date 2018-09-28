@@ -8,6 +8,8 @@
 #include <cameraselectdialog.h>
 
 #include <unistd.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <signal.h>
 
 #include "lvmainwindow.h"
@@ -20,36 +22,90 @@
 #define UNAME "unknown person"
 #endif
 
+#define handle_error(msg) \
+    do { perror(msg); exit(EXIT_FAILURE); } while(0)
+
 int main(int argc, char* argv[])
 {
+    int sfd, cfd;
+    struct sockaddr_un lv_addr, peer_addr;
+    socklen_t peer_addr_size;
     QApplication a(argc, argv);
-    QFile lockfile{"/tmp/.LiveView-lock"};
+
+    sfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sfd == -1) {
+        handle_error("socket");
+        return EXIT_FAILURE;
+    }
+    memset(&lv_addr, 0, sizeof(struct sockaddr_un));
+    lv_addr.sun_family = AF_UNIX;
+    strncpy(lv_addr.sun_path, "LiveViewOpenSource",
+            sizeof(lv_addr.sun_path) - 1);
+    qDebug() << "Hello, world";
+    if (bind(sfd, reinterpret_cast<struct sockaddr*>(&lv_addr),
+             sizeof(struct sockaddr_un)) == -1) {
+        auto reply = QMessageBox::question(nullptr, "LiveView Cannot Start",
+                            "Only one instance of LiveView may be run at a time. Would you like the other LiveView instance to be stopped?",
+                                           QMessageBox::Yes | QMessageBox::Cancel);
+        if (reply == QMessageBox::Cancel) {
+            handle_error("bind");
+        } else {
+            /* lockfile.open(QIODevice::ReadWrite | QIODevice::Text);
+            QString line = lockfile_stream.readLine();
+            // Do some error checking here so it doesn't just die if the process isn't owned by the user
+            auto pid = line.toInt();
+            if (pid == 0 || kill(pid, SIGKILL) == -1) {
+                QMessageBox::information(nullptr, "Cannot kill LiveView", "The currently open LiveView process cannot be killed. To resolve this, manually end the other LiveView process or restart your system. LiveView will now Close.", QMessageBox::Button::Abort);
+                return -1;
+            } */
+            unlink("LiveViewOpenSource");
+            bind(sfd, reinterpret_cast<struct sockaddr*>(&lv_addr), sizeof(struct sockaddr_un));
+        }
+    }
+    if (listen(sfd, 50) == -1) {
+        handle_error("listen");
+    }
+    /* peer_addr_size = sizeof(struct sockaddr_un);
+    cfd = accept(sfd, reinterpret_cast<struct sockaddr *>(&peer_addr),
+                 &peer_addr_size);
+    if (cfd == -1) {
+        handle_error("accept");
+    } */
+
+    /* QFile lockfile{"/tmp/.LiveView-lock"};
     QFileInfo lockfile_info{"/tmp/.LiveView-lock"};
     QTextStream lockfile_stream{&lockfile};
-    if(lockfile_info.exists() || !lockfile.open(QIODevice::ReadWrite | QIODevice::Text)) {
+    int pid_status;
+    if (lockfile_info.exists() || !lockfile.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        lockfile.open(QIODevice::ReadWrite | QIODevice::Text);
+        QString line = lockfile_stream.readLine();
+        auto pid = line.toInt();
+        if (waitpid(pid, &pid_status, WNOHANG) != 0) {
+
+        }
         auto reply = QMessageBox::question(nullptr, "LiveView Cannot Start",
                             "Only one instance of LiveView may be run at a time. Would you like the other LiveView instance to be stopped?",
                                            QMessageBox::Yes|QMessageBox::Cancel);
-        if(reply == QMessageBox::Cancel) {
+        if (reply == QMessageBox::Cancel) {
             return EXIT_FAILURE;
         } else {
             lockfile.open(QIODevice::ReadWrite | QIODevice::Text);
             QString line = lockfile_stream.readLine();
-	    //Do some error checking here so it doesn't just die if the process isn't owned by the user
+            // Do some error checking here so it doesn't just die if the process isn't owned by the user
             auto pid = line.toInt();
-            if(pid == 0 || kill(pid, SIGKILL) == -1) {
+            if (pid == 0 || kill(pid, SIGKILL) == -1) {
                 QMessageBox::information(nullptr, "Cannot kill LiveView", "The currently open LiveView process cannot be killed. To resolve this, manually end the other LiveView process or restart your system. LiveView will now Close.", QMessageBox::Button::Abort);
                 return -1;
             }
         }
-    }
+    } */
 
-    int my_pid = getpid();
+    /* int my_pid = getpid();
     qDebug() << "PID:" << my_pid;
     lockfile.close();
     lockfile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate);
     lockfile_stream << my_pid;
-    lockfile.close();
+    lockfile.close(); */
     QSettings settings(QStandardPaths::writableLocation(
                            QStandardPaths::ConfigLocation)
                        + "/lvconfig.ini", QSettings::IniFormat);
@@ -70,7 +126,8 @@ int main(int argc, char* argv[])
     if (settings.value(QString("show_cam_dialog"), true).toBool()) {
         int retval = csd.exec();
         if (!retval) {
-            lockfile.remove();
+            unlink("LiveViewOpenSource");
+            // lockfile.remove();
             return -1;
         }
     }
@@ -95,6 +152,8 @@ int main(int argc, char* argv[])
     splash.finish(&w);
 
     auto ret_val = a.exec();
-    lockfile.remove();
+    unlink("LiveViewOpenSource");
+    // lockfile.remove();
+
     return ret_val;
 }
