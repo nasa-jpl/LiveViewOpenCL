@@ -275,6 +275,8 @@ void LVMainWindow::saveAs()
                                 this, "Save Raw Frames", default_dir,
                                 "Raw Camera Frames (*.raw);;Data Files (*.dat);;All files (*.*)");
 
+    save_filename.replace("%t", QString::number(QDateTime::currentDateTime().toSecsSinceEpoch()));
+
     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
     cbox->saveFileNameEdit->setText(save_filename);
     emit saveRequest();
