@@ -118,6 +118,8 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     topLeft = QPointF(0, 0);
     bottomRight = QPointF(frWidth, frHeight);
 
+    p_getSaveFrame = &FrameWorker::getBIPSaveFrame;
+
     connect(this, &FrameWorker::doneSaving, this, [&]()
     {
         if (!SaveQueue.empty()) {
@@ -128,6 +130,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
             saving = false;
         }
     });
+
 }
 
 FrameWorker::~FrameWorker()
