@@ -49,6 +49,7 @@ private:
     QMenu *prefMenu;
     QMenu *viewMenu;
     QMenu *gradientSubMenu;
+    QMenu *formatSubMenu;
     QAction *openAct;
     QAction *saveAct;
     QAction *saveAsAct;
@@ -59,7 +60,13 @@ private:
     QAction *remapAct;
 
     QAction *darkModeAct;
+    QActionGroup *gradActGroup;
     QList<QAction*> gradActs;
+
+    QActionGroup *fmtActGroup;
+    QAction *BILact;
+    QAction *BIPact;
+    QAction *BSQact;
 
     FrameWorker *fw;
     QFuture<void> DSLoop;

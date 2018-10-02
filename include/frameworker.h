@@ -77,6 +77,8 @@ public:
 
     inline void compute_snr(LVFrame *new_frame);
 
+    void change_bitorg(org_t org);
+
     volatile bool pixRemap;
     QSettings *settings;
     QPointF bottomRight;
@@ -108,6 +110,7 @@ private:
     std::vector<uint16_t> (FrameWorker::*p_getSaveFrame)();
     std::vector<uint16_t> getBILSaveFrame();
     std::vector<uint16_t> getBIPSaveFrame();
+    std::vector<uint16_t> getBSQSaveFrame();
 
     volatile LV::PlotMode plotMode;
     bool saving;
@@ -130,7 +133,6 @@ private:
 
     QString mask_file;
     quint64 avgd_frames;
-
 
     std::mutex time_index_lock;
     size_t time_index{0};

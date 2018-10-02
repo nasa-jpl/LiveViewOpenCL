@@ -477,6 +477,20 @@ std::vector<uint16_t> FrameWorker::getBIPSaveFrame()
     return BIP_frame;
 }
 
+std::vector<uint16_t> FrameWorker::getBSQSaveFrame()
+{
+    // no-op BSQ for now.
+    std::vector<uint16_t> BSQ_frame;
+    BSQ_frame.resize(frSize);
+    uint16_t *p_frame = frame_fifo.front();
+    // idempotent operation because data is in BIL
+    // format by default. Simply convert to vector.
+    for (size_t i = 0; i < frSize; i++) {
+        BSQ_frame[i] = p_frame[i];
+    }
+    return BSQ_frame;
+}
+
 void FrameWorker::delay(int64_t msecs)
 {
     QTime remTime = QTime::currentTime().addMSecs(int(msecs));
@@ -510,5 +524,20 @@ void FrameWorker::compute_snr(LVFrame *new_frame)
         } else {
             new_frame->snr_data[i] = 0;
         }
+    }
+}
+
+void FrameWorker::change_bitorg(org_t org)
+{
+    switch(org) {
+    case fwBIL:
+        p_getSaveFrame = &FrameWorker::getBILSaveFrame;
+        break;
+    case fwBIP:
+        p_getSaveFrame = &FrameWorker::getBIPSaveFrame;
+        break;
+    case fwBSQ:
+        p_getSaveFrame = &FrameWorker::getBILSaveFrame;
+        break;
     }
 }

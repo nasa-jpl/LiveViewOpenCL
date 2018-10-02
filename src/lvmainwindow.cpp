@@ -187,15 +187,40 @@ void LVMainWindow::createActions()
     });
 
     gradActs = QList<QAction*>();
+    gradActGroup = new QActionGroup(this);
     QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
     for (int i = 0; i < qme.keyCount(); ++i) {
         gradActs.append(new QAction(qme.key(i), this));
+        gradActGroup->addAction(gradActs.at(i));
+        gradActs.at(i)->setCheckable(true);
         connect(gradActs.at(i), &QAction::triggered, this, [this, i](){
             settings->setValue(QString("gradient"), i);
             changeGradients();
         });
     }
+    gradActs.at(settings->value(QString("gradient"), 0).toInt())->setChecked(true);
 
+    fmtActGroup = new QActionGroup(this);
+    BILact = new QAction("BIL", this);
+    BILact->setCheckable(true);
+    connect(BILact, &QAction::triggered, this, [this]() {
+        fw->change_bitorg(fwBIL);
+    });
+    BIPact = new QAction("BIP", this);
+    BIPact->setCheckable(true);
+    connect(BIPact, &QAction::triggered, this, [this]() {
+        fw->change_bitorg(fwBIP);
+    });
+    BSQact = new QAction("BSQ", this);
+    BSQact->setCheckable(true);
+    connect(BSQact, &QAction::triggered, this, [this]() {
+        fw->change_bitorg(fwBSQ);
+    });
+    fmtActGroup->addAction(BILact);
+    fmtActGroup->addAction(BIPact);
+    fmtActGroup->addAction(BSQact);
+
+    BILact->setChecked(true);
 }
 
 void LVMainWindow::createMenus()
@@ -205,6 +230,10 @@ void LVMainWindow::createMenus()
     fileMenu->addAction(saveAct);
     // saveAct->setEnabled(false);
     fileMenu->addAction(saveAsAct);
+    formatSubMenu = fileMenu->addMenu("Data Format");
+    formatSubMenu->addAction(BILact);
+    formatSubMenu->addAction(BIPact);
+    formatSubMenu->addAction(BSQact);
     fileMenu->addAction(resetAct);
     // These two items will not appear in MacOS because they are handled automatically by the
     // application menu.
