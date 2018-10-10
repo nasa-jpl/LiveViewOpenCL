@@ -42,11 +42,15 @@ private slots:
     void setRangeSliderMax(int new_max);
 
 private:
+    int fileNumber = 0;
+    QString prevFileName;
+
     FrameWorker *frame_handler;
     QLabel *fpsLabel;
 
     QTabWidget* tab_handler;
 
+    QString findAndReplaceFileName(const QString &fileName);
     LVTabApplication* getCurrentTab();
     LVTabApplication *viewWidget;
 

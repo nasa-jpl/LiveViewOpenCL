@@ -37,16 +37,8 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     numAvgsEdit->setMaximum(1000000);
     QPushButton *saveFramesButton = new QPushButton("Save Frames", this);
     saveFramesButton->setIcon(style()->standardIcon(QStyle::SP_DriveHDIcon));
-    connect(saveFramesButton, &QPushButton::clicked, this, [this]() {
-        const QString &fileName = saveFileNameEdit->text();
-        const int &numFrames = numFramesEdit->value();
-        const int &numAvgs = numAvgsEdit->value();
-        if (!fileName.isEmpty() && numFrames > 0) {
-            frame_handler->saveFrames(fileName.toStdString(),
-                                      static_cast<uint64_t>(numFrames),
-                                      static_cast<uint64_t>(numAvgs));
-        }
-    });
+    connect(saveFramesButton, &QPushButton::clicked,
+            this, &ControlsBox::acceptSave);
 
     browseButton = new QPushButton("...", this);
     // calls a function of the parent, so this button is connected to a function in the parent.
@@ -171,7 +163,8 @@ void ControlsBox::acceptSave()
     if (saveFileNameEdit->text().isEmpty() || numFramesEdit->value() == 0) {
         return;
     } else {
-        frame_handler->saveFrames(saveFileNameEdit->text().toStdString(),
+        QString fileNameString = findAndReplaceFileName(saveFileNameEdit->text());
+        frame_handler->saveFrames(fileNameString.toStdString(),
                                   static_cast<uint64_t>(numFramesEdit->value()),
                                   static_cast<uint64_t>(numAvgsEdit->value()));
     }
@@ -249,6 +242,26 @@ void ControlsBox::updateFPS(double frameRate)
         fpsLabel->setText(QString("FPS @ backend: %1")
                           .arg(QString::number(frameRate, 'f', 1)));
     }
+}
+
+QString ControlsBox::findAndReplaceFileName(const QString& fileName)
+{
+    if (fileName != prevFileName) {
+        fileNumber = 0;
+        prevFileName = fileName;
+    }
+
+    QString outStr = fileName;
+    QString dateStr = "%1_%2_%3";
+    QDate date = QDateTime::currentDateTime().date();
+
+    outStr.replace("%t", QString::number(QDateTime::currentDateTime().toSecsSinceEpoch()));
+    outStr.replace("%n", QString::number(fileNumber++));
+    outStr.replace("%d", dateStr.arg(QString::number(date.year()))
+                                .arg(QString::number(date.month()))
+                                .arg(QString::number(date.day())));
+
+    return outStr;
 }
 
 LVTabApplication* ControlsBox::getCurrentTab()
