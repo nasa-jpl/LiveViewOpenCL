@@ -77,8 +77,6 @@ public:
 
     inline void compute_snr(LVFrame *new_frame);
 
-    void change_bitorg(org_t org);
-
     volatile bool pixRemap;
     QSettings *settings;
     QPointF bottomRight;
@@ -110,7 +108,7 @@ private:
     std::vector<uint16_t> (FrameWorker::*p_getSaveFrame)();
     std::vector<uint16_t> getBILSaveFrame();
     std::vector<uint16_t> getBIPSaveFrame();
-    std::vector<uint16_t> getBSQSaveFrame();
+    void convertBSQ(save_req_t req);
 
     volatile LV::PlotMode plotMode;
     bool saving;

@@ -171,7 +171,7 @@ void ControlsBox::acceptSave()
     if (saveFileNameEdit->text().isEmpty() || numFramesEdit->value() == 0) {
         return;
     } else {
-        save_req_t new_req = {fwBIL, saveFileNameEdit->text().toStdString(),
+        save_req_t new_req = {bit_org, saveFileNameEdit->text().toStdString(),
                               static_cast<int64_t>(numFramesEdit->value()),
                               static_cast<int64_t>(numAvgsEdit->value())};
         frame_handler->saveFrames(new_req);

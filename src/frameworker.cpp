@@ -118,8 +118,6 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     topLeft = QPointF(0, 0);
     bottomRight = QPointF(frWidth, frHeight);
 
-    p_getSaveFrame = &FrameWorker::getBIPSaveFrame;
-
     connect(this, &FrameWorker::doneSaving, this, [&]()
     {
         if (!SaveQueue.empty()) {
@@ -272,6 +270,17 @@ void FrameWorker::saveFrames(save_req_t req)
         hdr_fname = req.file_name + ".hdr";
     }
 
+    switch(req.bit_org) {
+    case fwBIL:
+        p_getSaveFrame = &FrameWorker::getBILSaveFrame;
+        break;
+    case fwBIP:
+        p_getSaveFrame = &FrameWorker::getBIPSaveFrame;
+        break;
+    case fwBSQ:
+        p_getSaveFrame = &FrameWorker::getBILSaveFrame; // BSQ conversion is done at the end.
+    }
+
     std::ofstream p_file;
     p_file.open(req.file_name, std::ofstream::binary);
     while (save_count.load() < req.nFrames) {
@@ -305,14 +314,18 @@ void FrameWorker::saveFrames(save_req_t req)
     }
     p_file.close();
 
+    if (req.bit_org == fwBSQ) {
+        qDebug() << "Running BIL to BSQ script here!";
+    }
+
     std::string hdr_text = "ENVI\ndescription = {LIVEVIEW raw export file, " +
             std::to_string(req.nFrames) + " frame mean per acquisition}\n";
     hdr_text += "samples = " + std::to_string(frWidth) + "\n";
     hdr_text += "lines   = " + std::to_string(req.nFrames) + "\n";
     hdr_text += "bands   = " + std::to_string(dataHeight) + "\n";
-    hdr_text += "header offset = 0\nfile type = ENVI Standard\n";
-    hdr_text += "data type = 12\n";
-    hdr_text += "interleave = bil\nsensor type = Unknown\nbyte order = 0\nwavelength units = Unknown\n";
+    hdr_text += "header offset = 0\nfile type = ENVI Standard\ndata type = 12\n";
+    hdr_text += "interleave = " + std::to_string(req.bit_org) + "\n";
+    hdr_text += "sensor type = Unknown\nbyte order = 0\nwavelength units = Unknown\n";
 
     std::ofstream hdr_out(hdr_fname);
     hdr_out << hdr_text;
@@ -477,18 +490,34 @@ std::vector<uint16_t> FrameWorker::getBIPSaveFrame()
     return BIP_frame;
 }
 
-std::vector<uint16_t> FrameWorker::getBSQSaveFrame()
+void FrameWorker::convertBSQ(save_req_t req)
 {
-    // no-op BSQ for now.
-    std::vector<uint16_t> BSQ_frame;
-    BSQ_frame.resize(frSize);
-    uint16_t *p_frame = frame_fifo.front();
-    // idempotent operation because data is in BIL
-    // format by default. Simply convert to vector.
-    for (size_t i = 0; i < frSize; i++) {
-        BSQ_frame[i] = p_frame[i];
+    int numSamps = static_cast<int>(frWidth);
+    int numLines = static_cast<int>(ceil(req.nFrames / req.nAvgs));
+    int numBands = static_cast<int>(frHeight);
+    int pixel_size = sizeof(uint16_t);
+    std::vector<uint16_t> BandArray;
+    std::vector<uint16_t> LineArray;
+    BandArray.resize(static_cast<size_t>(numLines * numSamps));
+    LineArray.resize(static_cast<size_t>(numSamps));
+
+    std::ifstream bil_image;
+    bil_image.open(req.file_name, std::ios::in | std::ios::binary);
+    if (!bil_image.is_open()) {
+        qDebug() << "Could not open file" << req.file_name.c_str() << ". Does it exist?";
+        bil_image.clear();
+        return;
     }
-    return BSQ_frame;
+    for (int b = 0; b < numBands; b++) {
+        bil_image.seekg(b * numSamps * pixel_size);
+        for (int l = 0; l < numLines; l++) {
+            bil_image.read(reinterpret_cast<char*>(LineArray.data()), numSamps);
+            BandArray.insert(BandArray.end(), LineArray.begin(), LineArray.end());
+            bil_image.seekg((b + numBands)  * numSamps * pixel_size);
+        }
+
+    }
+
 }
 
 void FrameWorker::delay(int64_t msecs)
@@ -524,20 +553,5 @@ void FrameWorker::compute_snr(LVFrame *new_frame)
         } else {
             new_frame->snr_data[i] = 0;
         }
-    }
-}
-
-void FrameWorker::change_bitorg(org_t org)
-{
-    switch(org) {
-    case fwBIL:
-        p_getSaveFrame = &FrameWorker::getBILSaveFrame;
-        break;
-    case fwBIP:
-        p_getSaveFrame = &FrameWorker::getBIPSaveFrame;
-        break;
-    case fwBSQ:
-        p_getSaveFrame = &FrameWorker::getBILSaveFrame;
-        break;
     }
 }

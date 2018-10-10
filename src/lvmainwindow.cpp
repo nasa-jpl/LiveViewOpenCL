@@ -204,23 +204,24 @@ void LVMainWindow::createActions()
     BILact = new QAction("BIL", this);
     BILact->setCheckable(true);
     connect(BILact, &QAction::triggered, this, [this]() {
-        fw->change_bitorg(fwBIL);
+        cbox->bit_org = fwBIL;
     });
     BIPact = new QAction("BIP", this);
     BIPact->setCheckable(true);
     connect(BIPact, &QAction::triggered, this, [this]() {
-        fw->change_bitorg(fwBIP);
+        cbox->bit_org = fwBIP;
     });
     BSQact = new QAction("BSQ", this);
     BSQact->setCheckable(true);
     connect(BSQact, &QAction::triggered, this, [this]() {
-        fw->change_bitorg(fwBSQ);
+        cbox->bit_org = fwBSQ;
     });
     fmtActGroup->addAction(BILact);
     fmtActGroup->addAction(BIPact);
     fmtActGroup->addAction(BSQact);
 
     BILact->setChecked(true);
+    cbox->bit_org = fwBIL;
 }
 
 void LVMainWindow::createMenus()
