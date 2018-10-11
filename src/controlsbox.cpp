@@ -163,10 +163,10 @@ void ControlsBox::acceptSave()
     if (saveFileNameEdit->text().isEmpty() || numFramesEdit->value() == 0) {
         return;
     } else {
-        QString fileNameString = findAndReplaceFileName(saveFileNameEdit->text());
-        frame_handler->saveFrames(fileNameString.toStdString(),
-                                  static_cast<uint64_t>(numFramesEdit->value()),
-                                  static_cast<uint64_t>(numAvgsEdit->value()));
+        save_req_t new_req = {bit_org, saveFileNameEdit->text().toStdString(),
+                              static_cast<int64_t>(numFramesEdit->value()),
+                              static_cast<int64_t>(numAvgsEdit->value())};
+        frame_handler->saveFrames(new_req);
     }
 }
 

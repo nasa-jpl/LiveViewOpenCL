@@ -27,9 +27,8 @@
 
 int main(int argc, char* argv[])
 {
-    int sfd, cfd;
-    struct sockaddr_un lv_addr, peer_addr;
-    socklen_t peer_addr_size;
+    int sfd;
+    struct sockaddr_un lv_addr;
     QApplication a(argc, argv);
 
     sfd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -41,11 +40,10 @@ int main(int argc, char* argv[])
     lv_addr.sun_family = AF_UNIX;
     strncpy(lv_addr.sun_path, "LiveViewOpenSource",
             sizeof(lv_addr.sun_path) - 1);
-    qDebug() << "Hello, world";
     if (bind(sfd, reinterpret_cast<struct sockaddr*>(&lv_addr),
              sizeof(struct sockaddr_un)) == -1) {
         auto reply = QMessageBox::question(nullptr, "LiveView Cannot Start",
-                            "Only one instance of LiveView may be run at a time. Would you like the other LiveView instance to be stopped?",
+                            "Only one instance of LiveView should be run at a time. Multiple instances can cause errors. Would you like to continue anyways?",
                                            QMessageBox::Yes | QMessageBox::Cancel);
         if (reply == QMessageBox::Cancel) {
             handle_error("bind");
@@ -65,12 +63,6 @@ int main(int argc, char* argv[])
     if (listen(sfd, 50) == -1) {
         handle_error("listen");
     }
-    /* peer_addr_size = sizeof(struct sockaddr_un);
-    cfd = accept(sfd, reinterpret_cast<struct sockaddr *>(&peer_addr),
-                 &peer_addr_size);
-    if (cfd == -1) {
-        handle_error("accept");
-    } */
 
     /* QFile lockfile{"/tmp/.LiveView-lock"};
     QFileInfo lockfile_info{"/tmp/.LiveView-lock"};

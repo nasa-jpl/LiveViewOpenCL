@@ -13,6 +13,15 @@ enum source_t {
     DEBUG = 1,
     CAMERA_LINK = 2};
 
+enum org_t {fwBIL, fwBIP, fwBSQ};
+
+struct save_req_t
+{
+    org_t bit_org;
+    std::string file_name;
+    int64_t nFrames;
+    int64_t nAvgs;
+};
 
 #endif // IMAGE_TYPE_H
 

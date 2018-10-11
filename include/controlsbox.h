@@ -27,6 +27,7 @@ public:
      */
     QPushButton *browseButton;
     QLineEdit *saveFileNameEdit;
+    org_t bit_org;
 
 public slots:
     void collectDSFMask();
