@@ -253,7 +253,8 @@ void FrameWorker::saveFrames(save_req_t req)
 {
     emit startSaving();
     saving = true;
-    uint64_t next_frame = count.load();
+    int64_t next_frame = count.load();
+    int64_t new_count = 0;
     std::vector<uint16_t> p_frame;
     std::string hdr_fname;
     save_count.store(0);
@@ -284,9 +285,11 @@ void FrameWorker::saveFrames(save_req_t req)
     std::ofstream p_file;
     p_file.open(req.file_name, std::ofstream::binary);
     while (save_count.load() < req.nFrames) {
-        if (count.load() > next_frame) {
-            frame_fifo.push(lvframe_buffer->frame(next_frame % CPU_FRAME_BUFFER_SIZE)->raw_data);
+        new_count = count.load();
+        for (int f = 0; f < new_count - next_frame; f++) {
+            frame_fifo.push(lvframe_buffer->frame((next_frame + f) % CPU_FRAME_BUFFER_SIZE)->raw_data);
         }
+        next_frame = new_count;
         if (!frame_fifo.empty()) {
             p_frame = (this->*p_getSaveFrame)(); // frame_fifo.front();
             if (req.nAvgs <= 1) {
@@ -304,24 +307,22 @@ void FrameWorker::saveFrames(save_req_t req)
                 for (size_t p = 0; p < frSize; p++) {
                     frame_accum[p] += p_frame[p];
                 }
-
             }
 
             frame_fifo.pop();
-            if (++next_frame == CPU_FRAME_BUFFER_SIZE) { next_frame = 0; }
             save_count++;
         }
     }
     p_file.close();
 
     if (req.bit_org == fwBSQ) {
-        qDebug() << "Running BIL to BSQ script here!";
+        convertBSQ(req);
     }
 
     std::string hdr_text = "ENVI\ndescription = {LIVEVIEW raw export file, " +
             std::to_string(req.nFrames) + " frame mean per acquisition}\n";
     hdr_text += "samples = " + std::to_string(frWidth) + "\n";
-    hdr_text += "lines   = " + std::to_string(req.nFrames) + "\n";
+    hdr_text += "lines   = " + std::to_string(req.nFrames / req.nAvgs) + "\n";
     hdr_text += "bands   = " + std::to_string(dataHeight) + "\n";
     hdr_text += "header offset = 0\nfile type = ENVI Standard\ndata type = 12\n";
     hdr_text += "interleave = " + std::to_string(req.bit_org) + "\n";
@@ -493,31 +494,54 @@ std::vector<uint16_t> FrameWorker::getBIPSaveFrame()
 void FrameWorker::convertBSQ(save_req_t req)
 {
     int numSamps = static_cast<int>(frWidth);
-    int numLines = static_cast<int>(ceil(req.nFrames / req.nAvgs));
+    int numLines = static_cast<int>(std::ceil(req.nFrames / req.nAvgs));
+    int linesPerChunk = std::min(numLines, CHUNK_NUMLINES);
+    int readLinesChunk = linesPerChunk;
+    int rem = numLines % linesPerChunk > 0 ? 1 : 0;
+    int numChunks = numLines / linesPerChunk + rem;
     int numBands = static_cast<int>(frHeight);
     int pixel_size = sizeof(uint16_t);
-    std::vector<uint16_t> BandArray;
+    std::vector< std::vector<uint16_t> > BandArray;
     std::vector<uint16_t> LineArray;
-    BandArray.resize(static_cast<size_t>(numLines * numSamps));
+    BandArray.resize(static_cast<size_t>(numBands));
+    for (auto band = BandArray.begin(); band != BandArray.end(); band++) {
+        band->resize(static_cast<size_t>(numSamps * linesPerChunk));
+    }
     LineArray.resize(static_cast<size_t>(numSamps));
 
     std::ifstream bil_image;
+    std::ofstream bsq_image;
+    std::string bsq_filename = req.file_name + ".bsq";
+
     bil_image.open(req.file_name, std::ios::in | std::ios::binary);
     if (!bil_image.is_open()) {
-        qDebug() << "Could not open file" << req.file_name.c_str() << ". Does it exist?";
+        qDebug().nospace() << "Could not open file " << req.file_name.c_str() << ". Does it exist?";
         bil_image.clear();
         return;
     }
-    for (int b = 0; b < numBands; b++) {
-        bil_image.seekg(b * numSamps * pixel_size);
-        for (int l = 0; l < numLines; l++) {
-            bil_image.read(reinterpret_cast<char*>(LineArray.data()), numSamps);
-            BandArray.insert(BandArray.end(), LineArray.begin(), LineArray.end());
-            bil_image.seekg((b + numBands)  * numSamps * pixel_size);
+    bsq_image.open(bsq_filename, std::ios::out | std::ios::binary);
+    if (!bsq_image.is_open()) {
+        qDebug().nospace() << "Could not open file " << bsq_filename.c_str() << ". Is it already open?";
+        bsq_image.clear();
+        return;
+    }
+    for (int chunk = 0; chunk < numChunks; chunk++) {
+        if (chunk == numChunks - 1 && numLines % linesPerChunk > 0) {
+            readLinesChunk = numLines % linesPerChunk;
+        }
+        for (int line = 0; line < readLinesChunk; line++) {
+            for (auto band = BandArray.begin(); band != BandArray.end(); band++) {
+                bil_image.read(reinterpret_cast<char*>(LineArray.data()), numSamps * pixel_size);
+                band->insert(band->begin() + (line * numSamps), LineArray.begin(), LineArray.end());
+            }
         }
 
+        bsq_image.seekp(linesPerChunk * chunk * numSamps * pixel_size);
+        for (auto band = BandArray.begin(); band != BandArray.end(); band++) {
+            bsq_image.write(reinterpret_cast<char*>(band->data()), linesPerChunk * numSamps * pixel_size);
+            bsq_image.seekp((numLines - linesPerChunk * (chunk + 1)) * numSamps * pixel_size, std::ios_base::cur);
+        }
     }
-
 }
 
 void FrameWorker::delay(int64_t msecs)

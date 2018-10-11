@@ -114,7 +114,7 @@ private:
     bool saving;
     volatile bool isRunning;
     bool isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
-    std::atomic<uint64_t> count;
+    std::atomic<int64_t> count;
     uint64_t count_prev;
     unsigned int frWidth, frHeight, dataHeight, frSize;
     camera_t cam_type;
