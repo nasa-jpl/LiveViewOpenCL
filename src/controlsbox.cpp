@@ -37,16 +37,8 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     numAvgsEdit->setMaximum(1000000);
     QPushButton *saveFramesButton = new QPushButton("Save Frames", this);
     saveFramesButton->setIcon(style()->standardIcon(QStyle::SP_DriveHDIcon));
-    connect(saveFramesButton, &QPushButton::clicked, this, [this]() {
-        const std::string &fileName = saveFileNameEdit->text().toStdString();
-        const int64_t &numFrames = numFramesEdit->value();
-        const int64_t &numAvgs = numAvgsEdit->value();
-        save_req_t new_req = {fwBIL, fileName, numFrames, numAvgs};
-
-        if (!fileName.empty() && numFrames > 0) {
-            frame_handler->saveFrames(new_req);
-        }
-    });
+    connect(saveFramesButton, &QPushButton::clicked,
+            this, &ControlsBox::acceptSave);
 
     browseButton = new QPushButton("...", this);
     // calls a function of the parent, so this button is connected to a function in the parent.
@@ -250,6 +242,26 @@ void ControlsBox::updateFPS(double frameRate)
         fpsLabel->setText(QString("FPS @ backend: %1")
                           .arg(QString::number(frameRate, 'f', 1)));
     }
+}
+
+QString ControlsBox::findAndReplaceFileName(const QString& fileName)
+{
+    if (fileName != prevFileName) {
+        fileNumber = 0;
+        prevFileName = fileName;
+    }
+
+    QString outStr = fileName;
+    QString dateStr = "%1_%2_%3";
+    QDate date = QDateTime::currentDateTime().date();
+
+    outStr.replace("%t", QString::number(QDateTime::currentDateTime().toSecsSinceEpoch()));
+    outStr.replace("%n", QString::number(fileNumber++));
+    outStr.replace("%d", dateStr.arg(QString::number(date.year()))
+                                .arg(QString::number(date.month()))
+                                .arg(QString::number(date.day())));
+
+    return outStr;
 }
 
 LVTabApplication* ControlsBox::getCurrentTab()
