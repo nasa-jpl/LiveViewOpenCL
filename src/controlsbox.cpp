@@ -40,7 +40,9 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     connect(saveFramesButton, &QPushButton::clicked,
             this, &ControlsBox::acceptSave);
     connect(saveFileNameEdit, &QLineEdit::textChanged, saveFramesButton,
-            [saveFramesButton]() { saveFramesButton->setToolTip("Hi"); });
+            [this, saveFramesButton]() {
+        saveFramesButton->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
+    });
 
     browseButton = new QPushButton("...", this);
     // calls a function of the parent, so this button is connected to a function in the parent.
@@ -165,7 +167,8 @@ void ControlsBox::acceptSave()
     if (saveFileNameEdit->text().isEmpty() || numFramesEdit->value() == 0) {
         return;
     } else {
-        save_req_t new_req = {bit_org, saveFileNameEdit->text().toStdString(),
+        save_req_t new_req = {bit_org,
+                              findAndReplaceFileName(saveFileNameEdit->text()).toStdString(),
                               static_cast<int64_t>(numFramesEdit->value()),
                               static_cast<int64_t>(numAvgsEdit->value())};
         frame_handler->saveFrames(new_req);
