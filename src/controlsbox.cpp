@@ -39,6 +39,8 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     saveFramesButton->setIcon(style()->standardIcon(QStyle::SP_DriveHDIcon));
     connect(saveFramesButton, &QPushButton::clicked,
             this, &ControlsBox::acceptSave);
+    connect(saveFileNameEdit, &QLineEdit::textChanged, saveFramesButton,
+            [saveFramesButton]() { saveFramesButton->setToolTip("Hi"); });
 
     browseButton = new QPushButton("...", this);
     // calls a function of the parent, so this button is connected to a function in the parent.
