@@ -43,6 +43,10 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
             [this, saveFramesButton]() {
         saveFramesButton->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
     });
+    connect(saveFramesButton, &QPushButton::clicked, saveFramesButton,
+            [this, saveFramesButton]() {
+        saveFramesButton->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
+    });
 
     browseButton = new QPushButton("...", this);
     // calls a function of the parent, so this button is connected to a function in the parent.
