@@ -41,11 +41,11 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
             this, &ControlsBox::acceptSave);
     connect(saveFileNameEdit, &QLineEdit::textChanged, saveFramesButton,
             [this, saveFramesButton]() {
-        saveFramesButton->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
+        saveFileNameEdit->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
     });
     connect(saveFramesButton, &QPushButton::clicked, saveFramesButton,
             [this, saveFramesButton]() {
-        saveFramesButton->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
+        saveFileNameEdit->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
     });
 
     browseButton = new QPushButton("...", this);
