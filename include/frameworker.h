@@ -27,7 +27,8 @@
 #include "meanfilter.h"
 #include "constants.h"
 
-constexpr int FPS_FRAME_WIDTH = 5;
+// constexpr int FPS_FRAME_WIDTH = 10;
+constexpr int MAXSAMPLES = 10;
 
 class LVFrameBuffer;
 
@@ -132,16 +133,19 @@ private:
     QString mask_file;
     quint64 avgd_frames;
 
-    std::mutex time_index_lock;
-    size_t time_index{0};
-    std::mutex time_mutex;
-    std::array<double, FPS_FRAME_WIDTH> time;
+    int tickindex = 0;
+    int ticksum = 0;
+    std::array<int, MAXSAMPLES> ticklist;
+    // std::mutex time_index_lock;
+    // size_t time_index{0};
+    // std::mutex time_mutex;
+    // std::array<double, FPS_FRAME_WIDTH> time;
 
-    uint16_t windows_since_frame = 0;
+    // uint16_t windows_since_frame = 0;
     //Tune for FPS update speed.  In general lower will give quicker updating, less granularity at high framerates, more granularity at low framerates
     //(where high framerate is framerates with period faster than this value, and low framerate is period lower than this value).  More computation time used
     //for lower numbers as well.
-    constexpr static uint16_t frame_period = 10;
+    // constexpr static uint16_t frame_period = 10;
 };
 
 #endif // FRAMEWORKER_H

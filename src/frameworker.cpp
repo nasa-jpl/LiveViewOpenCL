@@ -174,7 +174,8 @@ void FrameWorker::captureFrames()
 
     QTimer *fpsclock = new QTimer(this);
     connect(fpsclock, &QTimer::timeout, this, &FrameWorker::reportFPS);
-    fpsclock->start(frame_period);
+    fpsclock->start(1000);
+    ticklist.fill(0);
 
     while (isRunning) {
         beg = high_resolution_clock::now();
@@ -185,15 +186,16 @@ void FrameWorker::captureFrames()
         }
 
 
-        duration = duration_cast<seconds>(end - beg).count();
+        duration = duration_cast<milliseconds>(end - beg).count();
         this_frame_duration = duration_cast<microseconds>(end - last_frame).count();
         last_frame = end;
-        {
-            std::unique_lock<std::mutex>  lock_time{time_mutex};
-            time[time_index] = this_frame_duration;
-            time_index++;
-            time_index %= FPS_FRAME_WIDTH;
+        ticksum -= ticklist[size_t(tickindex)];
+        ticksum += int(this_frame_duration);
+        ticklist[size_t(tickindex)] = int(this_frame_duration);
+        if (++tickindex == MAXSAMPLES) {
+            tickindex = 0;
         }
+
         lvframe_buffer->incIndex();
 
         count++;
@@ -394,16 +396,7 @@ void FrameWorker::reportFPS()
 {
     if (Camera->isRunning()) {
         isTimeout = false;
-        //emit updateFPS((float)(count.load() - count_prev));
-        double total_time = 0;
-        {
-            //std::unique_lock<std::mutex> lock{time_mutex};
-            for(auto elem : time) {
-                total_time += elem;
-            }
-        }
-
-        emit updateFPS(FPS_FRAME_WIDTH * 1000000.0/total_time);
+        emit updateFPS(double(MAXSAMPLES) * 1000000.0 / double(ticksum));
     }
 }
 

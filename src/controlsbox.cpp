@@ -154,7 +154,6 @@ void ControlsBox::tabChanged(int index)
     max_box->setMinimum(static_cast<int>(viewWidget->getDataMin()));
     max_box->setMaximum(static_cast<int>(viewWidget->getDataMax()));
     max_box->setValue(static_cast<int>(viewWidget->getCeiling()));
-    qDebug() << "Max box:" << max_box->value();
     max_box->blockSignals(false);
 }
 
