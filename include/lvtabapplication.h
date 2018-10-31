@@ -70,7 +70,6 @@ public slots:
 
     virtual void setCeilingPos(double maxPos) {
         double c = dataMax * (maxPos / 99.0);
-        qDebug() << "Max pos:" << maxPos << "New ceiling:" << c;
         setCeiling(c);
     }
 

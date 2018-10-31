@@ -6,6 +6,9 @@ histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
     histogram = new QCPBars(qcp->xAxis, qcp->yAxis);
     qcp->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 
+    histogram->setWidthType(QCPBars::wtAxisRectRatio);
+    histogram->setWidth(0.005);
+
     histogram->setName("Histogram of Standard Deviation Image");
     const uint16_t sigma = 0x03C3;
     qcp->xAxis->setLabel(QString::fromUtf16(&sigma, 1));
