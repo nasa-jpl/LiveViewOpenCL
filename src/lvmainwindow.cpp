@@ -96,6 +96,8 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     createActions();
     createMenus();
 
+    camDialog = new CameraViewDialog(fw->Camera);
+
     compDialog = new ComputeDevDialog(fw->STDFilter->getDeviceList());
     connect(compDialog, &ComputeDevDialog::device_changed,
             this, &LVMainWindow::change_compute_device);
@@ -126,6 +128,7 @@ LVMainWindow::~LVMainWindow()
     delete spat_display;
     delete spat_mean_display;
     delete fft_display;
+    delete camDialog;
     delete compDialog;
     delete dsfDialog;
 }
@@ -222,6 +225,9 @@ void LVMainWindow::createActions()
 
     BILact->setChecked(true);
     cbox->bit_org = fwBIL;
+
+    camViewAct = new QAction("Camera Info", this);
+    connect(camViewAct, &QAction::triggered, this, &LVMainWindow::show_camModelView);
 }
 
 void LVMainWindow::createMenus()
@@ -250,6 +256,9 @@ void LVMainWindow::createMenus()
     viewMenu->addAction(darkModeAct);
     gradientSubMenu = viewMenu->addMenu("&Gradient");
     gradientSubMenu->addActions(gradActs);
+
+    aboutMenu = menuBar()->addMenu("&About");
+    aboutMenu->addAction(camViewAct);
 
 }
 
@@ -313,6 +322,11 @@ void LVMainWindow::saveAs()
 void LVMainWindow::reset()
 {
     fw->resetDir(source_dir.toLatin1().data());
+}
+
+void LVMainWindow::show_camModelView()
+{
+    camDialog->show();
 }
 
 void LVMainWindow::show_deviceModelView()

@@ -97,7 +97,8 @@ HEADERS += \
         saveclient.h \
         dsfprefdialog.h \
         cameraselectdialog.h \
-        twoscomplimentfilter.h
+        twoscomplimentfilter.h \
+        cameraviewdialog.h
 unix:!macx {
     HEADERS += clcamera.h
 }

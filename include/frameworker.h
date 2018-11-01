@@ -44,6 +44,8 @@ public:
     void stop();
     bool running();
 
+    CameraModel *Camera;
+
     void resetDir(const char *dirname);
 
     std::vector<float> getFrame();
@@ -104,7 +106,6 @@ public slots:
 private:
     QThread *thread;
     LVFrameBuffer *lvframe_buffer;
-    CameraModel *Camera;
     void delay(int64_t msecs);
     std::vector<uint16_t> (FrameWorker::*p_getSaveFrame)();
     std::vector<uint16_t> getBILSaveFrame();

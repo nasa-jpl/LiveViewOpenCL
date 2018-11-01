@@ -8,6 +8,7 @@ SSDCamera::SSDCamera(unsigned int frWidth,
     headsize(frWidth * sizeof(uint16_t)),
     image_no(0)
 {
+    source_type = SSD;
     frame_width = frWidth;
     frame_height = frHeight;
     data_height = dataHeight;
