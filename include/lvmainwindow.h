@@ -17,6 +17,7 @@
 #include "fft_widget.h"
 #include "controlsbox.h"
 #include "saveserver.h"
+#include "cameraviewdialog.h"
 #include "computedevdialog.h"
 #include "dsfprefdialog.h"
 
@@ -50,6 +51,7 @@ private:
     QMenu *viewMenu;
     QMenu *gradientSubMenu;
     QMenu *formatSubMenu;
+    QMenu *aboutMenu;
     QAction *openAct;
     QAction *saveAct;
     QAction *saveAsAct;
@@ -67,6 +69,8 @@ private:
     QAction *BILact;
     QAction *BIPact;
     QAction *BSQact;
+
+    QAction *camViewAct;
 
     FrameWorker *fw;
     QFuture<void> DSLoop;
@@ -87,6 +91,7 @@ private:
 
     ComputeDevDialog *compDialog;
     DSFPrefDialog *dsfDialog;
+    CameraViewDialog *camDialog;
 
     QString default_dir;
     QString source_dir;
@@ -99,6 +104,7 @@ private slots:
     void reset();
     void show_deviceModelView();
     void show_dsfModelView();
+    void show_camModelView();
     void change_compute_device(QString dev_name);
 };
 
