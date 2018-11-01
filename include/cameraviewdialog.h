@@ -21,7 +21,24 @@ public:
         QPushButton *okButton = new QPushButton("&Ok", this);
         connect(okButton, &QPushButton::clicked, this, &QDialog::accept);
 
-        QLabel *infoLabel = new QLabel(QString("Camera type: %1").arg(camera->getCameraType()));
+        QString infoList;
+        switch(camera->getSourceType()) {
+#if !(__MACH__ || __APPLE__)
+        case CAMERA_LINK:
+            infoList = QString(camera->getCameraName());
+            break;
+#endif
+        case SSD:
+            infoList = "XIO file reader";
+            break;
+        case DEBUG:
+            infoList = "ENVI file reader";
+            break;
+        default:
+            qDebug() << "hello, world";
+        }
+
+        QLabel *infoLabel = new QLabel(QString("Camera type: %1").arg(infoList));
         QLabel *geomLabel = new QLabel(
                     QString("Frame Geometry (height x width): %1 x %2").arg(QString::number(camera->getFrameHeight()),
                                                                             QString::number(camera->getFrameWidth())));

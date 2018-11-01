@@ -7,6 +7,7 @@ CLCamera::CLCamera(int channel_num,
     frate(filter_refresh_rate), overrun(0), overruns(0),
     timeouts(0), last_timeouts(0), recovering_timeout(false)
 {
+    source_type = CAMERA_LINK;
 }
 
 CLCamera::~CLCamera()
@@ -78,4 +79,9 @@ uint16_t* CLCamera::getFrame()
 
     return image_p;
 
+}
+
+char* CLCamera::getCameraName()
+{
+    return pdv_get_cameratype(dev_p);
 }

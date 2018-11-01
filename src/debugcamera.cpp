@@ -11,6 +11,7 @@ DebugCamera::DebugCamera(const std::string fname,
     frame_height = frHeight;
     data_height = dataHeight;
     camera_type = DEFAULT;
+    source_type = DEBUG;
 }
 
 DebugCamera::~DebugCamera()

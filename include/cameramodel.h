@@ -29,6 +29,7 @@ public:
     unsigned int getFrameHeight() const { return frame_height; }
     unsigned int getDataHeight() const { return data_height; }
     camera_t getCameraType() const { return camera_type; }
+    source_t getSourceType() const { return source_type; }
 
 signals:
     void timeout();
@@ -38,6 +39,7 @@ protected:
     unsigned int frame_height;
     unsigned int data_height;
     camera_t camera_type;
+    source_t source_type;
 
     std::atomic<bool> running;
 };
