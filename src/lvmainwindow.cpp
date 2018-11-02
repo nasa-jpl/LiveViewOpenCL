@@ -167,12 +167,16 @@ void LVMainWindow::createActions()
 
     compAct = new QAction("Change Compute Device...", this);
     compAct->setStatusTip("Use a different computing type for OpenCL calculations.");
-    connect(compAct, &QAction::triggered, this, &LVMainWindow::show_deviceModelView);
+    connect(compAct, &QAction::triggered, this, [this]() {
+        compDialog->show();
+    });
 
     dsfAct = new QAction("Dark Subtraction", this);
     dsfAct->setShortcut(QKeySequence::Underline); // This specifies the Ctrl+U key combo.
     dsfAct->setStatusTip("Modify settings when collecting dark subtraction frames.");
-    connect(dsfAct, &QAction::triggered, this, &LVMainWindow::show_dsfModelView);
+    connect(dsfAct, &QAction::triggered, this, [this]() {
+        dsfDialog->show();
+    });
 
     remapAct = new QAction("Remap Pixels", this);
     remapAct->setStatusTip("Take the two's compliment of data.");
@@ -227,7 +231,11 @@ void LVMainWindow::createActions()
     cbox->bit_org = fwBIL;
 
     camViewAct = new QAction("Camera Info", this);
-    connect(camViewAct, &QAction::triggered, this, &LVMainWindow::show_camModelView);
+    connect(camViewAct, &QAction::triggered, this, [this]() {
+        camDialog->show();
+    });
+    helpInfoAct = new QAction("About LiveView", this);
+    connect(helpInfoAct, &QAction::triggered, this, &LVMainWindow::show_about_window);
 }
 
 void LVMainWindow::createMenus()
@@ -257,8 +265,9 @@ void LVMainWindow::createMenus()
     gradientSubMenu = viewMenu->addMenu("&Gradient");
     gradientSubMenu->addActions(gradActs);
 
-    aboutMenu = menuBar()->addMenu("&About");
+    aboutMenu = menuBar()->addMenu("&Help");
     aboutMenu->addAction(camViewAct);
+    aboutMenu->addAction(helpInfoAct);
 
 }
 
@@ -324,24 +333,20 @@ void LVMainWindow::reset()
     fw->resetDir(source_dir.toLatin1().data());
 }
 
-void LVMainWindow::show_camModelView()
-{
-    camDialog->show();
-}
-
-void LVMainWindow::show_deviceModelView()
-{
-    compDialog->show();
-}
-
-void LVMainWindow::show_dsfModelView()
-{
-    dsfDialog->show();
-}
-
 void LVMainWindow::change_compute_device(QString dev_name)
 {
     fw->STDFilter->change_device(dev_name);
+}
+
+void LVMainWindow::show_about_window()
+{
+    QString infoLabel = QString("This version of LiveView has the SHA identifier:\n(%1)\n").arg(GIT_CURRENT_SHA1);
+    infoLabel += QString("It was compiled on %1 at %2 using gcc %3.%4\n").arg(QString(__DATE__),
+                                                           QString(__TIME__),
+                                                           QString::number(__GNUC__),
+                                                           QString::number(__GNUC_MINOR__));
+    infoLabel += QString("The compilation was performed by %1@%2").arg(UNAME, HOST);
+    QMessageBox::about(this, "About LiveView", infoLabel);
 }
 
 void LVMainWindow::changeGradients()

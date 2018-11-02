@@ -71,6 +71,7 @@ private:
     QAction *BSQact;
 
     QAction *camViewAct;
+    QAction *helpInfoAct;
 
     FrameWorker *fw;
     QFuture<void> DSLoop;
@@ -102,10 +103,8 @@ private slots:
     void save();
     void saveAs();
     void reset();
-    void show_deviceModelView();
-    void show_dsfModelView();
-    void show_camModelView();
     void change_compute_device(QString dev_name);
+    void show_about_window();
 };
 
 #endif // LVMAINWINDOW_H
