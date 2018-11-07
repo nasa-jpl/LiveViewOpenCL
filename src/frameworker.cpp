@@ -98,8 +98,14 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         frHeight = Camera->getFrameHeight();
         dataHeight = Camera->getDataHeight();
         cam_type = Camera->getCameraType();
-        connect(Camera, &CameraModel::timeout, this, &FrameWorker::reportTimeout);
-        isRunning = true;    // now set up to enter the event loop
+
+        if (frWidth == 0 || frHeight == 0) {
+            emit error(QString("Frame width and height can not be zero."));
+            isRunning = false;
+        } else {
+            connect(Camera, &CameraModel::timeout, this, &FrameWorker::reportTimeout);
+            isRunning = true;    // now set up to enter the event loop
+        }
     }
 
     frSize = frWidth * dataHeight;
