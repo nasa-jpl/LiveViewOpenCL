@@ -21,7 +21,7 @@ public:
     virtual uint16_t* getFrame();
     virtual bool isRunning();
 
-    char* getCameraName();
+    virtual char* getCameraName();
 
 private:
     PdvDev* dev_p;

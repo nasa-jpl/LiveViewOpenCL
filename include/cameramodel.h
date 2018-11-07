@@ -28,6 +28,7 @@ public:
     unsigned int getFrameWidth() const { return frame_width; }
     unsigned int getFrameHeight() const { return frame_height; }
     unsigned int getDataHeight() const { return data_height; }
+    virtual char* getCameraName() const { return camera_name; }
     camera_t getCameraType() const { return camera_type; }
     source_t getSourceType() const { return source_type; }
 
@@ -38,6 +39,7 @@ protected:
     unsigned int frame_width;
     unsigned int frame_height;
     unsigned int data_height;
+    char *camera_name;
     camera_t camera_type;
     source_t source_type;
 
