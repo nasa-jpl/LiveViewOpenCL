@@ -6,7 +6,7 @@ LiveView is compatible with MacOS and Linux (RedHat and Ubuntu).
 To get started, please see the "Wiki" tab for pages on installation, driver setup, and more. For developers, see the "Projects" tab for what's currently being worked on.
 
 ## Bug Reports
-Please direct all bug reports or new features to the "Issues" tab. If the issue is high priority, the current turn-around time is about 1-2 weeks.
+Please direct all bug reports or new features to the "Issues" tab. If the issue is high priority, the current turn-around time is about 2-3 weeks.
 
 ## Contact
 Primary: Jacqueline Ryan [Jacqueline.Ryan@jpl.nasa.gov](mailto:Jacqueline.Ryan@jpl.nasa.gov)
