@@ -135,7 +135,7 @@ LVMainWindow::~LVMainWindow()
 
 void LVMainWindow::errorString(const QString &errstr)
 {
-    qWarning() << errstr;
+    qFatal(errstr.toLatin1().data());
 }
 
 void LVMainWindow::createActions()
