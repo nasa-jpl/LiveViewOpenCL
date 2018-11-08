@@ -100,7 +100,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         cam_type = Camera->getCameraType();
 
         if (frWidth == 0 || frHeight == 0) {
-            emit error(QString("Frame width and height can not be zero."));
+            qFatal("Frame width and height can not be zero, please initialize camera.");
             isRunning = false;
         } else {
             connect(Camera, &CameraModel::timeout, this, &FrameWorker::reportTimeout);
