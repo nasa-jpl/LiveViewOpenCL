@@ -29,8 +29,8 @@ bool CLCamera::start()
     }
     pdv_flush_fifo(dev_p);
     int size = pdv_get_dmasize(dev_p);
-    char *cameratype = pdv_get_cameratype(dev_p);
-    qDebug() << "Hardware Type (as reported by driver): " << cameratype;
+    camera_name = pdv_get_cameratype(dev_p);
+    qDebug() << "Hardware Type (as reported by driver): " << camera_name;
 
     frame_width = pdv_get_width(dev_p);
     data_height = pdv_get_height(dev_p);
@@ -79,9 +79,4 @@ uint16_t* CLCamera::getFrame()
 
     return image_p;
 
-}
-
-char* CLCamera::getCameraName()
-{
-    return pdv_get_cameratype(dev_p);
 }

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <atomic>
+#include <string>
 
 #include <QObject>
 #include <QDebug>
