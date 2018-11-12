@@ -54,7 +54,9 @@ void SSDCamera::setDir(const char *dirname)
     std::sort(fname_list.begin(), fname_list.end(), doj::alphanum_less<std::string>());
 
     for (auto f = fname_list.begin(); f != fname_list.end(); ++f) {
-        if (f->empty() or os::getext(*f) != "xio")
+        std::string ext = os::getext(*f);
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+        if (f->empty() or std::strcmp(ext.data(), "xio") or std::strcmp(ext.data(), "decomp"))
             continue;
 
         xio_files.push_back(*f);
@@ -80,13 +82,17 @@ std::string SSDCamera::getFname()
         std::sort(fname_list.begin(), fname_list.end(), doj::alphanum_less<std::string>());
         for (auto f = fname_list.end() - 1; f != fname_list.begin(); --f) {
             has_file = std::find(xio_files.begin(), xio_files.end(), *f) != xio_files.end();
-            if ((*f).empty() or os::getext(*f) != "xio")
+            std::string ext = os::getext(*f);
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+            if ((*f).empty() or (std::strcmp(ext.data(), "xio") and std::strcmp(ext.data(), "decomp"))) {
+                qDebug() << "meow";
                 continue;
-            else if (has_file) {
+            } else if (has_file) {
                 break;
             } else {
                 xio_files.push_back(*f);
             }
+
         }
 
         if (image_no < xio_files.size()) {
@@ -126,11 +132,20 @@ void SSDCamera::readFile()
 
             dev_p.read(reinterpret_cast<char*>(header.data()), headsize);
 
-            // convert the raw hex string to decimal, one digit at a time.
-            int filesize = int(header[7]) * 16777216 + int(header[6]) * 65536 + int(header[5]) * 256 + int(header[4]);
+            std::streampos filesize(0);
+            std::string ext = os::getext(ifname);
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+            if (!std::strcmp(ext.data(), "decomp")) {
+                dev_p.seekg(0, std::ios::end);
+                filesize = dev_p.tellg();
+                dev_p.seekg(headsize, std::ios::beg);
+            } else {
+                // convert the raw hex string to decimal, one digit at a time.
+                filesize = int(header[7]) * 16777216 + int(header[6]) * 65536 + int(header[5]) * 256 + int(header[4]);
+            }
 
-            framesize = filesize / int(nFrames);
-            if(framesize == 0) { //If header reports a 0 filesize (invalid data), then skip this file.
+            framesize = static_cast<unsigned int>(filesize) / nFrames;
+            if (framesize == 0) { //If header reports a 0 filesize (invalid data), then skip this file.
                 dev_p.close();
                 qDebug().nospace() << "Skipped file \"" << ifname.data() << "\" due to invalid data.";
             } else { //otherwise we load it
