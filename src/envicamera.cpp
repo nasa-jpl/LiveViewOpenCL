@@ -1,24 +1,20 @@
-#include "debugcamera.h"
+#include "envicamera.h"
 
-DebugCamera::DebugCamera(const std::string fname,
-        unsigned int frWidth, unsigned int frHeight,
-        unsigned int dataHeight
-, QObject *parent) : CameraModel(parent),
-    ifname(fname),
-    framesize(frWidth * dataHeight * sizeof(uint16_t))
+ENVICamera::ENVICamera(QObject *parent) :
+    CameraModel(parent), framesize(640 * 480)
 {
-    frame_width = frWidth;
-    frame_height = frHeight;
-    data_height = dataHeight;
+    // frame_width = frWidth;
+    // frame_height = frHeight;
+    // data_height = dataHeight;
     camera_type = DEFAULT;
     source_type = DEBUG;
 }
 
-DebugCamera::~DebugCamera()
+ENVICamera::~ENVICamera()
 {
 }
 
-bool DebugCamera::start()
+bool ENVICamera::start()
 {
     dev_p.open(ifname, std::ios::in | std::ios::binary);
     if (!dev_p.is_open()) {
@@ -47,7 +43,7 @@ bool DebugCamera::start()
     return running.load();
 }
 
-uint16_t* DebugCamera::getFrame()
+uint16_t* ENVICamera::getFrame()
 {
     curIndex++;
     if (curIndex > nFrames) {

@@ -47,7 +47,7 @@ private:
     QString prevFileName;
 
     FrameWorker *frame_handler;
-    QLabel *fpsLabel;
+    QLineEdit *fpsLabel;
 
     QTabWidget* tab_handler;
 

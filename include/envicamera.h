@@ -12,17 +12,13 @@
 #include "constants.h"
 #include "lvframe.h"
 
-class DebugCamera : public CameraModel
+class ENVICamera : public CameraModel
 {
     Q_OBJECT
 
 public:
-    DebugCamera(const std::string fname,
-                unsigned int frWidth = 640,
-                unsigned int frHeight = 480,
-                unsigned int dataHeight = 481,
-                QObject *parent = nullptr);
-    virtual ~DebugCamera();
+    ENVICamera(QObject *parent = nullptr);
+    virtual ~ENVICamera();
 
     virtual bool start();
 

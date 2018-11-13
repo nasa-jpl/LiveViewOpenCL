@@ -61,7 +61,8 @@ fft_widget::~fft_widget()
 void fft_widget::handleNewFrame()
 {
     if (!this->isHidden()) {
-        double nyquist_freq =  500.0 / FRAME_PERIOD_MS;
+        double framerate = frame_handler->fps > 0 ? frame_handler->fps : 1;
+        double nyquist_freq =  500.0 / framerate;
         double increment = nyquist_freq / (FFT_INPUT_LENGTH / 2);
         fft_bars->setWidth(increment);
 

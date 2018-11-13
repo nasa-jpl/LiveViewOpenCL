@@ -16,7 +16,7 @@
 #include "image_type.h"
 #include "lvframe.h"
 #include "cameramodel.h"
-#include "debugcamera.h"
+#include "envicamera.h"
 #include "ssdcamera.h"
 #if !(__APPLE__ || __MACH__)
 #include "clcamera.h"
@@ -77,6 +77,7 @@ public:
     camera_t getCameraType() const { return cam_type; }
 
     uint32_t getStdDevN();
+    double getFramePeriod();
 
     inline void compute_snr(LVFrame *new_frame);
 
@@ -84,6 +85,7 @@ public:
     QSettings *settings;
     QPointF bottomRight;
     QPointF topLeft;
+    double fps = 0;
 
 signals:
     void finished();
@@ -102,6 +104,7 @@ public slots:
     void captureFramesRemote(save_req_t new_req);
     void applyMask(const QString &fileName);
     void setStdDevN(int new_N);
+    void setFramePeriod(double period);
 
 private:
     QThread *thread;
@@ -137,6 +140,7 @@ private:
     int tickindex = 0;
     int ticksum = 0;
     std::array<int, MAXSAMPLES> ticklist;
+    double frame_period_ms = 0;
     // std::mutex time_index_lock;
     // size_t time_index{0};
     // std::mutex time_mutex;
