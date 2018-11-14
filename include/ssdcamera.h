@@ -2,7 +2,7 @@
 #define SSDCAMERA_H
 
 #include <stdlib.h>
-#include <string>
+#include <cstring>
 #include <fstream>
 #include <vector>
 #include <array>

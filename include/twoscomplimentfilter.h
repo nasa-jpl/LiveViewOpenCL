@@ -11,7 +11,7 @@ class TwosComplimentFilter
 {
 public:
     explicit TwosComplimentFilter(unsigned int frame_height, unsigned int frame_width);
-    void apply_filter(uint16_t *pic_in);
+    void apply_filter(uint16_t *pic_in, bool is16bit);
 
 private:
     uint16_t pic_buffer[MAX_SIZE];
