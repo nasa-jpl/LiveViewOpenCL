@@ -1,14 +1,10 @@
 #include "lvmainwindow.h"
 
 LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
-    : QMainWindow(parent)
+    : settings(settings), QMainWindow(parent)
 {   
     // Hardcoded default window size
     this->resize(1560, 1000);
-
-    this->settings = new QSettings(QStandardPaths::writableLocation(
-                                       QStandardPaths::ConfigLocation)
-                                   + "/lvconfig.ini", QSettings::IniFormat);
 
     QPixmap icon_pixmap(":images/icon.png");
     this->setWindowIcon(QIcon(icon_pixmap));
@@ -181,32 +177,37 @@ void LVMainWindow::createActions()
     remap14Act = new QAction("Remap Pixels 14-bit", this);
     remap14Act->setStatusTip("Take the two's complement of 14-bit data.");
     remap14Act->setCheckable(true);
-    remap14Act->setChecked(false);
+    remap14Act->setChecked(fw->pixRemap && !fw->is16bit);
 
     remap16Act = new QAction("Remap Pixels 16-bit", this);
     remap16Act->setStatusTip("Take the two's complement of 16-bit data.");
     remap16Act->setCheckable(true);
-    remap16Act->setChecked(false);
+    remap16Act->setChecked(fw->pixRemap && fw->is16bit);
 
     noRemapAct = new QAction("Don't Remap Pixels", this);
     noRemapAct->setStatusTip("No Remap");
     noRemapAct->setCheckable(true);
-    noRemapAct->setChecked(true);
+    noRemapAct->setChecked(!fw->pixRemap);
 
     connect(remap14Act, &QAction::triggered, this, [this]() {
         fw->pixRemap = true;
         fw->is16bit = false;
+        settings->setValue(QString("pix_remap"), true);
+        settings->setValue(QString("remap16"), false);
         remap16Act->setChecked(false);
         noRemapAct->setChecked(false);
     });
     connect(remap16Act, &QAction::triggered, this, [this]() {
         fw->pixRemap = true;
         fw->is16bit = true;
+        settings->setValue(QString("pix_remap"), true);
+        settings->setValue(QString("remap16"), true);
         remap14Act->setChecked(false);
         noRemapAct->setChecked(false);
     });
     connect(noRemapAct, &QAction::triggered, this, [this]() {
         fw->pixRemap = false;
+        settings->setValue(QString("pix_remap"), false);
         remap14Act->setChecked(false);
         remap16Act->setChecked(false);
     });
