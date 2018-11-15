@@ -50,11 +50,11 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     connect(saveFramesButton, &QPushButton::clicked,
             this, &ControlsBox::acceptSave);
     connect(saveFileNameEdit, &QLineEdit::textChanged, saveFramesButton,
-            [this, saveFramesButton]() {
+            [this]() {
         saveFileNameEdit->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
     });
     connect(saveFramesButton, &QPushButton::clicked, saveFramesButton,
-            [this, saveFramesButton]() {
+            [this]() {
         saveFileNameEdit->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
     });
 

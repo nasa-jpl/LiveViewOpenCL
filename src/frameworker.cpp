@@ -113,7 +113,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
 
     frSize = frWidth * dataHeight;
     lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frWidth, dataHeight);
-    TwosFilter = new TwosComplimentFilter(frHeight, frWidth);
+    TwosFilter = new TwosComplimentFilter(frSize);
     DSFilter = new DarkSubFilter(frSize);
     stddev_N = MAX_N; // arbitrary starting point
     STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);

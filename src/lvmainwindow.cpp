@@ -1,7 +1,7 @@
 #include "lvmainwindow.h"
 
 LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
-    : settings(settings), QMainWindow(parent)
+    : QMainWindow(parent), settings(settings)
 {   
     // Hardcoded default window size
     this->resize(1560, 1000);
@@ -131,7 +131,7 @@ LVMainWindow::~LVMainWindow()
 
 void LVMainWindow::errorString(const QString &errstr)
 {
-    qFatal(errstr.toLatin1().data());
+    qFatal("%s", errstr.toLatin1().data());
 }
 
 void LVMainWindow::createActions()
@@ -174,18 +174,18 @@ void LVMainWindow::createActions()
         dsfDialog->show();
     });
 
-    remap14Act = new QAction("Remap Pixels 14-bit", this);
+    remap14Act = new QAction("14-bit", this);
     remap14Act->setStatusTip("Take the two's complement of 14-bit data.");
     remap14Act->setCheckable(true);
     remap14Act->setChecked(fw->pixRemap && !fw->is16bit);
 
-    remap16Act = new QAction("Remap Pixels 16-bit", this);
+    remap16Act = new QAction("16-bit", this);
     remap16Act->setStatusTip("Take the two's complement of 16-bit data.");
     remap16Act->setCheckable(true);
     remap16Act->setChecked(fw->pixRemap && fw->is16bit);
 
-    noRemapAct = new QAction("Don't Remap Pixels", this);
-    noRemapAct->setStatusTip("No Remap");
+    noRemapAct = new QAction("None", this);
+    noRemapAct->setStatusTip("Do not remap raw pixels .");
     noRemapAct->setCheckable(true);
     noRemapAct->setChecked(!fw->pixRemap);
 

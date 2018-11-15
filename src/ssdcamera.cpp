@@ -85,7 +85,6 @@ std::string SSDCamera::getFname()
             std::string ext = os::getext(*f);
             std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
             if ((*f).empty() or (std::strcmp(ext.data(), "xio") and std::strcmp(ext.data(), "decomp"))) {
-                qDebug() << "meow";
                 continue;
             } else if (has_file) {
                 break;
