@@ -82,6 +82,7 @@ public:
     inline void compute_snr(LVFrame *new_frame);
 
     volatile bool pixRemap;
+    volatile bool is16bit;
     QSettings *settings;
     QPointF bottomRight;
     QPointF topLeft;

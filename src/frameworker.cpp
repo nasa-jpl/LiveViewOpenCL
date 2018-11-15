@@ -64,11 +64,14 @@ private:
 };
 
 FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *parent)
-    : QObject(parent), pixRemap(false), settings(settings_arg),
+    : QObject(parent), settings(settings_arg),
       thread(worker), plotMode(LV::pmRAW), saving(false),
       count(0), count_prev(0), frame_period_ms(25.0)
 {
+    pixRemap = settings->value(QString("pix_remap"), false).toBool();
+    is16bit = settings->value(QString("remap16"), false).toBool();
     Camera = nullptr;
+
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
     case SSD:
         Camera = new SSDCamera();
@@ -188,7 +191,7 @@ void FrameWorker::captureFrames()
         lvframe_buffer->current()->raw_data = Camera->getFrame();
         end = high_resolution_clock::now();
         if (Camera->isRunning() && pixRemap) {
-            TwosFilter->apply_filter(lvframe_buffer->current()->raw_data);
+            TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
         }
 
 
