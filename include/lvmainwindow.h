@@ -50,6 +50,7 @@ private:
     QMenu *prefMenu;
     QMenu *viewMenu;
     QMenu *gradientSubMenu;
+    QMenu *inversionSubMenu;
     QMenu *formatSubMenu;
     QMenu *aboutMenu;
     QAction *openAct;
@@ -59,7 +60,9 @@ private:
     QAction *exitAct;
     QAction *compAct;
     QAction *dsfAct;
-    QAction *remapAct;
+    QAction *remap14Act;
+    QAction *remap16Act;
+    QAction *noRemapAct;
 
     QAction *darkModeAct;
     QActionGroup *gradActGroup;

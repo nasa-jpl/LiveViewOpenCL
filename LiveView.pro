@@ -52,7 +52,7 @@ SOURCES += \
         frameview_widget.cpp \
         frameworker.cpp \
         qcustomplot.cpp \
-        debugcamera.cpp \
+        envicamera.cpp \
         ssdcamera.cpp \
         controlsbox.cpp \
         darksubfilter.cpp \
@@ -64,7 +64,8 @@ SOURCES += \
         meanfilter.cpp \
         fft_widget.cpp \
         saveserver.cpp \
-        twoscomplimentfilter.cpp
+        twoscomplimentfilter.cpp \
+    src/fpslineedit.cpp
 unix:!macx {
    SOURCES += clcamera.cpp
 }
@@ -77,7 +78,7 @@ HEADERS += \
         frameworker.h \
         qcustomplot/qcustomplot.h \
         cameramodel.h \
-        debugcamera.h \
+        envicamera.h \
         constants.h \
         ssdcamera.h \
         osutils.h \
@@ -98,7 +99,8 @@ HEADERS += \
         dsfprefdialog.h \
         cameraselectdialog.h \
         twoscomplimentfilter.h \
-        cameraviewdialog.h
+        cameraviewdialog.h \
+    include/fpslineedit.h
 unix:!macx {
     HEADERS += clcamera.h
 }

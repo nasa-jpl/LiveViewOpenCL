@@ -17,7 +17,7 @@ static const unsigned int NUMBER_OF_BINS = 1024;
 static const long long FRAME_PERIOD_MS = 40;
 // static const unsigned int TARGET_FRAMERATE = 60;
 // static const unsigned int FRAME_DISPLAY_PERIOD_MSECS = 1000 / TARGET_FRAMERATE;
-static const unsigned int FRAME_DISPLAY_PERIOD_MSECS = FRAME_PERIOD_MS;
+static const unsigned int FRAME_DISPLAY_PERIOD_MSECS = 25;
 
 static const unsigned int MAX_FFT_SIZE = 4096;
 static const int FFT_INPUT_LENGTH = 512; // Must be 256, will fail silently otherwise
