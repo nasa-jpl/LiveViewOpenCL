@@ -28,6 +28,7 @@ public slots:
     void handleNewFrame();
     void drawCrosshair(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
     void hideCrosshair(bool hide);
+    void showTooltip(bool show);
     void rescaleRange();
     void reportFPS();
     void setPlotMode(bool checked);
@@ -61,6 +62,7 @@ private:
     bool boxes_enabled = false;
     bool dragging_vertical_box = false;
     bool dragging_horizontal_box = false;
+    bool show_tooltip = false;
 
     double loBoundX;
     double hiBoundX;

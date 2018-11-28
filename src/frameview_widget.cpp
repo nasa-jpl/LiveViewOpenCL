@@ -147,10 +147,15 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     connect(hideXbox, SIGNAL(toggled(bool)), this, SLOT(hideCrosshair(bool)));
     hideXbox->setFixedWidth(150);
 
+    QCheckBox *showTipBox = new QCheckBox("Show Value at Cursor", this);
+    connect(showTipBox, SIGNAL(toggled(bool)), this, SLOT(showTooltip(bool)));
+    showTipBox->setFixedWidth(200);
+
     QVBoxLayout *qvbl = new QVBoxLayout(this);
     QHBoxLayout *bottomControls = new QHBoxLayout;
     bottomControls->addWidget(fpsLabel);
     bottomControls->addWidget(hideXbox);
+    bottomControls->addWidget(showTipBox);
 
     /* In the dark subtraction mode, add an additional checkbox
      * at the bottom of the pane that allows the user to toggle
@@ -274,6 +279,11 @@ void frameview_widget::hideCrosshair(bool hide)
     crosshairY->setVisible(!hide);
 }
 
+void frameview_widget::showTooltip(bool show)
+{
+    show_tooltip = show;
+}
+
 void frameview_widget::setPlotMode(bool checked)
 {
     p_getFrame = checked ? &FrameWorker::getDSFrame
@@ -349,16 +359,18 @@ void frameview_widget::mouse_down(QMouseEvent *event) {
 }
 
 void frameview_widget::mouse_move(QMouseEvent *event) {
-    double x, y, val;
-    colorMap->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
-    val = colorMap->data()->data(x, y);
+    if (show_tooltip) {
+        double x, y, val;
+        colorMap->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+        val = colorMap->data()->data(x, y);
 
-    if (val > 0) {
-        QToolTip::showText(event->globalPos(),
-                           "X: " + QString::number(x) + "\n"
-                           + "Y: " + QString::number(y) + "\n"
-                           + "Value: " + QString::number(val),
-                           this, rect());
+        if (x > 0 && y > 0 && val > 0) {
+            QToolTip::showText(event->globalPos(),
+                               "X: " + QString::number(x) + "\n"
+                               + "Y: " + QString::number(y) + "\n"
+                               + "Value: " + QString::number(val),
+                               this, rect());
+        }
     }
 
     if(boxes_enabled) {
