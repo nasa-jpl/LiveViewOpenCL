@@ -349,6 +349,18 @@ void frameview_widget::mouse_down(QMouseEvent *event) {
 }
 
 void frameview_widget::mouse_move(QMouseEvent *event) {
+    double x, y, val;
+    colorMap->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+    val = colorMap->data()->data(x, y);
+
+    if (val > 0) {
+        QToolTip::showText(event->globalPos(),
+                           "X: " + QString::number(x) + "\n"
+                           + "Y: " + QString::number(y) + "\n"
+                           + "Value: " + QString::number(val),
+                           this, rect());
+    }
+
     if(boxes_enabled) {
         if(dragging_horizontal_box) {
             double limitx = qcp->xAxis->pixelToCoord(event->pos().x());
