@@ -22,7 +22,7 @@ SSDCamera::SSDCamera(unsigned int frWidth,
         frame_buf.push_back(std::vector<uint16_t>(frame_width * data_height, 0));
     }
 
-    camera_type = ITB;
+    camera_type = SSD_XIO;
 }
 
 SSDCamera::~SSDCamera() {}

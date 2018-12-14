@@ -208,7 +208,7 @@ void FrameWorker::captureFrames()
         lvframe_buffer->incIndex();
 
         count++;
-        if (duration < frame_period_ms && cam_type == ITB) {
+        if (duration < frame_period_ms && cam_type == SSD_XIO) {
             delay(int64_t(frame_period_ms) - duration);
         } else {
             QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
@@ -412,7 +412,7 @@ void FrameWorker::reportFPS()
 
 void FrameWorker::resetDir(const char *dirname)
 {
-    if (cam_type == ITB) {
+    if (cam_type == SSD_XIO) {
         Camera->setDir(dirname);
     }
 }
