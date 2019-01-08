@@ -3,6 +3,9 @@
 TwosComplimentFilter::TwosComplimentFilter(size_t frame_size) :
     frSize(frame_size)
 {
+    for (size_t ndx = 0; ndx < frSize; ndx++) {
+        pic_buffer[ndx] = 0;
+    }
 }
 
 void TwosComplimentFilter::apply_filter(uint16_t *pic_in, bool is16bit)

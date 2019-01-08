@@ -1,8 +1,9 @@
 #include "controlsbox.h"
 
 ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
-                         QString ipAddress, quint16 port, QWidget *parent) :
-    QWidget(parent), collecting_mask(false)
+                         const QString &ipAddress, quint16 port,
+                         QWidget *parent) :
+    QWidget(parent), bit_org(fwBIL), collecting_mask(false)
 {
     frame_handler = fw;
     connect(frame_handler, &FrameWorker::updateFPS,
@@ -67,11 +68,11 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
         this->collectDSFMask();
     });
 
-    QSlider *stdDevNSlider = new QSlider(this);
+    auto stdDevNSlider = new QSlider(this);
     stdDevNSlider->setOrientation(Qt::Horizontal);
     stdDevNSlider->setValue(100);
     // stdDevNSlider->setEnabled(false);
-    QSpinBox *stdDevNBox = new QSpinBox(this);
+    auto stdDevNBox = new QSpinBox(this);
     stdDevNBox->setMaximum(MAX_N);
     stdDevNBox->setMinimum(1);
     // stdDevNBox->setEnabled(false);
@@ -83,7 +84,7 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
         stdDevNBox->setValue((stdDevNSlider->value() / 2) + 1);
     });
 
-    QGridLayout *cboxLayout = new QGridLayout(this);
+    auto cboxLayout = new QGridLayout(this);
     cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Range:", this), 0, 1, 1, 1);
     cboxLayout->addWidget(min_box, 0, 2, 1, 1);
@@ -124,8 +125,6 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
             viewWidget->setCeiling(new_max);
     });
 }
-
-ControlsBox::~ControlsBox() {}
 
 void ControlsBox::tabChanged(int index)
 {
@@ -177,9 +176,7 @@ void ControlsBox::tabChanged(int index)
 
 void ControlsBox::acceptSave()
 {
-    if (saveFileNameEdit->text().isEmpty() || numFramesEdit->value() == 0) {
-        return;
-    } else {
+    if (!saveFileNameEdit->text().isEmpty() && numFramesEdit->value() != 0) {
         save_req_t new_req = {bit_org,
                               findAndReplaceFileName(saveFileNameEdit->text()).toStdString(),
                               static_cast<int64_t>(numFramesEdit->value()),
@@ -275,9 +272,9 @@ QString ControlsBox::findAndReplaceFileName(const QString& fileName)
 
     outStr.replace("%t", QString::number(QDateTime::currentDateTime().toSecsSinceEpoch()));
     outStr.replace("%n", QString::number(fileNumber++));
-    outStr.replace("%d", dateStr.arg(QString::number(date.year()))
-                                .arg(QString::number(date.month()))
-                                .arg(QString::number(date.day())));
+    outStr.replace("%d", dateStr.arg(QString::number(date.year()),
+                                     QString::number(date.month()),
+                                     QString::number(date.day())));
 
     return outStr;
 }

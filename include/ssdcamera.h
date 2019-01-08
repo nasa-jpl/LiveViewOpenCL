@@ -32,7 +32,7 @@ public:
               unsigned int frHeight = 480,
               unsigned int dataHeight = 480,
               QObject *parent = nullptr);
-    virtual ~SSDCamera();
+    ~SSDCamera() = default;
 
     virtual bool start();
     virtual void setDir(const char *dirname);

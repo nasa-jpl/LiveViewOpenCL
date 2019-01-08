@@ -22,7 +22,7 @@ public:
                               image_t image_type,
                               QSettings *set,
                               QWidget *parent = nullptr);
-    ~frameview_widget();
+    ~frameview_widget() = default;
 
 public slots:
     void handleNewFrame();

@@ -18,8 +18,8 @@ class ControlsBox : public QWidget
     Q_OBJECT
 public:
     explicit ControlsBox(FrameWorker *fw, QTabWidget *tw,
-                         QString ipAddress, quint16 port, QWidget *parent = nullptr);
-    ~ControlsBox();
+                         const QString &ipAddress, quint16 port, QWidget *parent = nullptr);
+    ~ControlsBox() = default;
 
     /* This button shares functionality with the "Save As..." functionality
      * in the Main Window. It is a public member so that it can be connected
@@ -49,10 +49,10 @@ private:
     FrameWorker *frame_handler;
     QLineEdit *fpsLabel;
 
-    QTabWidget* tab_handler;
+    QTabWidget *tab_handler;
 
     QString findAndReplaceFileName(const QString &fileName);
-    LVTabApplication* getCurrentTab();
+    LVTabApplication *getCurrentTab();
     LVTabApplication *viewWidget;
 
     ctkRangeSlider *rangeSlider;

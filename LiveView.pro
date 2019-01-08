@@ -65,10 +65,8 @@ SOURCES += \
         fft_widget.cpp \
         saveserver.cpp \
         twoscomplimentfilter.cpp \
-    src/fpslineedit.cpp
-unix:!macx {
-   SOURCES += clcamera.cpp
-}
+        fpslineedit.cpp
+exists(EDT_include/edtinc.h):SOURCES += clcamera.cpp
 
 HEADERS += \
         lvmainwindow.h \
@@ -100,10 +98,8 @@ HEADERS += \
         cameraselectdialog.h \
         twoscomplimentfilter.h \
         cameraviewdialog.h \
-    include/fpslineedit.h
-unix:!macx {
-    HEADERS += clcamera.h
-}
+        fpslineedit.h
+exists(EDT_include/edtinc.h):HEADERS += clcamera.h
 
 RESOURCES += \
     images/images.qrc \

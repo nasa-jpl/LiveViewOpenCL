@@ -10,7 +10,7 @@ class fft_widget : public LVTabApplication
     Q_OBJECT
 public:
     explicit fft_widget(FrameWorker *fw, QWidget *parent = nullptr);
-    ~fft_widget();
+    ~fft_widget() = default;
 
 public slots:
     void handleNewFrame();

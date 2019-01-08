@@ -4,7 +4,7 @@ void os::listdir(std::vector<std::string> &out, const std::string &directory)
 {
     DIR *dir;
     struct dirent *ent;
-    struct stat st;
+    struct stat st = {};
 
     if ((dir = opendir(directory.data())) != nullptr) {
         while ((ent = readdir(dir)) != nullptr) {
@@ -26,7 +26,7 @@ void os::listdir(std::vector<std::string> &out, const std::string &directory)
         }
         closedir(dir);
     } else {
-        out.push_back("");
+        out.emplace_back("");
         perror("");
     }
 }

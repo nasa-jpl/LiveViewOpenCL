@@ -64,7 +64,7 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     colorMap->setInterpolate(false);
     colorMap->setAntialiased(false);
 
-    QCPMarginGroup *marginGroup = new QCPMarginGroup(qcp);
+    auto marginGroup = new QCPMarginGroup(qcp);
     qcp->axisRect()->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
     colorScale->setMarginGroup(QCP::msBottom | QCP::msTop, marginGroup);
 
@@ -76,7 +76,7 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     fpsLabel = new QLabel("Starting...");
     fpsLabel->setFixedWidth(150);
 
-    QComboBox *zoomOptions = new QComboBox();
+    auto zoomOptions = new QComboBox();
     zoomOptions->addItem("Zoom on Both axes");
     zoomOptions->addItem("Zoom on X axis only");
     zoomOptions->addItem("Zoom on Y axis only");
@@ -151,8 +151,8 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     connect(showTipBox, SIGNAL(toggled(bool)), this, SLOT(showTooltip(bool)));
     showTipBox->setFixedWidth(200);
 
-    QVBoxLayout *qvbl = new QVBoxLayout(this);
-    QHBoxLayout *bottomControls = new QHBoxLayout;
+    auto qvbl = new QVBoxLayout(this);
+    auto bottomControls = new QHBoxLayout;
     bottomControls->addWidget(fpsLabel);
     bottomControls->addWidget(hideXbox);
     bottomControls->addWidget(showTipBox);
@@ -179,8 +179,8 @@ frameview_widget::frameview_widget(FrameWorker *fw,
 
     this->setLayout(qvbl);
 
-    connect(&renderTimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
-    connect(&fpsclock, SIGNAL(timeout()), this, SLOT(reportFPS()));
+    connect(&renderTimer, &QTimer::timeout, this, &frameview_widget::handleNewFrame);
+    connect(&fpsclock, &QTimer::timeout, this, &frameview_widget::reportFPS);
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledY(QCPRange)));
     connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledX(QCPRange)));
 
@@ -188,8 +188,7 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     connect(qcp, &QCustomPlot::mouseMove, this, &frameview_widget::mouse_move);
     connect(qcp, &QCustomPlot::mouseRelease, this, &frameview_widget::mouse_up);
     if (image_type == BASE) {
-        connect(qcp, SIGNAL(plottableDoubleClick(QCPAbstractPlottable*, int, QMouseEvent*)),
-                this, SLOT(drawCrosshair(QCPAbstractPlottable*, int, QMouseEvent*)));
+        connect(qcp, &QCustomPlot::plottableDoubleClick, this, &frameview_widget::drawCrosshair);
     }
     colorMapData = new QCPColorMapData(frWidth, frHeight, QCPRange(0, frWidth-1), QCPRange(0, frHeight-1));
     colorMap->setData(colorMapData);
@@ -197,10 +196,6 @@ frameview_widget::frameview_widget(FrameWorker *fw,
         renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
         fpsclock.start(1000); // 1 sec
     }
-}
-
-frameview_widget::~frameview_widget()
-{
 }
 
 void frameview_widget::handleNewFrame()
@@ -243,9 +238,7 @@ void frameview_widget::drawCrosshair(QCPAbstractPlottable *plottable, int dataIn
 {
     Q_UNUSED(plottable);
     Q_UNUSED(dataIndex);
-    if(event->button()== Qt::RightButton) {
-        return;
-    } else {
+    if (event->button() != Qt::RightButton) {
         double dataX = qcp->xAxis->pixelToCoord(event->pos().x());
         double dataY = qcp->yAxis->pixelToCoord(event->pos().y());
         crosshairX->bottomRight->setCoords(dataX, 0);
@@ -259,7 +252,7 @@ void frameview_widget::drawCrosshair(QCPAbstractPlottable *plottable, int dataIn
         hiBoundY += qcp->yAxis->pixelToCoord(event->pos().y()) - frame_handler->getCenter()->y();
 
         frame_handler->setCenter(dataX, dataY);
-        if(boxes_enabled) {
+        if (boxes_enabled) {
             tlBox->topLeft->setCoords(0, 0);
             tlBox->bottomRight->setCoords(loBoundX, loBoundY);
             trBox->topLeft->setCoords(hiBoundX, 0);
@@ -298,7 +291,7 @@ QCPColorMap* frameview_widget::getColorMap()
 void frameview_widget::setDarkMode()
 {
     if (settings->value(QString("dark"), USE_DARK_STYLE).toBool()) {
-        qcp->setBackground(QBrush(QColor("#31363B")));
+        qcp->setBackground(QBrush(QColor(0x31363B)));
         qcp->xAxis->setTickLabelColor(Qt::white);
         qcp->xAxis->setBasePen(QPen(Qt::white));
         qcp->xAxis->setLabelColor(Qt::white);

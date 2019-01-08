@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <signal.h>
+#include <csignal>
 
 #include "lvmainwindow.h"
 
@@ -28,7 +28,7 @@
 int main(int argc, char* argv[])
 {
     int sfd;
-    struct sockaddr_un lv_addr;
+    struct sockaddr_un lv_addr = {};
     QApplication a(argc, argv);
 
     sfd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
         QFile f(":qdarkstyle/style.qss");
 
         if (!f.exists()) {
-            printf("Unable to set stylesheet, file not found\n");
+            qDebug() << "Unable to set stylesheet, file not found";
         } else {
             f.open(QFile::ReadOnly | QFile::Text);
             QTextStream ts(&f);

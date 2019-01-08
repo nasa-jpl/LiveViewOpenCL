@@ -33,9 +33,9 @@ histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
 
     if (fw->settings->value(QString("dark"), USE_DARK_STYLE).toBool()) {
         histogram->setPen(QPen(Qt::lightGray));
-        histogram->setBrush(QBrush(QColor("#31363B")));
+        histogram->setBrush(QBrush(QColor(0x31363B)));
 
-        qcp->setBackground(QBrush(QColor("#31363B")));
+        qcp->setBackground(QBrush(QColor(0x31363B)));
         qcp->xAxis->setTickLabelColor(Qt::white);
         qcp->xAxis->setBasePen(QPen(Qt::white));
         qcp->xAxis->setLabelColor(Qt::white);
@@ -59,16 +59,12 @@ histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
     connect(histogram->keyAxis(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledX(QCPRange)));
     connect(histogram->valueAxis(), SIGNAL(rangeChanged(QCPRange)), this, SLOT(histogramScrolledY(QCPRange)));
 
-    QVBoxLayout *qvbl = new QVBoxLayout(this);
+    auto qvbl = new QVBoxLayout(this);
     qvbl->addWidget(qcp);
     this->setLayout(qvbl);
 
     connect(&renderTimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
     renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
-}
-
-histogram_widget::~histogram_widget()
-{
 }
 
 void histogram_widget::handleNewFrame()

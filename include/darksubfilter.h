@@ -20,8 +20,8 @@ public:
     virtual ~DarkSubFilter();
 
     void dsf_callback(uint16_t* in_frame, float* out_frame);
-    void collect_mask(uint16_t* in_frame);
-    void dark_subtract(uint16_t* in_frame, float *out_frame);
+    void collect_mask(const uint16_t *in_frame);
+    void dark_subtract(const uint16_t *in_frame, float *out_frame);
 
     void start_mask_collection(const quint64 &avgf);
     void finish_mask_collection();
@@ -39,7 +39,7 @@ signals:
 private:
     bool mask_collected;
     size_t frSize;
-    unsigned int nSamples;
+    quint64 nSamples;
 
     std::vector<double> mask_accum;
     std::vector<float> mask;

@@ -53,7 +53,7 @@ public:
     }
 
     QStringList getDeviceList();
-    void change_device(QString dev_name);
+    void change_device(const QString &dev_name);
 
 private:
     bool readyRead;

@@ -7,7 +7,7 @@ public:
         : lastIndex(0), fbIndex(0),  dsfIndex(0), stdIndex(0)
     {
         for (unsigned int f = 0; f < num_frames; ++f) {
-            LVFrame *pFrame = new LVFrame(frame_width, frame_height);
+            auto pFrame = new LVFrame(frame_width, frame_height);
             frame_vec.push_back(pFrame);
         }
     }
@@ -30,7 +30,7 @@ public:
         frame_vec.clear();
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
         for (unsigned int f = 0; f < num_frames; ++f) {
-            LVFrame* pFrame = new LVFrame(frame_width, frame_height);
+            auto pFrame = new LVFrame(frame_width, frame_height);
             frame_vec.push_back(pFrame);
         }
         fbIndex.store(0, std::memory_order_release);
@@ -181,7 +181,7 @@ void FrameWorker::captureFrames()
     int64_t duration;
     double this_frame_duration;
 
-    QTimer *fpsclock = new QTimer(this);
+    auto fpsclock = new QTimer(this);
     connect(fpsclock, &QTimer::timeout, this, &FrameWorker::reportFPS);
     fpsclock->start(1000);
     ticklist.fill(0);
@@ -198,7 +198,7 @@ void FrameWorker::captureFrames()
         duration = duration_cast<milliseconds>(end - beg).count();
         this_frame_duration = duration_cast<microseconds>(end - last_frame).count();
         last_frame = end;
-        ticksum -= ticklist[size_t(tickindex)];
+        ticksum -= ticklist.at(size_t(tickindex));
         ticksum += int(this_frame_duration);
         ticklist[size_t(tickindex)] = int(this_frame_duration);
         if (++tickindex == MAXSAMPLES) {
@@ -276,8 +276,8 @@ void FrameWorker::saveFrames(save_req_t req)
         std::fill(frame_accum.begin(), frame_accum.end(), 0.0);
     }
 
-    if (req.file_name.find_last_of(".") != std::string::npos) {
-        hdr_fname = req.file_name.substr(0, req.file_name.find_last_of(".") + 1) + "hdr";
+    if (req.file_name.find_last_of('.') != std::string::npos) {
+        hdr_fname = req.file_name.substr(0, req.file_name.find_last_of('.') + 1) + "hdr";
     } else {
         hdr_fname = req.file_name + ".hdr";
     }
@@ -346,7 +346,7 @@ void FrameWorker::saveFrames(save_req_t req)
     emit doneSaving();
 }
 
-void FrameWorker::captureFramesRemote(save_req_t new_req)
+void FrameWorker::captureFramesRemote(const save_req_t &new_req)
 {
     SaveQueue.push(new_req);
     if (!saving) {
@@ -363,7 +363,7 @@ void FrameWorker::applyMask(const QString &fileName)
 
 void FrameWorker::collectMask()
 {
-    if (QFileInfo(mask_file).exists()) {
+    if (QFileInfo::exists(mask_file)) {
         int retval = QMessageBox::warning(nullptr, "Confirm Mask Save",
                              QString("The file: %1 already exists. Are you sure you want to overwrite it?").arg(mask_file),
                              QMessageBox::Ok, QMessageBox::Cancel);
@@ -387,7 +387,7 @@ void FrameWorker::stopCollectingMask()
 
 void FrameWorker::setMaskSettings(QString mask_name, quint64 avg_frames)
 {
-    mask_file = mask_name;
+    mask_file = std::move(mask_name);
     avgd_frames = avg_frames;
 }
 
@@ -496,19 +496,19 @@ std::vector<uint16_t> FrameWorker::getBIPSaveFrame()
 
 void FrameWorker::convertBSQ(save_req_t req)
 {
-    int numSamps = static_cast<int>(frWidth);
-    int numLines = static_cast<int>(std::ceil(req.nFrames / req.nAvgs));
+    auto numSamps = static_cast<int>(frWidth);
+    auto numLines = static_cast<int>(std::ceil(req.nFrames / req.nAvgs));
     int linesPerChunk = std::min(numLines, CHUNK_NUMLINES);
     int readLinesChunk = linesPerChunk;
     int rem = numLines % linesPerChunk > 0 ? 1 : 0;
     int numChunks = numLines / linesPerChunk + rem;
-    int numBands = static_cast<int>(frHeight);
+    auto numBands = static_cast<int>(frHeight);
     int pixel_size = sizeof(uint16_t);
     std::vector< std::vector<uint16_t> > BandArray;
     std::vector<uint16_t> LineArray;
     BandArray.resize(static_cast<size_t>(numBands));
-    for (auto band = BandArray.begin(); band != BandArray.end(); band++) {
-        band->resize(static_cast<size_t>(numSamps * linesPerChunk));
+    for (auto &band : BandArray) {
+        band.resize(static_cast<size_t>(numSamps * linesPerChunk));
     }
     LineArray.resize(static_cast<size_t>(numSamps));
 
@@ -533,15 +533,15 @@ void FrameWorker::convertBSQ(save_req_t req)
             readLinesChunk = numLines % linesPerChunk;
         }
         for (int line = 0; line < readLinesChunk; line++) {
-            for (auto band = BandArray.begin(); band != BandArray.end(); band++) {
+            for (auto &band : BandArray) {
                 bil_image.read(reinterpret_cast<char*>(LineArray.data()), numSamps * pixel_size);
-                band->insert(band->begin() + (line * numSamps), LineArray.begin(), LineArray.end());
+                band.insert(band.begin() + (line * numSamps), LineArray.begin(), LineArray.end());
             }
         }
 
         bsq_image.seekp(linesPerChunk * chunk * numSamps * pixel_size);
-        for (auto band = BandArray.begin(); band != BandArray.end(); band++) {
-            bsq_image.write(reinterpret_cast<char*>(band->data()), linesPerChunk * numSamps * pixel_size);
+        for (auto &band : BandArray) {
+            bsq_image.write(reinterpret_cast<char*>(band.data()), linesPerChunk * numSamps * pixel_size);
             bsq_image.seekp((numLines - linesPerChunk * (chunk + 1)) * numSamps * pixel_size, std::ios_base::cur);
         }
     }

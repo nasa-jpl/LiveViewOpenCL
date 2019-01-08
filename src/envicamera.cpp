@@ -1,17 +1,14 @@
 #include "envicamera.h"
 
 ENVICamera::ENVICamera(QObject *parent) :
-    CameraModel(parent), framesize(640 * 480)
+    CameraModel(parent), framesize(640 * 480),
+    curIndex(0), nFrames(32)
 {
     // frame_width = frWidth;
     // frame_height = frHeight;
     // data_height = dataHeight;
     camera_type = DEFAULT;
     source_type = DEBUG;
-}
-
-ENVICamera::~ENVICamera()
-{
 }
 
 bool ENVICamera::start()

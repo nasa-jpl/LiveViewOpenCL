@@ -18,7 +18,7 @@ class ENVICamera : public CameraModel
 
 public:
     ENVICamera(QObject *parent = nullptr);
-    virtual ~ENVICamera();
+    ~ENVICamera() = default;
 
     virtual bool start();
 

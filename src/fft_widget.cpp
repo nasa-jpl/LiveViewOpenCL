@@ -14,7 +14,7 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
     freq_bins = QVector<double>(FFT_INPUT_LENGTH / 2);
     rfft_data_vec = QVector<double>(FFT_INPUT_LENGTH / 2);
 
-    QGridLayout *qgl = new QGridLayout(this);
+    auto qgl = new QGridLayout(this);
     qgl->addWidget(qcp, 0, 0, 8, 8);
     qgl->addWidget(DCMaskBox, 8, 0, 1, 2);
     this->setLayout(qgl);
@@ -23,9 +23,9 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
 
     if (fw->settings->value(QString("dark"), USE_DARK_STYLE).toBool()) {
         fft_bars->setPen(QPen(Qt::lightGray));
-        fft_bars->setBrush(QBrush(QColor("#31363B")));
+        fft_bars->setBrush(QBrush(QColor(0x31363B)));
 
-        qcp->setBackground(QBrush(QColor("#31363B")));
+        qcp->setBackground(QBrush(QColor(0x31363B)));
         qcp->xAxis->setTickLabelColor(Qt::white);
         qcp->xAxis->setBasePen(QPen(Qt::white));
         qcp->xAxis->setLabelColor(Qt::white);
@@ -51,11 +51,6 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
 
     connect(&renderTimer, &QTimer::timeout, this, &fft_widget::handleNewFrame);
     renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
-}
-
-fft_widget::~fft_widget()
-{
-    // delete fft_bars;
 }
 
 void fft_widget::handleNewFrame()

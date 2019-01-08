@@ -102,7 +102,7 @@ public slots:
     void captureDSFrames();
     void captureSDFrames();
     void reportFPS();
-    void captureFramesRemote(save_req_t new_req);
+    void captureFramesRemote(const save_req_t &new_req);
     void applyMask(const QString &fileName);
     void setStdDevN(int new_N);
     void setFramePeriod(double period);

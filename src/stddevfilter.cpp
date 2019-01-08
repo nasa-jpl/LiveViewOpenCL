@@ -20,11 +20,11 @@ bool StdDevFilter::start()
     // Typically there is only one platform, but some systems have several depending on hardware configuration.
     cl_uint platformIdCount = 0;
     clGetPlatformIDs(0, nullptr, &platformIdCount);
-    if (platformIdCount == 0) {
+    if (platformIdCount != 0) {
+        qDebug() << "Found" << platformIdCount << " platform(s)";
+    } else {
         qWarning("No OpenCL platform found!");
         return false;
-    } else {
-        qDebug() << "Found" << platformIdCount << " platform(s)";
     }
 
     // List the platform names.
@@ -47,11 +47,11 @@ bool StdDevFilter::start()
         totalDeviceCount += deviceIdCount;
     }
 
-    if (totalDeviceCount == 0) {
+    if (totalDeviceCount != 0) {
+        qDebug() << "Found" << totalDeviceCount << "device(s) across all platforms";
+    } else {
         qWarning("No OpenCL-compatible devices found on any platform!"); // will abort
         return false;
-    } else {
-        qDebug() << "Found" << totalDeviceCount << "device(s) across all platforms";
     }
 
     deviceIds.resize(totalDeviceCount);
@@ -238,7 +238,7 @@ std::string StdDevFilter::GetDeviceName(cl_device_id id)
 cl_uint StdDevFilter::getPlatformNum(cl_uint dev_num)
 {
     cl_uint plat_num = 0;
-    cl_int devcounter = static_cast<cl_int>(dev_num);
+    auto devcounter = static_cast<cl_int>(dev_num);
     for (auto &dpp : devicesPerPlatform) {
         devcounter -= dpp;
         if (devcounter > 0) {
@@ -408,7 +408,7 @@ QStringList StdDevFilter::getDeviceList()
     return deviceNames;
 }
 
-void StdDevFilter::change_device(QString dev_name)
+void StdDevFilter::change_device(const QString &dev_name)
 {
     if (!QString::compare(QString(GetDeviceName(deviceIds[device_num]).data()), dev_name, Qt::CaseInsensitive)
             && !dev_name.isEmpty()) {

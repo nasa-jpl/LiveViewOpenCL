@@ -9,7 +9,7 @@ class line_widget : public LVTabApplication
     Q_OBJECT
 public:
     explicit line_widget(FrameWorker *fw, image_t image_t, QWidget *parent = nullptr);
-    virtual ~line_widget();
+    ~line_widget() = default;
 
     image_t image_type;
 

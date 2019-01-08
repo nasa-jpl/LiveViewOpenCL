@@ -1,7 +1,8 @@
 #include "darksubfilter.h"
 
 DarkSubFilter::DarkSubFilter(size_t frame_size) :
-    mask_collected(true), frSize(frame_size)
+    mask_collected(true), frSize(frame_size),
+    nSamples(0), avgd_frames(0)
 {
     mask.resize(frSize);
     mask_accum.resize(frSize);
@@ -31,7 +32,7 @@ void DarkSubFilter::finish_mask_collection()
     qDebug("Mask collected!");
 }
 
-void DarkSubFilter::collect_mask(uint16_t* in_frame)
+void DarkSubFilter::collect_mask(const uint16_t *in_frame)
 {
     for (size_t i = 0; i < frSize; i++) {
         mask_accum[i] = in_frame[i] + mask_accum[i];
@@ -42,7 +43,7 @@ void DarkSubFilter::collect_mask(uint16_t* in_frame)
     }
 }
 
-void DarkSubFilter::dark_subtract(uint16_t* in_frame, float* out_frame)
+void DarkSubFilter::dark_subtract(const uint16_t *in_frame, float *out_frame)
 {
     for (size_t i = 0; i < frSize; i++) {
         out_frame[i] = in_frame[i] - mask[i];

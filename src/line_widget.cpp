@@ -100,32 +100,29 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
     connect(plotModeBox, SIGNAL(currentIndexChanged(int)),
             this, SLOT(setPlotMode(int)));
 
-    QHBoxLayout *bottomButtons = new QHBoxLayout;
+    auto bottomButtons = new QHBoxLayout;
     bottomButtons->addWidget(hideTracer);
     bottomButtons->addWidget(plotModeBox);
 
-    QVBoxLayout *qvbl = new QVBoxLayout(this);
+    auto qvbl = new QVBoxLayout(this);
     qvbl->addWidget(qcp);
     qvbl->addLayout(bottomButtons);
     this->setLayout(qvbl);
 
     connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledX(QCPRange)));
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(lineScrolledY(QCPRange)));
-    connect(frame_handler, SIGNAL(crosshairChanged(QPointF)), this, SLOT(updatePlotTitle(QPointF)));
-    connect(qcp, SIGNAL(plottableDoubleClick(QCPAbstractPlottable*, int, QMouseEvent*)), \
-            this, SLOT(setTracer(QCPAbstractPlottable*, int, QMouseEvent*)));
-    connect(qcp, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(moveCallout(QMouseEvent*)));
+    connect(frame_handler, &FrameWorker::crosshairChanged, this, &line_widget::updatePlotTitle);
+    connect(qcp, &QCustomPlot::plottableDoubleClick, this, &line_widget::setTracer);
+    connect(qcp, &QCustomPlot::mouseMove, this, &line_widget::moveCallout);
     connect(&renderTimer, &QTimer::timeout, this, &line_widget::handleNewFrame);
 
     renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
 }
 
-line_widget::~line_widget() {}
-
 QVector<double> line_widget::getSpectralLine(QPointF coord)
 {
     QVector<double> graphData(static_cast<int>(frHeight));
-    size_t col = static_cast<size_t>(coord.y());
+    auto col = static_cast<size_t>(coord.y());
     std::vector<float> image_data = (frame_handler->*p_getFrame)();
     for (size_t r = 0; r < frHeight; r++) {
         graphData[r] = static_cast<double>(image_data[r * frWidth + col]);
@@ -136,7 +133,7 @@ QVector<double> line_widget::getSpectralLine(QPointF coord)
 QVector<double> line_widget::getSpatialLine(QPointF coord)
 {
     QVector<double> graphData(static_cast<int>(frWidth));
-    size_t row = static_cast<size_t>(coord.x());
+    auto row = static_cast<size_t>(coord.x());
     std::vector<float> image_data = (frame_handler->*p_getFrame)();
     for (size_t c = 0; c < frWidth; c++) {
         graphData[c] = static_cast<double>(image_data[row * frWidth + c]);
@@ -170,17 +167,15 @@ void line_widget::handleNewFrame()
 {
     if (!this->isHidden() && frame_handler->running()) {
         QPointF *center = frame_handler->getCenter();
-        if (center->x() < -0.1 && (image_type == SPECTRAL_PROFILE || image_type == SPATIAL_PROFILE)) {
-            return;
-        } else {
+        if (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN || center->x() > -0.1) {
             y = (this->*p_getLine)(*center);     
             qcp->graph(0)->setData(x, y);
             // replotting is slow when the data set is chaotic... TODO: develop an optimization here
             qcp->replot();
-        }
-        if (!hideTracer->isChecked()) {
-            callout->setText(QString(" x: %1 \n y: %2 ").arg(static_cast<int>(tracer->graphKey()))
+            if (!hideTracer->isChecked()) {
+                callout->setText(QString(" x: %1 \n y: %2 ").arg(static_cast<int>(tracer->graphKey()))
                              .arg(y[static_cast<int>(tracer->graphKey())]));
+            }
         }
     }
 }
@@ -274,7 +269,7 @@ void line_widget::setDarkMode(bool dm)
         qcp->graph(0)->setPen(QPen(Qt::lightGray));
         plotTitle->setTextColor(Qt::white);
 
-        qcp->setBackground(QBrush(QColor("#31363B")));
+        qcp->setBackground(QBrush(QColor(0x31363B)));
         qcp->xAxis->setTickLabelColor(Qt::white);
         qcp->xAxis->setBasePen(QPen(Qt::white));
         qcp->xAxis->setLabelColor(Qt::white);
@@ -296,8 +291,8 @@ void line_widget::setDarkMode(bool dm)
 
         callout->setColor(Qt::white);
         callout->setPen(QPen(Qt::white));
-        callout->setBrush(QBrush(QColor("#31363B")));
-        callout->setSelectedBrush(QBrush(QColor("#31363B")));
+        callout->setBrush(QBrush(QColor(0x31363B)));
+        callout->setSelectedBrush(QBrush(QColor(0x31363B)));
         callout->setSelectedPen(QPen(Qt::white));
         callout->setSelectedColor(Qt::white);
 

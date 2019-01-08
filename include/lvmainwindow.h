@@ -106,7 +106,7 @@ private slots:
     void save();
     void saveAs();
     void reset();
-    void change_compute_device(QString dev_name);
+    void change_compute_device(const QString &dev_name);
     void show_about_window();
 };
 

@@ -12,7 +12,7 @@ class histogram_widget : public LVTabApplication
     Q_OBJECT
 public:
     explicit histogram_widget(FrameWorker *fw, QWidget *parent = nullptr);
-    ~histogram_widget();
+    ~histogram_widget() = default;
 
 public slots:
     void handleNewFrame();

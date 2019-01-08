@@ -82,7 +82,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     connect(cbox->browseButton, &QPushButton::clicked, this, &LVMainWindow::saveAs);
     connect(this, &LVMainWindow::saveRequest, cbox, &ControlsBox::acceptSave);
 
-    QVBoxLayout* mainLayout = new QVBoxLayout(mainWidget);
+    auto mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->addWidget(tab_widget);
     mainLayout->addWidget(cbox);
 
@@ -361,7 +361,7 @@ void LVMainWindow::reset()
     fw->resetDir(source_dir.toLatin1().data());
 }
 
-void LVMainWindow::change_compute_device(QString dev_name)
+void LVMainWindow::change_compute_device(const QString &dev_name)
 {
     fw->STDFilter->change_device(dev_name);
 }

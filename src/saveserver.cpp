@@ -78,7 +78,7 @@ void SaveServer::sessionOpened()
 
 void SaveServer::startClient()
 {
-    SaveClient *client = new SaveClient(tcpServer->nextPendingConnection());
+    auto client = new SaveClient(tcpServer->nextPendingConnection());
     connect(client, &SaveClient::saveFrames, this, [&](save_req_t req)
     {
         emit startSavingRemote(req);
