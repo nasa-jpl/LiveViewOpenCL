@@ -330,6 +330,10 @@ void LVMainWindow::open()
 
     if (!temp_dir.isEmpty()) {
         source_dir = temp_dir;
+        QStringList source_list = source_dir.split("/");
+        source_list.pop_back();
+        QString open_dir = source_list.join("/");
+        settings->setValue("save_dir", open_dir);
         fw->resetDir(source_dir.toLatin1().data());
     }
 }
