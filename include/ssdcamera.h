@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <cstring>
 #include <fstream>
+#include <deque>
 #include <vector>
 #include <array>
 #include <algorithm>
@@ -11,6 +12,8 @@
 
 #include <QDebug>
 #include <QDir>
+#include <QtConcurrent/QtConcurrent>
+#include <QFuture>
 
 #include "alphanum.hpp"
 
@@ -53,10 +56,12 @@ private:
 
     size_t image_no;
     std::vector<std::string> xio_files;
-    std::vector< std::vector<uint16_t> > frame_buf;
+    std::deque< std::vector<uint16_t> > frame_buf;
     std::vector<unsigned char> header;
     std::vector<uint16_t> dummy;
-    std::atomic<uint16_t> curIndex;
+    std::vector<uint16_t> temp_frame;
+
+    QFuture<void> cool;
 };
 
 #endif // SSDCAMERA_H

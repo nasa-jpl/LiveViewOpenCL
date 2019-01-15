@@ -3,10 +3,8 @@
 SSDCamera::SSDCamera(unsigned int frWidth,
         unsigned int frHeight, unsigned int dataHeight,
         QObject *parent
-) : CameraModel(parent),
-    nFrames(32), framesize(0),
-    headsize(frWidth * sizeof(uint16_t)),
-    image_no(0), curIndex(0)
+) : CameraModel(parent), nFrames(32), framesize(0),
+    headsize(frWidth * sizeof(uint16_t)), image_no(0)
 {
     source_type = SSD;
     frame_width = frWidth;
@@ -43,7 +41,6 @@ void SSDCamera::setDir(const char *dirname)
     xio_files.clear();
     dev_p.clear();
     dev_p.close();
-    curIndex.store(-1);
     image_no = 0;
     std::vector<std::string> fname_list;
     os::listdir(fname_list, data_dir);
@@ -170,15 +167,12 @@ void SSDCamera::readFile()
 
 uint16_t* SSDCamera::getFrame()
 {
-    curIndex++;
-
-    if (curIndex.load() >= nFrames) {
-        readFile();
-        curIndex.store(0);
-    }
-
     if (running.load()) {
-        return frame_buf[curIndex.load()].data();
+        readFile();
+        temp_frame = frame_buf.back();
+        frame_buf.pop_back();
+        return temp_frame.data();
+    } else {
+        return dummy.data();
     }
-    return dummy.data();
 }
