@@ -13,7 +13,7 @@ Primary: Jacqueline Ryan [Jacqueline.Ryan@jpl.nasa.gov](mailto:Jacqueline.Ryan@j
 
 Brendan Berrigan
 
-Max Plotkin [mawxell.a.plotkin@jpl.nasa.gov](mailto:mawxell.a.plotkin@jpl.nasa.gov)
+Max Plotkin [maxwell.a.plotkin@jpl.nasa.gov](mailto:mawxell.a.plotkin@jpl.nasa.gov)
 
 ## Inquiries
 
