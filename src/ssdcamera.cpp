@@ -54,9 +54,10 @@ void SSDCamera::setDir(const char *dirname)
         if (f.empty() or std::strcmp(ext.data(), "xio") != 0 or std::strcmp(ext.data(), "decomp") != 0)
             continue;
 
-        xio_files.push_back(f);
+        xio_files.emplace_back(f);
     }
-    readFile();
+
+    QtConcurrent::run(this, &SSDCamera::readFile);
 }
 
 std::string SSDCamera::getFname()
@@ -85,7 +86,7 @@ std::string SSDCamera::getFname()
             } else if (has_file) {
                 break;
             } else {
-                xio_files.push_back(*f);
+                xio_files.emplace_back(*f);
             }
 
         }
@@ -153,12 +154,17 @@ void SSDCamera::readFile()
             std::vector<uint16_t> zero_vec((frame_width * data_height) - (framesize / sizeof(uint16_t)));
             std::fill(zero_vec.begin(), zero_vec.end(), 0);
 
+            std::vector<uint16_t> copy_vec(framesize, 0);
+
             for (unsigned int n = 0; n < nFrames; ++n) {
-                dev_p.read(reinterpret_cast<char*>(frame_buf[n].data()), framesize);
+                dev_p.read(reinterpret_cast<char*>(copy_vec.data()), framesize);
+                frame_buf.emplace_front(copy_vec);
+
                 if ((framesize / sizeof(uint16_t)) < frame_width * data_height) {
-                            std::copy(zero_vec.begin(), zero_vec.end(), frame_buf[n].begin() + framesize / sizeof(uint16_t));
+                    std::copy(zero_vec.begin(), zero_vec.end(), frame_buf[n].begin() + framesize / sizeof(uint16_t));
                 }
             }
+
             running.store(true);
             dev_p.close();
         }
@@ -167,8 +173,7 @@ void SSDCamera::readFile()
 
 uint16_t* SSDCamera::getFrame()
 {
-    if (running.load()) {
-        readFile();
+    if (running.load() && !frame_buf.empty()) {
         temp_frame = frame_buf.back();
         frame_buf.pop_back();
         return temp_frame.data();

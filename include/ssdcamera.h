@@ -60,8 +60,6 @@ private:
     std::vector<unsigned char> header;
     std::vector<uint16_t> dummy;
     std::vector<uint16_t> temp_frame;
-
-    QFuture<void> cool;
 };
 
 #endif // SSDCAMERA_H
