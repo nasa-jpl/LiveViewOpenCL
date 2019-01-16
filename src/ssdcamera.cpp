@@ -4,7 +4,8 @@ SSDCamera::SSDCamera(unsigned int frWidth,
         unsigned int frHeight, unsigned int dataHeight,
         QObject *parent
 ) : CameraModel(parent), nFrames(32), framesize(0),
-    headsize(frWidth * sizeof(uint16_t)), image_no(0)
+    headsize(frWidth * sizeof(uint16_t)), image_no(0),
+    tmoutPeriod(100) // milliseconds
 {
     source_type = SSD;
     frame_width = frWidth;
@@ -31,6 +32,9 @@ bool SSDCamera::start()
 void SSDCamera::setDir(const char *dirname)
 {
     is_reading = false;
+    if (readLoopFuture.isRunning()) {
+        readLoopFuture.waitForFinished();
+    }
     data_dir = dirname;
     if (data_dir.empty()) {
         if (running.load()) {
@@ -58,7 +62,7 @@ void SSDCamera::setDir(const char *dirname)
         xio_files.emplace_back(f);
     }
 
-    QtConcurrent::run(this, &SSDCamera::readLoop);
+    readLoopFuture = QtConcurrent::run(this, &SSDCamera::readLoop);
 }
 
 std::string SSDCamera::getFname()
@@ -180,8 +184,13 @@ void SSDCamera::readLoop()
     do {
         if (frame_buf.size() <= 96) {
             readFile();
+        } else {
+            QTime remTime = QTime::currentTime().addMSecs(int(tmoutPeriod));
+            while(QTime::currentTime() < remTime) {
+                QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+            }
         }
-    } while (is_reading && !frame_buf.empty());
+    } while (is_reading);
 }
 
 uint16_t* SSDCamera::getFrame()
