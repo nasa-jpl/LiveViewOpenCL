@@ -30,6 +30,7 @@ bool SSDCamera::start()
 
 void SSDCamera::setDir(const char *dirname)
 {
+    is_reading = false;
     data_dir = dirname;
     if (data_dir.empty()) {
         if (running.load()) {
@@ -101,7 +102,6 @@ std::string SSDCamera::getFname()
 
 void SSDCamera::readFile()
 {
-    // qDebug() << "READING";
     is_reading = true;
     bool validFile = false;
     while(!validFile) {
@@ -115,7 +115,7 @@ void SSDCamera::readFile()
                 running.store(false);
                 emit timeout();
             }
-            is_reading = false;
+            // qDebug() << "TIMEOUT";
             return; //If we're out of files, give up
         }
         // otherwise check if data is valid
@@ -127,6 +127,7 @@ void SSDCamera::readFile()
             return;
         }
 
+        // qDebug() << "READING";
         // qDebug() << "Successfully opened " << ifname.data();
         dev_p.unsetf(std::ios::skipws);
 
@@ -180,12 +181,12 @@ void SSDCamera::readLoop()
         if (frame_buf.size() <= 96) {
             readFile();
         }
-    } while (is_reading);
+    } while (is_reading && !frame_buf.empty());
 }
 
 uint16_t* SSDCamera::getFrame()
 {
-    if (running.load() && !frame_buf.empty()) {
+    if (!frame_buf.empty()) {
         temp_frame = frame_buf.back();
         frame_buf.pop_back();
         return temp_frame.data();
