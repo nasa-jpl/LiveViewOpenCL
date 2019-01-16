@@ -57,7 +57,7 @@ void SSDCamera::setDir(const char *dirname)
         xio_files.emplace_back(f);
     }
 
-    QtConcurrent::run(this, &SSDCamera::readFile);
+    QtConcurrent::run(this, &SSDCamera::readLoop);
 }
 
 std::string SSDCamera::getFname()
@@ -101,6 +101,8 @@ std::string SSDCamera::getFname()
 
 void SSDCamera::readFile()
 {
+    // qDebug() << "READING";
+    is_reading = true;
     bool validFile = false;
     while(!validFile) {
         ifname = getFname();
@@ -113,6 +115,7 @@ void SSDCamera::readFile()
                 running.store(false);
                 emit timeout();
             }
+            is_reading = false;
             return; //If we're out of files, give up
         }
         // otherwise check if data is valid
@@ -169,6 +172,15 @@ void SSDCamera::readFile()
             dev_p.close();
         }
     }
+}
+
+void SSDCamera::readLoop()
+{
+    do {
+        if (frame_buf.size() <= 96) {
+            readFile();
+        }
+    } while (is_reading);
 }
 
 uint16_t* SSDCamera::getFrame()

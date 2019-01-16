@@ -45,7 +45,9 @@ public:
 private:
     std::string getFname();
     void readFile();
+    void readLoop();
 
+    bool is_reading;
     std::ifstream dev_p;
     std::string ifname;
     std::string data_dir;
