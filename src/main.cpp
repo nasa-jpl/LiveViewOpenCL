@@ -40,8 +40,11 @@ int main(int argc, char* argv[])
     lv_addr.sun_family = AF_UNIX;
     strncpy(lv_addr.sun_path, "LiveViewOpenSource",
             sizeof(lv_addr.sun_path) - 1);
+    qDebug() << lv_addr.sun_path;
+    qDebug() << sfd;
     if (bind(sfd, reinterpret_cast<struct sockaddr*>(&lv_addr),
              sizeof(struct sockaddr_un)) == -1) {
+        qDebug() << strerror(errno);
         auto reply = QMessageBox::question(nullptr, "LiveView Cannot Start",
                             "Only one instance of LiveView should be run at a time. Multiple instances can cause errors. Would you like to continue anyways?",
                                            QMessageBox::Yes | QMessageBox::Cancel);
@@ -49,10 +52,12 @@ int main(int argc, char* argv[])
             handle_error("bind");
         } else {
             unlink("LiveViewOpenSource");
+            qDebug() << strerror(errno);
             bind(sfd, reinterpret_cast<struct sockaddr*>(&lv_addr), sizeof(struct sockaddr_un));
         }
     }
     if (listen(sfd, 50) == -1) {
+        qDebug() << strerror(errno);
         handle_error("listen");
     }
 

@@ -7,7 +7,7 @@ ENVICamera::ENVICamera(QObject *parent) :
     // frame_width = frWidth;
     // frame_height = frHeight;
     // data_height = dataHeight;
-    camera_type = DEFAULT;
+    camera_type = SSD_ENVI;
     source_type = DEBUG;
 }
 

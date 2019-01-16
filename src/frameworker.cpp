@@ -94,7 +94,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         emit error(QString("Unable to start camera stream! This is fatal."));
         frWidth = 0;
         frHeight = 0;
-        cam_type = DEFAULT;
+        cam_type = SSD_ENVI;
         isRunning = false;    // want to make sure that we don't enter the event loop
     } else {
         frWidth = Camera->getFrameWidth();

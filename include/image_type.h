@@ -6,7 +6,7 @@
 
 enum image_t {BASE, DSF, STD_DEV, SPATIAL_PROFILE, SPECTRAL_PROFILE, SPATIAL_MEAN, SPECTRAL_MEAN};
 
-enum camera_t {DEFAULT, SSD_XIO, CL_6604A, CL_6604B};
+enum camera_t {SSD_ENVI, SSD_XIO, CL_6604A, CL_6604B};
 
 enum source_t {
     SSD = 0,
