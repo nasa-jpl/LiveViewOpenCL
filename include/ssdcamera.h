@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <cstring>
 #include <fstream>
-#include <deque>
 #include <vector>
 #include <array>
 #include <algorithm>
@@ -12,8 +11,6 @@
 
 #include <QDebug>
 #include <QDir>
-#include <QtConcurrent/QtConcurrent>
-#include <QFuture>
 
 #include "alphanum.hpp"
 
@@ -45,9 +42,7 @@ public:
 private:
     std::string getFname();
     void readFile();
-    void readLoop();
 
-    bool is_reading;
     std::ifstream dev_p;
     std::string ifname;
     std::string data_dir;
@@ -58,13 +53,10 @@ private:
 
     size_t image_no;
     std::vector<std::string> xio_files;
-    std::deque< std::vector<uint16_t> > frame_buf;
+    std::vector< std::vector<uint16_t> > frame_buf;
     std::vector<unsigned char> header;
     std::vector<uint16_t> dummy;
-    std::vector<uint16_t> temp_frame;
-
-    QFuture<void> readLoopFuture;
-    int64_t tmoutPeriod;
+    std::atomic<uint16_t> curIndex;
 };
 
 #endif // SSDCAMERA_H
