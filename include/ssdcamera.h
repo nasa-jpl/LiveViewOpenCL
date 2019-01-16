@@ -35,7 +35,7 @@ public:
               unsigned int frHeight = 480,
               unsigned int dataHeight = 480,
               QObject *parent = nullptr);
-    ~SSDCamera() = default;
+    ~SSDCamera();
 
     virtual bool start();
     virtual void setDir(const char *dirname);
@@ -64,7 +64,7 @@ private:
     std::vector<uint16_t> temp_frame;
 
     QFuture<void> readLoopFuture;
-    int64_t tmoutPeriod;
+    int tmoutPeriod;
 };
 
 #endif // SSDCAMERA_H

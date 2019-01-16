@@ -24,6 +24,12 @@ SSDCamera::SSDCamera(unsigned int frWidth,
     camera_type = SSD_XIO;
 }
 
+SSDCamera::~SSDCamera()
+{
+    is_reading = false;
+    readLoopFuture.waitForFinished();
+}
+
 bool SSDCamera::start()
 {
     return true;
@@ -181,11 +187,12 @@ void SSDCamera::readFile()
 
 void SSDCamera::readLoop()
 {
+    QTime remTime;
     do {
         if (frame_buf.size() <= 96) {
             readFile();
         } else {
-            QTime remTime = QTime::currentTime().addMSecs(int(tmoutPeriod));
+            remTime = QTime::currentTime().addMSecs(tmoutPeriod);
             while(QTime::currentTime() < remTime) {
                 QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
             }
