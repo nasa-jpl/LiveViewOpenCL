@@ -48,6 +48,7 @@ private:
     void readLoop();
 
     bool is_reading;
+    bool initialize;
     std::ifstream dev_p;
     std::string ifname;
     std::string data_dir;
