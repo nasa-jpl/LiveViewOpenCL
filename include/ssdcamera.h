@@ -47,8 +47,7 @@ private:
     void readFile();
     void readLoop();
 
-    bool is_reading;
-    bool initialize;
+    bool is_reading; // Flag that is true while reading from a directory
     std::ifstream dev_p;
     std::string ifname;
     std::string data_dir;

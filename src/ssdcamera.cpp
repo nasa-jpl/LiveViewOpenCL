@@ -39,11 +39,9 @@ void SSDCamera::setDir(const char *dirname)
 {
     is_reading = false;
 
-    initialize = true;
     while (!frame_buf.empty()) {
         frame_buf.pop_back();
     }
-    initialize = false;
 
     if (readLoopFuture.isRunning()) {
         readLoopFuture.waitForFinished();
@@ -209,7 +207,7 @@ void SSDCamera::readLoop()
 
 uint16_t* SSDCamera::getFrame()
 {
-    if (!frame_buf.empty() && !initialize) {
+    if (!frame_buf.empty() && is_reading) {
         temp_frame = frame_buf.back();
         frame_buf.pop_back();
         return temp_frame.data();
