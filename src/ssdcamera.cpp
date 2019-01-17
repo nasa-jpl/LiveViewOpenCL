@@ -3,9 +3,10 @@
 SSDCamera::SSDCamera(unsigned int frWidth,
         unsigned int frHeight, unsigned int dataHeight,
         QObject *parent
-) : CameraModel(parent), nFrames(32), framesize(0),
-    headsize(frWidth * sizeof(uint16_t)), image_no(0),
-    tmoutPeriod(100) // milliseconds
+) : CameraModel(parent),
+    nFrames(32), framesize(0),
+    headsize(frWidth * sizeof(uint16_t)),
+    image_no(0), curIndex(0)
 {
     source_type = SSD;
     frame_width = frWidth;
@@ -38,14 +39,14 @@ bool SSDCamera::start()
 void SSDCamera::setDir(const char *dirname)
 {
     is_reading = false;
-
+    if (readLoopFuture.isRunning()) {
+        readLoopFuture.waitForFinished();
+    }
+  
     while (!frame_buf.empty()) {
         frame_buf.pop_back();
     }
 
-    if (readLoopFuture.isRunning()) {
-        readLoopFuture.waitForFinished();
-    }
     data_dir = dirname;
     if (data_dir.empty()) {
         if (running.load()) {
@@ -57,6 +58,7 @@ void SSDCamera::setDir(const char *dirname)
     xio_files.clear();
     dev_p.clear();
     dev_p.close();
+    curIndex.store(-1);
     image_no = 0;
     std::vector<std::string> fname_list;
     os::listdir(fname_list, data_dir);
@@ -70,10 +72,9 @@ void SSDCamera::setDir(const char *dirname)
         if (f.empty() or std::strcmp(ext.data(), "xio") != 0 or std::strcmp(ext.data(), "decomp") != 0)
             continue;
 
-        xio_files.emplace_back(f);
+        xio_files.push_back(f);
     }
-
-    readLoopFuture = QtConcurrent::run(this, &SSDCamera::readLoop);
+    readFile();
 }
 
 std::string SSDCamera::getFname()
@@ -102,7 +103,7 @@ std::string SSDCamera::getFname()
             } else if (has_file) {
                 break;
             } else {
-                xio_files.emplace_back(*f);
+                xio_files.push_back(*f);
             }
 
         }
@@ -117,7 +118,6 @@ std::string SSDCamera::getFname()
 
 void SSDCamera::readFile()
 {
-    is_reading = true;
     bool validFile = false;
     while(!validFile) {
         ifname = getFname();
@@ -130,7 +130,6 @@ void SSDCamera::readFile()
                 running.store(false);
                 emit timeout();
             }
-            // qDebug() << "TIMEOUT";
             return; //If we're out of files, give up
         }
         // otherwise check if data is valid
@@ -142,7 +141,6 @@ void SSDCamera::readFile()
             return;
         }
 
-        // qDebug() << "READING";
         // qDebug() << "Successfully opened " << ifname.data();
         dev_p.unsetf(std::ios::skipws);
 
@@ -173,17 +171,12 @@ void SSDCamera::readFile()
             std::vector<uint16_t> zero_vec((frame_width * data_height) - (framesize / sizeof(uint16_t)));
             std::fill(zero_vec.begin(), zero_vec.end(), 0);
 
-            std::vector<uint16_t> copy_vec(framesize, 0);
-
             for (unsigned int n = 0; n < nFrames; ++n) {
-                dev_p.read(reinterpret_cast<char*>(copy_vec.data()), framesize);
-                frame_buf.emplace_front(copy_vec);
-
+                dev_p.read(reinterpret_cast<char*>(frame_buf[n].data()), framesize);
                 if ((framesize / sizeof(uint16_t)) < frame_width * data_height) {
-                    std::copy(zero_vec.begin(), zero_vec.end(), frame_buf[n].begin() + framesize / sizeof(uint16_t));
+                            std::copy(zero_vec.begin(), zero_vec.end(), frame_buf[n].begin() + framesize / sizeof(uint16_t));
                 }
             }
-
             running.store(true);
             dev_p.close();
         }
