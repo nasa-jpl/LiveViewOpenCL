@@ -36,7 +36,8 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
         DSLoop = QtConcurrent::run(fw, &FrameWorker::captureDSFrames);
         SDLoop = QtConcurrent::run(fw, &FrameWorker::captureSDFrames);
         fwWatcher.setFuture(SDLoop);
-        connect(&fwWatcher, &QFutureWatcher<void>::finished, fw, &FrameWorker::deleteLater);
+        // connect(&fwWatcher, &QFutureWatcher<void>::finished, fw, &FrameWorker::deleteLater);
+        connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
     } else {
         connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
     }
