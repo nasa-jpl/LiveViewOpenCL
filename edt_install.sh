@@ -1,5 +1,6 @@
 #!/bin/bash
 IFS='.' read -a VERS <<< "$(uname -r)"
+EDTDIR="/opt/EDTpdv/"
 
 if [ ${VERS[0]} -lt 2 -o ${VERS[0]} -gt 4 ] \
 || [ ${VERS[0]} -eq 2 -a ${VERS[1]} -lt 6 ] \
@@ -7,13 +8,13 @@ if [ ${VERS[0]} -lt 2 -o ${VERS[0]} -gt 4 ] \
 || [ ${VERS[0]} -eq 4 -a ${VERS[1]} -gt 15 ]; then
     echo "Script requires Linux Kernel version 2.6.19..4.15.x"
 else
-    if [ -d "/opt/EDTpdv/" ]; then
-        if [ -x "/opt/EDTpdv/uninstall.sh" ]; then
+    if [ -d $EDTDIR ]; then
+        if [ -x "$EDTDIR/uninstall.sh" ]; then
             echo "Uninstalling existing EDTpdv files."
-            cd /opt/EDTpdv/uninstall.sh && ./uninstall.sh
-            cd -
+            pushd "$EDTDIR/uninstall.sh" && ./uninstall.sh
+            popd
         else
-            echo "/opt/EDTpdv exists; failed to run EDT uninstall script."
+            echo "$EDTDIR exists; failed to run EDT uninstall script."
             exit
         fi
     fi
@@ -22,5 +23,5 @@ else
     wget https://edt.com/downloads/pdv_5-5-5-8_run/ -O EDTpdv.run
     echo "Installing EDTpdv drivers..."
     chmod +x ./EDTpdv.run && ./EDTpdv.run && \
-    mkdir ./EDT_include && cp /opt/EDTpdv/*h ./EDT_include
+    mkdir ./EDT_include && cp "$EDTDIR/*h" ./EDT_include
 fi
