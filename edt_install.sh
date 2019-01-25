@@ -24,8 +24,8 @@ else
     wget https://edt.com/downloads/pdv_5-5-5-8_run/ -O EDTpdv.run
     echo "Installing EDTpdv drivers..."
     chmod +x ./EDTpdv.run && ./EDTpdv.run "$EDTDIR"
-    if [! -d ./EDT_include ]; then
+    if [ ! -d ./EDT_include ]; then
         mkdir ./EDT_include
     fi
-    cp "$EDTDIR/*h" ./EDT_include
+    cp "$EDTDIR/*.h" ./EDT_include/
 fi
