@@ -12,7 +12,7 @@ else
     if [ -d "$EDTDIR" ]; then
         if [ -x "$EDTDIR/uninstall.sh" ]; then
             echo "Uninstalling existing EDTpdv files."
-            pushd "$EDTDIR" && ./uninstall.sh && rmdir "$EDTDIR"
+            pushd "$EDTDIR" && ./uninstall.sh > /dev/null && rmdir "$EDTDIR"
             popd
         else
             echo "$EDTDIR exists; failed to run EDT uninstall script."
@@ -20,12 +20,17 @@ else
         fi
     fi
 
-    echo "Downloading EDTpdv drivers..."
-    wget https://edt.com/downloads/pdv_5-5-5-8_run/ -O EDTpdv.run
+    if [ ! -f ./EDTpdv.run ]; then
+        echo "Downloading EDTpdv drivers..."
+        wget https://edt.com/downloads/pdv_5-5-5-8_run/ -O EDTpdv.run
+    fi
+
     echo "Installing EDTpdv drivers..."
     chmod +x ./EDTpdv.run && ./EDTpdv.run "$EDTDIR"
+
     if [ ! -d ./EDT_include ]; then
         mkdir ./EDT_include
     fi
-    cp "$EDTDIR/*.h" ./EDT_include/
+
+    cp $EDTDIR/*.h ./EDT_include/
 fi
