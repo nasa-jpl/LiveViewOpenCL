@@ -12,15 +12,15 @@ else
     if [ -d "$EDTDIR" ]; then
         if [ -x "$EDTDIR/uninstall.sh" ]; then
             echo "Uninstalling existing EDTpdv files."
-            pushd "$EDTDIR" && ./uninstall.sh > /dev/null && rmdir "$EDTDIR"
-            popd
+            pushd "$EDTDIR" && ./uninstall.sh > /dev/null
+            popd && rmdir "$EDTDIR"
         else
             echo "$EDTDIR exists; failed to run EDT uninstall script."
             exit
         fi
     fi
 
-    if [ ! -f ./EDTpdv.run ]; then
+    if [ ! -f ./EDT_include ]; then
         echo "Downloading EDTpdv drivers..."
         wget https://edt.com/downloads/pdv_5-5-5-8_run/ -O EDTpdv.run
     fi
