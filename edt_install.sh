@@ -12,8 +12,8 @@ else
     if [ -d "$EDTDIR" ]; then
         if [ -x "$EDTDIR/uninstall.sh" ]; then
             echo "Uninstalling existing EDTpdv files."
-            pushd "$EDTDIR" && ./uninstall.sh > /dev/null
-            popd && rmdir "$EDTDIR"
+            pushd "$EDTDIR" && ./uninstall.sh
+            popd && rm -rf "$EDTDIR"
         else
             echo "$EDTDIR exists; failed to run EDT uninstall script."
             exit
