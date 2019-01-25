@@ -20,7 +20,7 @@ else
         fi
     fi
 
-    if [ ! -f ./EDT_include ]; then
+    if [ ! -f ./EDTpdv.run ]; then
         echo "Downloading EDTpdv drivers..."
         wget https://edt.com/downloads/pdv_5-5-5-8_run/ -O EDTpdv.run
     fi
