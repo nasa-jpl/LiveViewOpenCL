@@ -8,7 +8,7 @@ if [ ${VERS[0]} -lt 2 -o ${VERS[0]} -gt 4 ] \
 || [ ${VERS[0]} -eq 4 -a ${VERS[1]} -gt 15 ]; then
     echo "Script requires Linux Kernel version 2.6.19..4.15.x"
 else
-    if [ -d $EDTDIR ]; then
+    if [ -d "$EDTDIR "]; then
         if [ -x "$EDTDIR/uninstall.sh" ]; then
             echo "Uninstalling existing EDTpdv files."
             pushd "$EDTDIR/uninstall.sh" && ./uninstall.sh
@@ -22,6 +22,6 @@ else
     echo "Downloading EDTpdv drivers..."
     wget https://edt.com/downloads/pdv_5-5-5-8_run/ -O EDTpdv.run
     echo "Installing EDTpdv drivers..."
-    chmod +x ./EDTpdv.run && ./EDTpdv.run && \
+    chmod +x ./EDTpdv.run && ./EDTpdv.run "$EDTDIR" && \
     mkdir ./EDT_include && cp "$EDTDIR/*h" ./EDT_include
 fi
