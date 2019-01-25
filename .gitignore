@@ -6,3 +6,4 @@ moc_*
 *.iconset
 Makefile
 EDTpdv.run
+EDT_include/
