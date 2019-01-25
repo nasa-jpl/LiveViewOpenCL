@@ -5,3 +5,4 @@ moc_*
 *.pro.user
 *.iconset
 Makefile
+EDTpdv.run
