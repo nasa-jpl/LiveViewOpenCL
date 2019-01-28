@@ -32,5 +32,10 @@ else
         mkdir ./EDT_include
     fi
 
+    if [ ! -d ./lib ]; then
+        mkdir ./lib
+    fi
+
     cp $EDTDIR/*.h ./EDT_include/
+    cp $EDTDIR/libpdv.a ./lib
 fi
