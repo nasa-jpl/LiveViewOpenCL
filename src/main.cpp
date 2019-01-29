@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
     if (settings.value(QString("show_cam_dialog"), true).toBool()) {
         int retval = csd.exec();
         if (!retval) {
-            unlink("LiveViewOpenSource");
+            unlink(socket_path);
             return -1;
         }
     }
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
     splash.finish(&w);
 
     auto ret_val = a.exec();
-    unlink("LiveViewOpenSource");
+    unlink(socket_path);
 
     return ret_val;
 }
