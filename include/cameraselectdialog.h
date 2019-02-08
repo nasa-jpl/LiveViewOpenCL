@@ -13,6 +13,7 @@
 #include <QVBoxLayout>
 #include <QSettings>
 #include <QCheckBox>
+#include <QLineEdit>
 
 class CameraSelectDialog : public QDialog
 {
@@ -21,12 +22,18 @@ class CameraSelectDialog : public QDialog
 public:
     CameraSelectDialog(QSettings *set) : s(set)
     {
-        this->cameraList = (QStringList() << QString("CL") << QString("SSD"));
         this->setWindowTitle("Select Camera Model");
+        this->cameraList = (QStringList()
+#if !(__MACH__ || __APPLE__)
+                            << QString("CL")
+#endif
+                            << QString("SSD (ENVI)"))
+                            << QString("SSD (XIO)");
 
-        cameraListView = new QListView(this);
         cameraListModel = new QStringListModel(this);
         cameraListModel->setStringList(cameraList);
+
+        cameraListView = new QListView(this);
         cameraListView->setModel(cameraListModel);
         cameraListView->setSelectionMode(QAbstractItemView::SingleSelection);
         cameraListView->setCurrentIndex(cameraListModel->index(0));
@@ -39,11 +46,7 @@ public:
         connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
 
         doNotShowBox = new QCheckBox("Do Not Show Again", this);
-        if (s->value(QString("show_cam_dialog"), true).toBool()) {
-            doNotShowBox->setChecked(false);
-        } else {
-            doNotShowBox->setChecked(true);
-        }
+        doNotShowBox->setChecked(!s->value(QString("show_cam_dialog"), false).toBool());
 
         QHBoxLayout *buttonLayout = new QHBoxLayout;
         buttonLayout->addWidget(okButton);
@@ -54,14 +57,43 @@ public:
         dialogLayout->addWidget(cameraListView);
         dialogLayout->addWidget(doNotShowBox);
         dialogLayout->addLayout(buttonLayout);
-    }
 
-    LVMainWindow *w;
-    QSettings *s;
-    QStringList cameraList;
-    QListView *cameraListView;
-    QStringListModel *cameraListModel;
-    QCheckBox *doNotShowBox;
+        dim_dialog = new QDialog;
+        dim_dialog->setWindowTitle("Select Input Dimensions");
+
+        horizontal = new QLineEdit;
+        horizontal->setText(s->value(QString("ssd_x"), "").toString());
+
+        vertical = new QLineEdit;
+        vertical->setText(s->value(QString("ssd_y"), "").toString());
+
+        QPushButton *okDimButton = new QPushButton("&Ok", dim_dialog);
+        connect(okDimButton, &QPushButton::clicked,
+                dim_dialog, &QDialog::accept);
+        connect(okDimButton, &QPushButton::clicked,
+                this, &CameraSelectDialog::dim_accept);
+
+        QPushButton *cancelDimButton = new QPushButton("&Cancel", dim_dialog);
+        connect(cancelDimButton, &QPushButton::clicked, dim_dialog, &QDialog::reject);
+
+        QHBoxLayout *dimButtonLayout = new QHBoxLayout;
+        dimButtonLayout->addWidget(okDimButton);
+        dimButtonLayout->addWidget(cancelDimButton);
+
+        QHBoxLayout *xLayout = new QHBoxLayout;
+        xLayout->addWidget(new QLabel("X:"));
+        xLayout->addWidget(horizontal);
+
+        QHBoxLayout *yLayout = new QHBoxLayout;
+        yLayout->addWidget(new QLabel("Y:"));
+        yLayout->addWidget(vertical);
+
+        QVBoxLayout *dimDialogLayout = new QVBoxLayout(dim_dialog);
+        dimDialogLayout->addLayout(xLayout);
+        dimDialogLayout->addLayout(yLayout);
+        dimDialogLayout->addLayout(dimButtonLayout);
+
+    }
 
 private slots:
     void okButtonPressed()
@@ -71,10 +103,34 @@ private slots:
                         cameraListView->selectionModel()->selectedIndexes()[0],
                         Qt::DisplayRole).toString().toStdString()]);
         s->setValue(QString("show_cam_dialog"), doNotShowBox->checkState() == 0);
+        if (s->value(QString("cam_model"), "SSD").toInt() == 0) {
+            dim_dialog->exec();
+        } else {
+            this->accept();
+        }
+    }
+
+    void dim_accept()
+    {
+        s->setValue(QString("ssd_x"), horizontal->text());
+        s->setValue(QString("ssd_y"), vertical->text());
         this->accept();
     }
+
 private:
-    std::unordered_map<std::string, source_t> source_t_name{{"SSD", SSD}, {"CL", CAMERA_LINK}, {"CAMERA_LINK", CAMERA_LINK}, {"Debug", DEBUG}};
+    std::unordered_map<std::string, source_t> source_t_name{{"SSD (ENVI)", SSD}, {"SSD (XIO)", SSD}, {"CL", CAMERA_LINK}, {"CAMERA_LINK", CAMERA_LINK}, {"Debug", DEBUG}};
+    LVMainWindow *w;
+    QSettings *s;
+    QStringList cameraList;
+    QStringList formatList;
+    QListView *cameraListView;
+    QListView *formatListView;
+    QStringListModel *cameraListModel;
+    QStringListModel *formatListModel;
+    QCheckBox *doNotShowBox;
+    QDialog *dim_dialog;
+    QLineEdit *horizontal;
+    QLineEdit *vertical;
 };
 
 #endif // CAMERASELECTDIALOG_H
