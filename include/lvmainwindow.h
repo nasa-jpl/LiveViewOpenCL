@@ -65,6 +65,7 @@ private:
     QAction *noRemapAct;
 
     QAction *darkModeAct;
+    QAction *modelSelectAct;
     QActionGroup *gradActGroup;
     QList<QAction*> gradActs;
 

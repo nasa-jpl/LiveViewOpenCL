@@ -220,6 +220,13 @@ void LVMainWindow::createActions()
         settings->setValue(QString("dark"), darkModeAct->isChecked());
     });
 
+    modelSelectAct = new QAction("&Show Camera Model Selection Dialog on Startup", this);
+    modelSelectAct->setCheckable(true);
+    modelSelectAct->setChecked(settings->value(QString("show_cam_dialog"), false).toBool());
+    connect(modelSelectAct, &QAction::triggered, this, [this](){
+        settings->setValue(QString("show_cam_dialog"), modelSelectAct->isChecked());
+    });
+
     gradActs = QList<QAction*>();
     gradActGroup = new QActionGroup(this);
     QMetaEnum qme = QMetaEnum::fromType<QCPColorGradient::GradientPreset>();
@@ -292,6 +299,7 @@ void LVMainWindow::createMenus()
 
     viewMenu = menuBar()->addMenu("&View");
     viewMenu->addAction(darkModeAct);
+    viewMenu->addAction(modelSelectAct);
     gradientSubMenu = viewMenu->addMenu("&Gradient");
     gradientSubMenu->addActions(gradActs);
 
