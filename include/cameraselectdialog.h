@@ -81,11 +81,11 @@ public:
         dimButtonLayout->addWidget(cancelDimButton);
 
         QHBoxLayout *xLayout = new QHBoxLayout;
-        xLayout->addWidget(new QLabel("X:"));
+        xLayout->addWidget(new QLabel("Width:"));
         xLayout->addWidget(horizontal);
 
         QHBoxLayout *yLayout = new QHBoxLayout;
-        yLayout->addWidget(new QLabel("Y:"));
+        yLayout->addWidget(new QLabel("Height:"));
         yLayout->addWidget(vertical);
 
         QVBoxLayout *dimDialogLayout = new QVBoxLayout(dim_dialog);
