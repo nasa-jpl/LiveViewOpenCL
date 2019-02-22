@@ -62,10 +62,10 @@ public:
         dim_dialog->setWindowTitle("Select Input Dimensions");
 
         horizontal = new QLineEdit;
-        horizontal->setText(s->value(QString("ssd_x"), "").toString());
+        horizontal->setText(s->value(QString("ssd_width"), "").toString());
 
         vertical = new QLineEdit;
-        vertical->setText(s->value(QString("ssd_y"), "").toString());
+        vertical->setText(s->value(QString("ssd_height"), "").toString());
 
         QPushButton *okDimButton = new QPushButton("&Ok", dim_dialog);
         connect(okDimButton, &QPushButton::clicked,
@@ -112,8 +112,8 @@ private slots:
 
     void dim_accept()
     {
-        s->setValue(QString("ssd_x"), horizontal->text());
-        s->setValue(QString("ssd_y"), vertical->text());
+        s->setValue(QString("ssd_width"), horizontal->text());
+        s->setValue(QString("ssd_height"), vertical->text());
         this->accept();
     }
 
