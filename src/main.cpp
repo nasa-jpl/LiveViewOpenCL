@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
     int sfd;
     struct sockaddr_un lv_addr = {};
     QApplication a(argc, argv);
-    char* socket_path = "/tmp/LiveViewOpenSource";
+    std::string socket_path = "/tmp/LiveViewOpenSource";
 
     if ( (sfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         handle_error("socket");
@@ -39,9 +39,9 @@ int main(int argc, char* argv[])
 
     memset(&lv_addr, 0, sizeof(lv_addr));
     lv_addr.sun_family = AF_UNIX;
-    strncpy(lv_addr.sun_path, socket_path, sizeof(lv_addr.sun_path) - 1);
+    strncpy(lv_addr.sun_path, socket_path.data(), sizeof(lv_addr.sun_path) - 1);
 
-    strncpy(lv_addr.sun_path, socket_path, sizeof(lv_addr.sun_path) - 1);
+    strncpy(lv_addr.sun_path, socket_path.data(), sizeof(lv_addr.sun_path) - 1);
 
     if (bind(sfd, reinterpret_cast<struct sockaddr*>(&lv_addr), sizeof(lv_addr)) == -1) {
         auto reply = QMessageBox::question(nullptr, "LiveView Cannot Start",
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
         if (reply == QMessageBox::Cancel) {
             handle_error("bind");
         } else {
-            unlink(socket_path);
+            unlink(socket_path.data());
             bind(sfd, reinterpret_cast<struct sockaddr*>(&lv_addr), sizeof(struct sockaddr_un));
         }
     }
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
     if (settings.value(QString("show_cam_dialog"), true).toBool()) {
         int retval = csd.exec();
         if (!retval) {
-            unlink(socket_path);
+            unlink(socket_path.data());
             return -1;
         }
     }
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
     splash.finish(&w);
 
     auto ret_val = a.exec();
-    unlink(socket_path);
+    unlink(socket_path.data());
 
     return ret_val;
 }
