@@ -30,32 +30,31 @@ int main(int argc, char* argv[])
     int sfd;
     struct sockaddr_un lv_addr = {};
     QApplication a(argc, argv);
+    char* socket_path = "/tmp/LiveViewOpenSource";
 
-    sfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sfd == -1) {
+    if ( (sfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         handle_error("socket");
         return EXIT_FAILURE;
     }
-    memset(&lv_addr, 0, sizeof(struct sockaddr_un));
+
+    memset(&lv_addr, 0, sizeof(lv_addr));
     lv_addr.sun_family = AF_UNIX;
-    strncpy(lv_addr.sun_path, "LiveViewOpenSource",
-            sizeof(lv_addr.sun_path) - 1);
-    qDebug() << lv_addr.sun_path;
-    qDebug() << sfd;
-    if (bind(sfd, reinterpret_cast<struct sockaddr*>(&lv_addr),
-             sizeof(struct sockaddr_un)) == -1) {
-        qDebug() << strerror(errno);
+    strncpy(lv_addr.sun_path, socket_path, sizeof(lv_addr.sun_path) - 1);
+
+    strncpy(lv_addr.sun_path, socket_path, sizeof(lv_addr.sun_path) - 1);
+
+    if (bind(sfd, reinterpret_cast<struct sockaddr*>(&lv_addr), sizeof(lv_addr)) == -1) {
         auto reply = QMessageBox::question(nullptr, "LiveView Cannot Start",
                             "Only one instance of LiveView should be run at a time. Multiple instances can cause errors. Would you like to continue anyways?",
                                            QMessageBox::Yes | QMessageBox::Cancel);
         if (reply == QMessageBox::Cancel) {
             handle_error("bind");
         } else {
-            unlink("LiveViewOpenSource");
-            qDebug() << strerror(errno);
+            unlink(socket_path);
             bind(sfd, reinterpret_cast<struct sockaddr*>(&lv_addr), sizeof(struct sockaddr_un));
         }
     }
+
     if (listen(sfd, 50) == -1) {
         qDebug() << strerror(errno);
         handle_error("listen");
@@ -81,7 +80,7 @@ int main(int argc, char* argv[])
     if (settings.value(QString("show_cam_dialog"), true).toBool()) {
         int retval = csd.exec();
         if (!retval) {
-            unlink("LiveViewOpenSource");
+            unlink(socket_path);
             return -1;
         }
     }
@@ -106,7 +105,7 @@ int main(int argc, char* argv[])
     splash.finish(&w);
 
     auto ret_val = a.exec();
-    unlink("LiveViewOpenSource");
+    unlink(socket_path);
 
     return ret_val;
 }

@@ -74,7 +74,9 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
 
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
     case SSD:
-        Camera = new SSDCamera();
+        Camera = new SSDCamera(settings->value(QString("ssd_width"), 640).toUInt(),
+                               settings->value(QString("ssd_height"), 480).toUInt(),
+                               settings->value(QString("ssd_height"), 480).toUInt());
         break;
     case DEBUG:
         Camera = new ENVICamera();

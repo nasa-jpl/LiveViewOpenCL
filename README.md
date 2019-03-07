@@ -3,10 +3,20 @@ This repository contains the re-designed, open source release of LiveView, an im
 
 LiveView is compatible with MacOS and Linux. Compatibility with specific distributions of Linux may vary, but Ubuntu, Debian, and Red Hat 6/7 have been tested. Addtionally, a process for building LiveView for embedded Yocto Linux systems is actively being developed.
 
-To get started, please see the "Wiki" tab for pages on installation, driver setup, and more. For developers, see the "Projects" tab for what's currently being worked on.
+## Installation
+https://github.com/nasa-jpl/LiveViewOpenSource/wiki/Installation-Guide
+
+
+
+## Getting started with Sample Data
+https://github.com/nasa-jpl/LiveViewOpenSource/wiki/Getting-started-with-the-sample-data
+
+
+## Development
+https://github.com/nasa-jpl/LiveViewOpenSource/projects
 
 ## Bug Reports
-Please direct all bug reports or new features to the "Issues" tab. If the issue is high priority, the current turn-around time is about 2-3 weeks.
+Please direct all bug reports or new features to the [Issue Tracker](https://github.com/nasa-jpl/LiveViewOpenSource/issues) . If the issue is high priority, the current turn-around time is about 2-3 weeks.
 
 ## Contact
 Primary: Jacqueline Ryan [Jacqueline.Ryan@jpl.nasa.gov](mailto:Jacqueline.Ryan@jpl.nasa.gov)
@@ -16,5 +26,7 @@ Brendan Berrigan
 Max Plotkin [maxwell.a.plotkin@jpl.nasa.gov](mailto:mawxell.a.plotkin@jpl.nasa.gov)
 
 ## Inquiries
+If you are a college undergraduate student, and would like to participate in a paid summer internship working on our team, please feel free to e-mail your resume to [Jackie](mailto:Jacqueline.Ryan@jpl.nasa.gov).
 
-If you are a college undergraduate student, and would like to participate in a paid summer internship working on our team, please feel free to e-mail your resume to Jackie, whose contact information is included above.
+## License
+LiveView is licensed permissively under the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html) a copy of which is shipped with this software.
