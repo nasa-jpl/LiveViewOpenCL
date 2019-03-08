@@ -118,7 +118,7 @@ private slots:
     }
 
 private:
-    std::unordered_map<std::string, source_t> source_t_name{{"SSD (ENVI)", SSD}, {"SSD (XIO)", SSD}, {"CL", CAMERA_LINK}, {"CAMERA_LINK", CAMERA_LINK}, {"Debug", DEBUG}};
+    std::unordered_map<std::string, source_t> source_t_name{{"SSD (ENVI)", ENVI}, {"SSD (XIO)",XIO}, {"CL", CAMERA_LINK}, {"CAMERA_LINK", CAMERA_LINK}};
     QSettings *s;
     QStringList cameraList;
     QStringList formatList;

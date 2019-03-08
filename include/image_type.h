@@ -9,8 +9,8 @@ enum image_t {BASE, DSF, STD_DEV, SPATIAL_PROFILE, SPECTRAL_PROFILE, SPATIAL_MEA
 enum camera_t {SSD_ENVI, SSD_XIO, CL_6604A, CL_6604B};
 
 enum source_t {
-    SSD = 0,
-    DEBUG = 1,
+    XIO = 0,
+    ENVI = 1,
     CAMERA_LINK = 2};
 
 enum org_t {fwBIL, fwBIP, fwBSQ};

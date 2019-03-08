@@ -73,13 +73,15 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     Camera = nullptr;
 
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
-    case SSD:
-        Camera = new SSDCamera(settings->value(QString("ssd_width"), 640).toUInt(),
-                               settings->value(QString("ssd_height"), 480).toUInt(),
-                               settings->value(QString("ssd_height"), 480).toUInt());
+    case XIO:
+        Camera = new XIOCamera(settings->value(QString("ssd_width"), 640).toInt(),
+                               settings->value(QString("ssd_height"), 480).toInt(),
+                               settings->value(QString("ssd_height"), 480).toInt());
         break;
-    case DEBUG:
-        Camera = new ENVICamera();
+    case ENVI:
+        Camera = new ENVICamera(settings->value(QString("ssd_width"), 640).toInt(),
+                                settings->value(QString("ssd_height"), 480).toInt(),
+                                settings->value(QString("ssd_height"), 480).toInt());
         break;
     case CAMERA_LINK:
 #if !(__APPLE__ || __MACH__)

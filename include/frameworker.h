@@ -17,7 +17,7 @@
 #include "lvframe.h"
 #include "cameramodel.h"
 #include "envicamera.h"
-#include "ssdcamera.h"
+#include "xiocamera.h"
 #if !(__APPLE__ || __MACH__)
 #include "clcamera.h"
 #endif
