@@ -38,7 +38,8 @@ void DarkSubFilter::collect_mask(const uint16_t *in_frame)
         mask_accum[i] = in_frame[i] + mask_accum[i];
     }
 
-    if (avgd_frames != 0 && ++nSamples >= avgd_frames) {
+    nSamples++;
+    if (avgd_frames != 0 && nSamples >= avgd_frames) {
         mask_frames_collected();
     }
 }
