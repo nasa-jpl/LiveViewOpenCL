@@ -16,15 +16,64 @@ ENVICamera::ENVICamera(int frWidth,
 
     dummy.resize(size_t(framesize));
     std::fill(dummy.begin(), dummy.end(), 0);
-    for (int n = 0; n < nFrames; n++) {
-        frame_buf.emplace_back(std::vector<uint16_t>(size_t(frame_width * data_height), 0));
-    }
 }
 
-bool ENVICamera::start()
+void ENVICamera::setDir(const char *filename)
 {
+    // Close out the last file stream
+    if (is_reading) {
+        is_reading = false;
+        readLoopFuture.waitForFinished();
+    }
+    if (dev_p.is_open()) {
+        dev_p.close();
+        dev_p.clear();
+    }
+
+    ifname = filename;
+
+    // Guess the ENVI header name based on file extension replacement
+    std::string hdr_fname;
+    if (ifname.find_last_of('.') != std::string::npos) {
+        hdr_fname = ifname.substr(0, ifname.find_last_of('.') + 1) + "hdr";
+    } else {
+        hdr_fname = ifname + ".hdr";
+    }
+    // Now check if we guessed correctly
+    struct stat buffer;
+    bool read_head = false;
+    if (stat(hdr_fname.c_str(), &buffer) == 0) {
+        read_head = readHeader(hdr_fname);
+        if (!read_head) {
+            running.store(false);
+            emit timeout();
+            return;
+        }
+    } else {
+        // An ENVI file without a header is like a yee without a haw, we must report that the file is unreadable
+        qDebug("Could not find associated header. Please check there is a detached ENVI header associated with the data.");
+        if (running.load()) {
+            running.store(false);
+            emit timeout();
+            return;
+        }
+    }
+
+    dev_p.open(ifname, std::ios::in | std::ios::binary);
+    if (!dev_p.is_open()) {
+        qDebug("Could not open file. Does it exist?");
+        dev_p.clear();
+        if (running.load()) {
+            running.store(false);
+            emit timeout();
+            return;
+        }
+    }
+
+    is_reading = true;
     running.store(true);
-    return running.load();
+
+    readLoopFuture = QtConcurrent::run(this, &ENVICamera::readLoop);
 }
 
 bool ENVICamera::readHeader(std::string hdr_fname)
@@ -68,7 +117,7 @@ bool ENVICamera::readHeader(std::string hdr_fname)
     }
 
     nFrames = HDRData.lines;
-    if (HDRData.samples != frame_width || HDRData.bands != frame_width) {
+    if (HDRData.samples != frame_width || HDRData.bands != frame_height) {
         qDebug("Frame geometry of input ENVI file does not match specified geometry.");
         qDebug() << "Please restart LiveView with a geometry of" << HDRData.samples << "by" << HDRData.bands;
         return false;
@@ -80,65 +129,26 @@ bool ENVICamera::readHeader(std::string hdr_fname)
     return true;
 }
 
-bool ENVICamera::readFile(std::string fname)
-{
-    is_reading = false;
-    readLoopFuture.waitForFinished();
-    if (dev_p.is_open()) {
-        dev_p.clear();
-    }
-
-    ifname = fname;
-
-    // Guess the ENVI header name based on file extension replacement
-    std::string hdr_fname;
-    if (ifname.find_last_of('.') != std::string::npos) {
-        hdr_fname = ifname.substr(0, fname.find_last_of('.') + 1) + "hdr";
-    } else {
-        hdr_fname = ifname + ".hdr";
-    }
-    // Now check if we guessed correctly
-    struct stat buffer;
-    bool read_head = false;
-    if (stat(hdr_fname.c_str(), &buffer) == 0) {
-        read_head = readHeader(hdr_fname);
-        if (!read_head) {
-            return false;
-        }
-    } else {
-        // An ENVI file without a header is like a yee without a haw, we must report that the file is unreadable
-        qDebug("Could not find associated header. Please check there is a detached ENVI header associated with the data.");
-        return false;
-    }
-
-    dev_p.open(ifname, std::ios::in | std::ios::binary);
-    if (!dev_p.is_open()) {
-        qDebug("Could not open file. Does it exist?");
-        dev_p.clear();
-        return false;
-    }
-
-    readLoopFuture = QtConcurrent::run(this, &ENVICamera::readLoop);
-
-    return true;
-}
-
 void ENVICamera::readLoop()
 {
     QTime remTime;
+    std::vector<uint16_t> copy_vec(size_t(framesize), 0);
     do {
         // Yeah yeah whatever it's a magic number/buffer size recommendation
         if (frame_buf.size() <= 96) {
             if (framesRead >= nFrames) {
-                // drops out of the loop => 再見
+                // drops out of the loop
                 is_reading = false;
+                running.store(false);
                 continue;
             }
             int nextFrames = framesRead + chunkFrames > nFrames ? nFrames - framesRead : chunkFrames;
-            frame_buf.reserve(size_t(nextFrames));
-            for (int n = 0; n < nextFrames; n++) {
-                dev_p.read(reinterpret_cast<char*>(frame_buf[size_t(n)].data()), framesize);
+
+            for (int n = 0; n < nextFrames; ++n) {
+                dev_p.read(reinterpret_cast<char*>(copy_vec.data()), framesize);
+                frame_buf.emplace_front(copy_vec);
             }
+            framesRead += nextFrames;
         } else {
             remTime = QTime::currentTime().addMSecs(tmoutPeriod);
             while(QTime::currentTime() < remTime) {
@@ -150,8 +160,9 @@ void ENVICamera::readLoop()
 
 uint16_t* ENVICamera::getFrame()
 {
-    if (!frame_buf.empty() && is_reading) {
+    if (!frame_buf.empty() && running.load()) {
         temp_frame = frame_buf.back();
+        qDebug() << temp_frame[180];
         frame_buf.pop_back();
         return temp_frame.data();
     } else {

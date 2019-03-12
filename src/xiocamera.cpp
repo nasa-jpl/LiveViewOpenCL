@@ -29,11 +29,6 @@ XIOCamera::~XIOCamera()
     readLoopFuture.waitForFinished();
 }
 
-bool XIOCamera::start()
-{
-    return true;
-}
-
 void XIOCamera::setDir(const char *dirname)
 {
     is_reading = false;

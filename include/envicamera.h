@@ -1,11 +1,12 @@
 #ifndef DEBUGCAMERA_H
 #define DEBUGCAMERA_H
 
-#include <string>
+#include <array>
+#include <deque>
 #include <fstream>
 #include <vector>
-#include <array>
 #include <sstream>
+#include <string>
 
 #include <QtConcurrent/QtConcurrent>
 #include <QCoreApplication>
@@ -37,14 +38,12 @@ public:
                QObject *parent = nullptr);
     ~ENVICamera() = default;
 
-    virtual bool start();
-
     virtual uint16_t *getFrame();
+    virtual void setDir(const char *filename);
 
 private:
     bool readHeader(std::string hdrname);
     ENVIData HDRData;
-    bool readFile(std::string fname);
     void readLoop();
 
     bool is_reading; // Flag that is true while reading from a directory
@@ -53,7 +52,7 @@ private:
     std::string hdrname;
     std::streampos bufsize;
     const int framesize;
-    std::vector< std::vector<uint16_t> > frame_buf;
+    std::deque< std::vector<uint16_t> > frame_buf;
     std::vector<uint16_t> dummy;
     std::vector<uint16_t> temp_frame;
     int curIndex;

@@ -19,7 +19,7 @@ public:
     virtual ~CameraModel() { running.store(false); }
 
 
-    virtual bool start() = 0;
+    virtual bool start() { running.store(true); return running.load(); }
     virtual uint16_t *getFrame() = 0;
 
     virtual void setDir(const char *filename) { Q_UNUSED(filename); }

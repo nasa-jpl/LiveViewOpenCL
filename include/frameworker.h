@@ -71,9 +71,9 @@ public:
     void stopCollectingMask();
     void setMaskSettings(QString mask_name, quint64 avg_frames);
 
-    unsigned int getFrameWidth() const { return frWidth; }
-    unsigned int getFrameHeight() const { return frHeight; }
-    unsigned int getDataHeight() const { return dataHeight; }
+    int getFrameWidth() const { return frWidth; }
+    int getFrameHeight() const { return frHeight; }
+    int getDataHeight() const { return dataHeight; }
     camera_t getCameraType() const { return cam_type; }
 
     uint32_t getStdDevN();
@@ -122,7 +122,8 @@ private:
     bool isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
     std::atomic<int64_t> count;
     uint64_t count_prev;
-    unsigned int frWidth, frHeight, dataHeight, frSize;
+    int frWidth, frHeight, dataHeight;
+    size_t frSize;
     camera_t cam_type;
 
     uint32_t stddev_N; // controls standard deviation history window

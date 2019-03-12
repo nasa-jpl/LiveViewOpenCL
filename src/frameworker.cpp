@@ -3,10 +3,10 @@
 class LVFrameBuffer
 {
 public:
-    LVFrameBuffer(const unsigned int num_frames, const unsigned int frame_width, const unsigned int frame_height)
+    LVFrameBuffer(const int num_frames, const int frame_width, const int frame_height)
         : lastIndex(0), fbIndex(0),  dsfIndex(0), stdIndex(0)
     {
-        for (unsigned int f = 0; f < num_frames; ++f) {
+        for (int f = 0; f < num_frames; ++f) {
             auto pFrame = new LVFrame(frame_width, frame_height);
             frame_vec.push_back(pFrame);
         }
@@ -21,7 +21,7 @@ public:
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
         Q_ASSERT(frame_vec.capacity() == 0);
     }
-    void reset(const unsigned int num_frames, const unsigned int frame_width, const unsigned int frame_height)
+    void reset(const int num_frames, const int frame_width, const int frame_height)
     {
         for(auto &elem : frame_vec) {
             delete elem;
@@ -29,7 +29,7 @@ public:
         }
         frame_vec.clear();
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
-        for (unsigned int f = 0; f < num_frames; ++f) {
+        for (int f = 0; f < num_frames; ++f) {
             auto pFrame = new LVFrame(frame_width, frame_height);
             frame_vec.push_back(pFrame);
         }
@@ -95,10 +95,11 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     bool cam_started = Camera->start();
 
     if (!cam_started) {
+        // In general, software camera models will always start, but some hardware camera models can fail
+        // to start if the hardware is misconfigured.
         emit error(QString("Unable to start camera stream! This is fatal."));
         frWidth = 0;
         frHeight = 0;
-        cam_type = SSD_ENVI;
         isRunning = false;    // want to make sure that we don't enter the event loop
     } else {
         frWidth = Camera->getFrameWidth();
@@ -115,13 +116,13 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         }
     }
 
-    frSize = frWidth * dataHeight;
+    frSize = size_t(frWidth * dataHeight);
     lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frWidth, dataHeight);
-    TwosFilter = new TwosComplimentFilter(frSize);
-    DSFilter = new DarkSubFilter(frSize);
+    TwosFilter = new TwosComplimentFilter(size_t(frSize));
+    DSFilter = new DarkSubFilter(size_t(frSize));
     stddev_N = MAX_N; // arbitrary starting point
     STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
-    MEFilter = new MeanFilter(int(frWidth), int(dataHeight));
+    MEFilter = new MeanFilter(frWidth, dataHeight);
     if (!STDFilter->start()) {
         qWarning("Unable to start OpenCL kernel.");
         qWarning("Standard Deviation and Histogram computation will be disabled.");
@@ -309,14 +310,14 @@ void FrameWorker::saveFrames(save_req_t req)
             p_frame = (this->*p_getSaveFrame)(); // frame_fifo.front();
             if (req.nAvgs <= 1) {
                 p_file.write(reinterpret_cast<char*>(p_frame.data()),
-                             frSize * sizeof(uint16_t));
+                             std::streamsize(frSize * sizeof(uint16_t)));
             } else {
                 if (save_count % req.nAvgs == 0) {
                     for (size_t p = 0; p < frSize; p++) {
                         frame_accum[p] /= static_cast<float>(req.nAvgs);
                     }
                     p_file.write(reinterpret_cast<char*>(frame_accum.data()),
-                                 frSize * sizeof(float));
+                                 std::streamsize(frSize * sizeof(float)));
                     std::fill(frame_accum.begin(), frame_accum.end(), 0.0);
                 }
                 for (size_t p = 0; p < frSize; p++) {
@@ -418,6 +419,8 @@ void FrameWorker::resetDir(const char *dirname)
 {
     if (cam_type == SSD_XIO) {
         Camera->setDir(dirname);
+    } else if ( cam_type == SSD_ENVI) {
+        Camera->setDir(dirname);
     }
 }
 
@@ -490,9 +493,10 @@ std::vector<uint16_t> FrameWorker::getBIPSaveFrame()
     BIP_frame.resize(frSize);
     uint16_t *p_frame = frame_fifo.front();
     // transpose the image to convert to BIP
-    for (size_t i = 0; i < frHeight; i++) {
-        for (size_t j = 0; j < frWidth; j++) {
-            BIP_frame[i * frHeight + j] = p_frame[j * frWidth + i];
+    for (int i = 0; i < frHeight; i++) {
+        for (int j = 0; j < frWidth; j++) {
+            BIP_frame[size_t(i * frHeight + j)] =
+                                p_frame[j * frWidth + i];
         }
     }
     return BIP_frame;
@@ -578,7 +582,7 @@ uint32_t FrameWorker::getStdDevN()
 
 void FrameWorker::compute_snr(LVFrame *new_frame)
 {
-    for (unsigned int i = 0; i < new_frame->frSize; ++i) {
+    for (unsigned int i = 0; i < frSize; ++i) {
         if (new_frame->sdv_data[i] > 0) {
             new_frame->snr_data[i] = new_frame->dsf_data[i] / new_frame->sdv_data[i] * 1000;
         } else {

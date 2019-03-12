@@ -26,7 +26,7 @@
 class StdDevFilter
 {
 public:
-    StdDevFilter(unsigned int frame_width, unsigned int frame_height, cl_uint _N) :
+    StdDevFilter(int frame_width, int frame_height, cl_uint _N) :
         readyRead(false), gpu_buffer_head(0), frWidth(frame_width),
         frHeight(frame_height), N(_N) {}
     ~StdDevFilter();
@@ -71,8 +71,8 @@ private:
     cl_uint platform_num;
     cl_uint device_num;
     cl_int gpu_buffer_head;
-    cl_uint frWidth;
-    cl_uint frHeight;
+    cl_int frWidth;
+    cl_int frHeight;
     cl_uint N;
     cl_uint currentN;
     std::vector<cl_context> context;

@@ -37,7 +37,6 @@ public:
               QObject *parent = nullptr);
     ~XIOCamera();
 
-    virtual bool start();
     virtual void setDir(const char *dirname);
 
     virtual uint16_t* getFrame();
