@@ -36,7 +36,7 @@ public:
                int frHeight = 480,
                int dataHeight = 480,
                QObject *parent = nullptr);
-    ~ENVICamera() = default;
+    ~ENVICamera();
 
     virtual uint16_t *getFrame();
     virtual void setDir(const char *filename);

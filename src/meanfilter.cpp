@@ -7,8 +7,6 @@ MeanFilter::MeanFilter(int frame_width, int frame_height)
 
 MeanFilter::~MeanFilter()
 {
-    p_getPixel = nullptr;
-    delete curFrame;
 }
 
 void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight,

@@ -148,11 +148,10 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
 FrameWorker::~FrameWorker()
 {
     isRunning = false;
-    delete Camera;
-    delete lvframe_buffer;
-    delete DSFilter;
-    delete MEFilter;
     delete STDFilter;
+    delete MEFilter;
+    delete DSFilter;
+    delete Camera;
 }
 
 void FrameWorker::stop()
@@ -213,7 +212,7 @@ void FrameWorker::captureFrames()
         lvframe_buffer->incIndex();
 
         count++;
-        if (duration < frame_period_ms && cam_type == SSD_XIO) {
+        if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI)) {
             delay(int64_t(frame_period_ms) - duration);
         } else {
             QCoreApplication::processEvents(QEventLoop::AllEvents, 100);

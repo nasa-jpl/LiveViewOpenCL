@@ -18,6 +18,13 @@ ENVICamera::ENVICamera(int frWidth,
     std::fill(dummy.begin(), dummy.end(), 0);
 }
 
+ENVICamera::~ENVICamera()
+{
+    running.store(false);
+    is_reading = false;
+    readLoopFuture.waitForFinished();
+}
+
 void ENVICamera::setDir(const char *filename)
 {
     // Close out the last file stream
@@ -138,6 +145,7 @@ void ENVICamera::readLoop()
         if (frame_buf.size() <= 96) {
             if (framesRead >= nFrames) {
                 // drops out of the loop
+                qDebug() << "Done!";
                 is_reading = false;
                 running.store(false);
                 continue;
@@ -145,7 +153,7 @@ void ENVICamera::readLoop()
             int nextFrames = framesRead + chunkFrames > nFrames ? nFrames - framesRead : chunkFrames;
 
             for (int n = 0; n < nextFrames; ++n) {
-                dev_p.read(reinterpret_cast<char*>(copy_vec.data()), framesize);
+                dev_p.read(reinterpret_cast<char*>(copy_vec.data()), framesize * int(sizeof(uint16_t)));
                 frame_buf.emplace_front(copy_vec);
             }
             framesRead += nextFrames;
@@ -162,7 +170,6 @@ uint16_t* ENVICamera::getFrame()
 {
     if (!frame_buf.empty() && running.load()) {
         temp_frame = frame_buf.back();
-        qDebug() << temp_frame[180];
         frame_buf.pop_back();
         return temp_frame.data();
     } else {
