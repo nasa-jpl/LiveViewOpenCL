@@ -10,6 +10,8 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     this->setWindowIcon(QIcon(icon_pixmap));
     this->setWindowTitle("LiveView 4.0");
 
+    source_type = static_cast<source_t>(settings->value(QString("cam_model")).toInt());
+
     // Load the worker thread
     workerThread = new QThread;
     fw = new FrameWorker(settings, workerThread);
@@ -156,6 +158,11 @@ void LVMainWindow::createActions()
     resetAct->setShortcuts(QKeySequence::Refresh);
     resetAct->setStatusTip("Restart the data stream");
     connect(resetAct, &QAction::triggered, this, &LVMainWindow::reset);
+    // Not relevant to CameraLink
+    if (source_type == CAMERA_LINK) {
+        openAct->setEnabled(false);
+        resetAct->setEnabled(false);
+    }
 
     exitAct = new QAction("E&xit", this);
     exitAct->setShortcuts(QKeySequence::Quit);
@@ -329,21 +336,32 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
 
 void LVMainWindow::open()
 {
-    default_dir = settings->value(QString("save_dir"),
-                                  QStandardPaths::writableLocation(
-                                      QStandardPaths::HomeLocation)).toString();
+    if (source_type == XIO) {
+        default_dir = settings->value(QString("save_dir"),
+                                      QStandardPaths::writableLocation(
+                                          QStandardPaths::HomeLocation)).toString();
 
-    QString temp_dir = QFileDialog::getExistingDirectory(
-                this, "Open Data Directory", default_dir,
-                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+        QString temp_dir = QFileDialog::getExistingDirectory(
+                    this, "Open Data Directory", default_dir,
+                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-    if (!temp_dir.isEmpty()) {
-        source_dir = temp_dir;
-        QStringList source_list = source_dir.split("/");
-        source_list.pop_back();
-        QString open_dir = source_list.join("/");
+        if (!temp_dir.isEmpty()) {
+            source_dir = temp_dir;
+            QStringList source_list = source_dir.split("/");
+            source_list.pop_back();
+            QString open_dir = source_list.join("/");
+            settings->setValue("save_dir", open_dir);
+            fw->resetDir(source_dir.toLatin1().data());
+        }
+    } else {
+        default_dir = settings->value(QString("save_dir"),
+                                      QStandardPaths::writableLocation(
+                                          QStandardPaths::HomeLocation)).toString();
+        QString temp_file = QFileDialog::getOpenFileName(
+                    this, "Open ENVI Data File", default_dir, "*.*");
+        QString open_dir = QFileInfo(temp_file).absolutePath();
         settings->setValue("save_dir", open_dir);
-        fw->resetDir(source_dir.toLatin1().data());
+        fw->resetDir(temp_file.toLatin1().data());
     }
 }
 

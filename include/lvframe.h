@@ -21,9 +21,9 @@ struct LVFrame
     float *spectral_mean;
     float *spatial_mean;
     float *frame_fft;
-    const unsigned int frSize;
+    const int frSize;
 
-    LVFrame(const unsigned int frame_width, const unsigned int frame_height) : frSize(frame_width * frame_height)
+    LVFrame(const int frame_width, const int frame_height) : frSize(frame_width * frame_height)
     {
         try {
             raw_data = new uint16_t[frSize];
@@ -44,12 +44,12 @@ struct LVFrame
             checkError(setrlimit(RLIMIT_MEMLOCK, &new_limit));
         }
  //       checkError(mlock(raw_data, frSize * sizeof(uint16_t)));
-        checkError(mlock(sdv_data, frSize * sizeof(float)));
+        checkError(mlock(sdv_data, size_t(frSize) * sizeof(float)));
     }
     ~LVFrame()
     {
 //        checkError(munlock(raw_data, frSize * sizeof(uint16_t)));
-        checkError(munlock(sdv_data, frSize * sizeof(float)));
+        checkError(munlock(sdv_data, size_t(frSize) * sizeof(float)));
         delete dsf_data;
         delete sdv_data;
         delete snr_data;

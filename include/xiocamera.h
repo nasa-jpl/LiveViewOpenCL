@@ -1,5 +1,5 @@
-#ifndef SSDCAMERA_H
-#define SSDCAMERA_H
+#ifndef XIOCAMERA_H
+#define XIOCAMERA_H
 
 #include <stdlib.h>
 #include <cstring>
@@ -26,18 +26,17 @@
 
 using namespace std::chrono;
 
-class SSDCamera : public CameraModel
+class XIOCamera : public CameraModel
 {
     Q_OBJECT
 
 public:
-    SSDCamera(unsigned int frWidth = 640,
-              unsigned int frHeight = 480,
-              unsigned int dataHeight = 480,
+    XIOCamera(int frWidth = 640,
+              int frHeight = 480,
+              int dataHeight = 480,
               QObject *parent = nullptr);
-    ~SSDCamera();
+    ~XIOCamera();
 
-    virtual bool start();
     virtual void setDir(const char *dirname);
 
     virtual uint16_t* getFrame();
@@ -52,9 +51,9 @@ private:
     std::string ifname;
     std::string data_dir;
     std::streampos bufsize;
-    const unsigned int nFrames;
-    unsigned int framesize;
-    const unsigned int headsize;
+    const int nFrames;
+    size_t framesize;
+    const int headsize;
 
     size_t image_no;
     std::vector<std::string> xio_files;
@@ -67,4 +66,4 @@ private:
     int tmoutPeriod;
 };
 
-#endif // SSDCAMERA_H
+#endif // XIOCAMERA_H

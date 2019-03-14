@@ -28,14 +28,14 @@ public:
             infoList = QString(camera->getCameraName());
             break;
 #endif
-        case SSD:
+        case XIO:
             infoList = "XIO file reader";
             break;
-        case DEBUG:
+        case ENVI:
             infoList = "ENVI file reader";
             break;
         default:
-            qDebug() << "hello, world";
+            qDebug("警報：無法辨認相機型號，請選擇別的相機型號。");
         }
 
         QLabel *infoLabel = new QLabel(QString("Camera type: %1").arg(infoList));

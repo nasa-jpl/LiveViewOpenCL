@@ -53,7 +53,7 @@ SOURCES += \
         frameworker.cpp \
         qcustomplot.cpp \
         envicamera.cpp \
-        ssdcamera.cpp \
+        xiocamera.cpp \
         controlsbox.cpp \
         darksubfilter.cpp \
         ctkrangeslider.cpp \
@@ -78,7 +78,7 @@ HEADERS += \
         cameramodel.h \
         envicamera.h \
         constants.h \
-        ssdcamera.h \
+        xiocamera.h \
         osutils.h \
         controlsbox.h \
         alphanum.hpp \

@@ -118,15 +118,12 @@ private slots:
     }
 
 private:
-    std::unordered_map<std::string, source_t> source_t_name{{"SSD (ENVI)", SSD}, {"SSD (XIO)", SSD}, {"CL", CAMERA_LINK}, {"CAMERA_LINK", CAMERA_LINK}, {"Debug", DEBUG}};
-    LVMainWindow *w;
+    std::unordered_map<std::string, source_t> source_t_name{{"SSD (ENVI)", ENVI}, {"SSD (XIO)",XIO}, {"CL", CAMERA_LINK}, {"CAMERA_LINK", CAMERA_LINK}};
     QSettings *s;
     QStringList cameraList;
     QStringList formatList;
     QListView *cameraListView;
-    QListView *formatListView;
     QStringListModel *cameraListModel;
-    QStringListModel *formatListModel;
     QCheckBox *doNotShowBox;
     QDialog *dim_dialog;
     QLineEdit *horizontal;

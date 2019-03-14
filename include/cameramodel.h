@@ -19,16 +19,16 @@ public:
     virtual ~CameraModel() { running.store(false); }
 
 
-    virtual bool start() = 0;
+    virtual bool start() { return true; }
     virtual uint16_t *getFrame() = 0;
 
     virtual void setDir(const char *filename) { Q_UNUSED(filename); }
 
     virtual bool isRunning() { return running.load(); }
 
-    unsigned int getFrameWidth() const { return frame_width; }
-    unsigned int getFrameHeight() const { return frame_height; }
-    unsigned int getDataHeight() const { return data_height; }
+    int getFrameWidth() const { return frame_width; }
+    int getFrameHeight() const { return frame_height; }
+    int getDataHeight() const { return data_height; }
     virtual char* getCameraName() const { return camera_name; }
     camera_t getCameraType() const { return camera_type; }
     source_t getSourceType() const { return source_type; }
@@ -37,9 +37,9 @@ signals:
     void timeout();
 
 protected:
-    unsigned int frame_width;
-    unsigned int frame_height;
-    unsigned int data_height;
+    int frame_width;
+    int frame_height;
+    int data_height;
     char *camera_name;
     camera_t camera_type;
     source_t source_type;

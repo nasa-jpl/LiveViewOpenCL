@@ -39,3 +39,8 @@ std::string os::getext(const std::string &f)
 
     return ("");
 }
+
+std::string os::trim(const std::string &value)
+{
+    return std::regex_replace(value, std::regex("^ +| +$|( ) +"), "$1");
+}

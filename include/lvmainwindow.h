@@ -101,6 +101,7 @@ private:
     QString default_dir;
     QString source_dir;
     QSettings *settings;
+    source_t source_type;
 
 private slots:
     void open();
