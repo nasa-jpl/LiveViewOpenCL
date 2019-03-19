@@ -1,0 +1,12 @@
+ENVI
+description = {LIVEVIEW raw export file, 20 frame mean per acquisition}
+samples = 640
+lines   = 20
+bands   = 480
+header offset = 0
+file type = ENVI Standard
+data type = 12
+interleave = 0
+sensor type = Unknown
+byte order = 0
+wavelength units = Unknown

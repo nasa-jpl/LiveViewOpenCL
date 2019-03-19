@@ -361,7 +361,8 @@ void LVMainWindow::open()
                     this, "Open ENVI Data File", default_dir, "*.*");
         QString open_dir = QFileInfo(temp_file).absolutePath();
         settings->setValue("save_dir", open_dir);
-        fw->resetDir(temp_file.toLatin1().data());
+        source_dir = temp_file;
+        fw->resetDir(source_dir.toLatin1().data());
     }
 }
 

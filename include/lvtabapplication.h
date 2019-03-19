@@ -126,8 +126,8 @@ protected:
 
     QCustomPlot *qcp;
 
-    unsigned int frWidth;
-    unsigned int frHeight;
+    int frWidth;
+    int frHeight;
 
     double lowerRangeBoundX;
     double upperRangeBoundX;

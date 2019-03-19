@@ -122,10 +122,10 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
 QVector<double> line_widget::getSpectralLine(QPointF coord)
 {
     QVector<double> graphData(static_cast<int>(frHeight));
-    auto col = static_cast<size_t>(coord.y());
+    auto col = int(coord.y());
     std::vector<float> image_data = (frame_handler->*p_getFrame)();
-    for (size_t r = 0; r < frHeight; r++) {
-        graphData[r] = static_cast<double>(image_data[r * frWidth + col]);
+    for (int r = 0; r < frHeight; r++) {
+        graphData[r] = static_cast<double>(image_data[size_t(r * frWidth + col)]);
     }
     return graphData;
 }
@@ -133,10 +133,10 @@ QVector<double> line_widget::getSpectralLine(QPointF coord)
 QVector<double> line_widget::getSpatialLine(QPointF coord)
 {
     QVector<double> graphData(static_cast<int>(frWidth));
-    auto row = static_cast<size_t>(coord.x());
+    int row = int(coord.x());
     std::vector<float> image_data = (frame_handler->*p_getFrame)();
-    for (size_t c = 0; c < frWidth; c++) {
-        graphData[c] = static_cast<double>(image_data[row * frWidth + c]);
+    for (int c = 0; c < frWidth; c++) {
+        graphData[c] = static_cast<double>(image_data[size_t(row * frWidth + c)]);
     }
     return graphData;
 }
@@ -146,7 +146,7 @@ QVector<double> line_widget::getSpectralMean(QPointF coord)
     Q_UNUSED(coord);
     QVector<double> graphData(static_cast<int>(frHeight));
     float *mean_data = frame_handler->getSpectralMean();
-    for (size_t r = 0; r < frHeight; r++) {
+    for (int r = 0; r < frHeight; r++) {
         graphData[r] = static_cast<double>(mean_data[r]);
     }
     return graphData;
@@ -157,7 +157,7 @@ QVector<double> line_widget::getSpatialMean(QPointF coord)
     Q_UNUSED(coord);
     QVector<double> graphData(static_cast<int>(frWidth));
     float *mean_data = frame_handler->getSpatialMean();
-    for (size_t c = 0; c < frWidth; c++) {
+    for (int c = 0; c < frWidth; c++) {
         graphData[c] = static_cast<double>(mean_data[c]);
     }
     return graphData;
@@ -168,7 +168,7 @@ void line_widget::handleNewFrame()
     if (!this->isHidden() && frame_handler->running()) {
         QPointF *center = frame_handler->getCenter();
         if (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN || center->x() > -0.1) {
-            y = (this->*p_getLine)(*center);     
+            y = (this->*p_getLine)(*center);
             qcp->graph(0)->setData(x, y);
             // replotting is slow when the data set is chaotic... TODO: develop an optimization here
             qcp->replot();

@@ -27,6 +27,8 @@ ENVICamera::~ENVICamera()
 
 void ENVICamera::setDir(const char *filename)
 {
+
+    qDebug() << filename;
     // Close out the last file stream
     if (is_reading) {
         is_reading = false;
@@ -38,6 +40,7 @@ void ENVICamera::setDir(const char *filename)
     }
 
     ifname = filename;
+    framesRead = 0;
 
     // Guess the ENVI header name based on file extension replacement
     std::string hdr_fname;
@@ -145,9 +148,7 @@ void ENVICamera::readLoop()
         if (frame_buf.size() <= 96) {
             if (framesRead >= nFrames) {
                 // drops out of the loop
-                qDebug() << "Done!";
                 is_reading = false;
-                running.store(false);
                 continue;
             }
             int nextFrames = framesRead + chunkFrames > nFrames ? nFrames - framesRead : chunkFrames;
@@ -171,6 +172,10 @@ uint16_t* ENVICamera::getFrame()
     if (!frame_buf.empty() && running.load()) {
         temp_frame = frame_buf.back();
         frame_buf.pop_back();
+        if (frame_buf.empty()) {
+            running.store(false);
+            emit timeout();
+        }
         return temp_frame.data();
     } else {
         return dummy.data();

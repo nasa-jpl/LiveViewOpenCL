@@ -19,8 +19,8 @@ histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
 
     std::array<float, NUMBER_OF_BINS> hist_bin_vals = StdDevFilter::getHistBinValues();
     hist_bins = QVector<double>(NUMBER_OF_BINS);
-    for (size_t i = 0; i < NUMBER_OF_BINS; i++) {
-        hist_bins[i] = double(hist_bin_vals[i]);
+    for (int i = 0; i < NUMBER_OF_BINS; i++) {
+        hist_bins[i] = double(hist_bin_vals[size_t(i)]);
     }
     upperRangeBoundX = hist_bins[hist_bins.size() - 1];
 
@@ -71,7 +71,7 @@ void histogram_widget::handleNewFrame()
 {
     if (!this->isHidden() && frame_handler->running()) {
         uint32_t *hist_data_ptr = frame_handler->getHistData();
-        for (unsigned int b = 0; b < NUMBER_OF_BINS; b++) {
+        for (int b = 0; b < NUMBER_OF_BINS; b++) {
             hist_data[b] = hist_data_ptr[b];
         }
         histogram->setData(hist_bins, hist_data);

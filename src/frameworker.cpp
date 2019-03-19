@@ -416,9 +416,7 @@ void FrameWorker::reportFPS()
 
 void FrameWorker::resetDir(const char *dirname)
 {
-    if (cam_type == SSD_XIO) {
-        Camera->setDir(dirname);
-    } else if ( cam_type == SSD_ENVI) {
+    if (cam_type == SSD_XIO || cam_type == SSD_ENVI) {
         Camera->setDir(dirname);
     }
 }
