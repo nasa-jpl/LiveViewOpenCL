@@ -359,10 +359,12 @@ void LVMainWindow::open()
                                           QStandardPaths::HomeLocation)).toString();
         QString temp_file = QFileDialog::getOpenFileName(
                     this, "Open ENVI Data File", default_dir, "*.*");
-        QString open_dir = QFileInfo(temp_file).absolutePath();
-        settings->setValue("save_dir", open_dir);
-        source_dir = temp_file;
-        fw->resetDir(source_dir.toLatin1().data());
+        if (!temp_file.isEmpty()) {
+            QString open_dir = QFileInfo(temp_file).absolutePath();
+            settings->setValue("save_dir", open_dir);
+            source_dir = temp_file;
+            fw->resetDir(source_dir.toLatin1().data());
+        }
     }
 }
 

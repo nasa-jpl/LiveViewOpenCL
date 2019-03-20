@@ -59,7 +59,7 @@ public:
         dialogLayout->addLayout(buttonLayout);
 
         dim_dialog = new QDialog;
-        dim_dialog->setWindowTitle("Select Input Dimensions");
+        dim_dialog->setWindowTitle("Set Input Dimensions");
 
         horizontal = new QLineEdit;
         horizontal->setText(s->value(QString("ssd_width"), "").toString());
@@ -80,19 +80,16 @@ public:
         dimButtonLayout->addWidget(okDimButton);
         dimButtonLayout->addWidget(cancelDimButton);
 
-        QHBoxLayout *xLayout = new QHBoxLayout;
-        xLayout->addWidget(new QLabel("Width:"));
-        xLayout->addWidget(horizontal);
+        QGridLayout *dimmaDialogLayout = new QGridLayout;
+        dimmaDialogLayout->addWidget(new QLabel("Height (px):"), 1, 1, 1, 1);
+        dimmaDialogLayout->addWidget(vertical, 1, 2, 1, 1);
+        dimmaDialogLayout->addWidget(new QLabel("Width (px):"), 2, 1, 1, 1);
+        dimmaDialogLayout->addWidget(horizontal, 2, 2, 1, 1);
 
-        QHBoxLayout *yLayout = new QHBoxLayout;
-        yLayout->addWidget(new QLabel("Height:"));
-        yLayout->addWidget(vertical);
-
-        QVBoxLayout *dimDialogLayout = new QVBoxLayout(dim_dialog);
-        dimDialogLayout->addLayout(xLayout);
-        dimDialogLayout->addLayout(yLayout);
-        dimDialogLayout->addLayout(dimButtonLayout);
-
+        // you have to say the variable names out loud (^_^)
+        QVBoxLayout *dimDamDimmaDialogLayout = new QVBoxLayout(dim_dialog);
+        dimDamDimmaDialogLayout->addLayout(dimmaDialogLayout);
+        dimDamDimmaDialogLayout->addLayout(dimButtonLayout);
     }
 
 private slots:
