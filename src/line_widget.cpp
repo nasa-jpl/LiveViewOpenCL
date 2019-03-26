@@ -92,6 +92,7 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
 
     hideTracer = new QCheckBox("Hide Callout Box", this);
     connect(hideTracer, SIGNAL(toggled(bool)), this, SLOT(hideCallout(bool)));
+    hideTracer->setStyleSheet("QCheckBox { outline: none }");
 
     plotModeBox = new QComboBox();
     plotModeBox->addItem("Raw Data");
