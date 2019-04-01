@@ -23,10 +23,5 @@ Primary: Jacqueline Ryan [Jacqueline.Ryan@jpl.nasa.gov](mailto:Jacqueline.Ryan@j
 
 Brendan Berrigan
 
-Max Plotkin [maxwell.a.plotkin@jpl.nasa.gov](mailto:mawxell.a.plotkin@jpl.nasa.gov)
-
-## Inquiries
-If you are a college undergraduate student, and would like to participate in a paid summer internship working on our team, please feel free to e-mail your resume to [Jackie](mailto:Jacqueline.Ryan@jpl.nasa.gov).
-
 ## License
 LiveView is licensed permissively under the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html) a copy of which is shipped with this software.
