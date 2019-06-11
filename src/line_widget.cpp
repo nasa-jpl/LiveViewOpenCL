@@ -96,7 +96,7 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
     plotModeBox = new QComboBox();
     plotModeBox->addItem("Raw Data");
     plotModeBox->addItem("Dark Subtracted Data");
-    plotModeBox->addItem("Signal-to-Noise Ratio Data");
+    // plotModeBox->addItem("Signal-to-Noise Ratio Data");
     connect(plotModeBox, SIGNAL(currentIndexChanged(int)),
             this, SLOT(setPlotMode(int)));
 
@@ -255,9 +255,11 @@ void line_widget::setPlotMode(LV::PlotMode pm)
     case LV::pmDSF:
         p_getFrame = &FrameWorker::getDSFrame;
         break;
+/*
     case LV::pmSNR:
         p_getFrame = &FrameWorker::getSNRFrame;
         break;
+*/
     }
 
     frame_handler->setPlotMode(pm);

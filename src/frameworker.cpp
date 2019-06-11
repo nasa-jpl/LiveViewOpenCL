@@ -4,7 +4,7 @@ class LVFrameBuffer
 {
 public:
     LVFrameBuffer(const int num_frames, const int frame_width, const int frame_height)
-        : lastIndex(0), fbIndex(0),  dsfIndex(0), stdIndex(0)
+        : lastIndex(0), fbIndex(0),  dsfIndex(0) //, stdIndex(0)
     {
         for (int f = 0; f < num_frames; ++f) {
             auto pFrame = new LVFrame(frame_width, frame_height);
@@ -42,12 +42,12 @@ public:
     LVFrame* current() { return frame_vec.at(uint32_t(fbIndex.load())); }
     LVFrame* recent() { return frame_vec.at(uint32_t(lastIndex.load())); }
     LVFrame* lastDSF() { return frame_vec.at(uint32_t(dsfIndex.load())); }
-    LVFrame* lastSTD() { return frame_vec.at(uint32_t(stdIndex.load())); }
+    // LVFrame* lastSTD() { return frame_vec.at(uint32_t(stdIndex.load())); }
 
     std::atomic<int> lastIndex;
     std::atomic<int> fbIndex;
     std::atomic<int> dsfIndex;
-    std::atomic<int> stdIndex;
+    // std::atomic<int> stdIndex;
 
 public slots:
     inline void incIndex()
@@ -58,7 +58,7 @@ public slots:
         }
     }
     inline void setDSF(int f_num) { dsfIndex.store(f_num, std::memory_order_release); }
-    inline void setSTD(int f_num) { stdIndex.store(f_num, std::memory_order_release); }
+    // inline void setSTD(int f_num) { stdIndex.store(f_num, std::memory_order_release); }
 private:
     std::vector<LVFrame*> frame_vec;
 };
@@ -120,14 +120,15 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frWidth, dataHeight);
     TwosFilter = new TwosComplimentFilter(size_t(frSize));
     DSFilter = new DarkSubFilter(size_t(frSize));
-    stddev_N = MAX_N; // arbitrary starting point
-    STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
+    // stddev_N = MAX_N; // arbitrary starting point
+    // STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
     MEFilter = new MeanFilter(frWidth, dataHeight);
+/*
     if (!STDFilter->start()) {
         qWarning("Unable to start OpenCL kernel.");
         qWarning("Standard Deviation and Histogram computation will be disabled.");
     }
-
+*/
     centerVal = QPointF(-1.0, -1.0);
     topLeft = QPointF(0, 0);
     bottomRight = QPointF(frWidth, frHeight);
@@ -148,7 +149,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
 FrameWorker::~FrameWorker()
 {
     isRunning = false;
-    delete STDFilter;
+    // delete STDFilter;
     delete MEFilter;
     delete DSFilter;
     delete Camera;
@@ -240,7 +241,7 @@ void FrameWorker::captureDSFrames()
         }
     }
 }
-
+/*
 void FrameWorker::captureSDFrames()
 {
     int64_t count_framestart;
@@ -263,7 +264,7 @@ void FrameWorker::captureSDFrames()
         }
     }
 }
-
+*/
 void FrameWorker::saveFrames(save_req_t req)
 {
     emit startSaving();
@@ -394,7 +395,7 @@ void FrameWorker::setMaskSettings(QString mask_name, quint64 avg_frames)
     mask_file = std::move(mask_name);
     avgd_frames = avg_frames;
 }
-
+/*
 void FrameWorker::setStdDevN(int new_N)
 {
     if (new_N < 0) {
@@ -404,7 +405,7 @@ void FrameWorker::setStdDevN(int new_N)
     }
     stddev_N = static_cast<uint32_t>(new_N);
 }
-
+*/
 void FrameWorker::reportFPS()
 {
     if (Camera->isRunning()) {
@@ -437,7 +438,7 @@ std::vector<float> FrameWorker::getDSFrame()
     //Maintains reference to data by using vector for memory management
     return std::vector<float>(lvframe_buffer->lastDSF()->dsf_data, lvframe_buffer->lastDSF()->dsf_data + frSize);
 }
-
+/*
 std::vector<float> FrameWorker::getSDFrame()
 {
     //Maintains reference to data by using vector for memory management
@@ -455,7 +456,7 @@ uint32_t* FrameWorker::getHistData()
 {
     return lvframe_buffer->lastSTD()->hist_data;
 }
-
+*/
 float* FrameWorker::getSpatialMean()
 {
     return lvframe_buffer->lastDSF()->spatial_mean;
@@ -465,12 +466,12 @@ float* FrameWorker::getSpectralMean()
 {
     return lvframe_buffer->lastDSF()->spectral_mean;
 }
-
+/*
 float* FrameWorker::getFrameFFT()
 {
     return lvframe_buffer->lastDSF()->frame_fft;
 }
-
+*/
 std::vector<uint16_t> FrameWorker::getBILSaveFrame()
 {
     std::vector<uint16_t> BIL_frame;
@@ -571,7 +572,7 @@ QPointF* FrameWorker::getCenter()
 {
     return &centerVal;
 }
-
+/*
 uint32_t FrameWorker::getStdDevN()
 {
     return stddev_N;
@@ -587,7 +588,7 @@ void FrameWorker::compute_snr(LVFrame *new_frame)
         }
     }
 }
-
+*/
 void FrameWorker::setFramePeriod(double period) {
     frame_period_ms = period;
 }

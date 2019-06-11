@@ -23,7 +23,7 @@
 #endif
 #include "twoscomplimentfilter.h"
 #include "darksubfilter.h"
-#include "stddevfilter.h"
+// #include "stddevfilter.h"
 #include "meanfilter.h"
 #include "constants.h"
 
@@ -52,15 +52,15 @@ public:
 
     TwosComplimentFilter* TwosFilter;
     DarkSubFilter* DSFilter;
-    StdDevFilter* STDFilter;
+    // StdDevFilter* STDFilter;
     MeanFilter* MEFilter;
     std::vector<float> getDSFrame();
-    std::vector<float> getSDFrame();
-    std::vector<float> getSNRFrame();
-    uint32_t* getHistData();
+    // std::vector<float> getSDFrame();
+    // std::vector<float> getSNRFrame();
+    // uint32_t* getHistData();
     float* getSpectralMean();
     float* getSpatialMean();
-    float* getFrameFFT();
+    // float* getFrameFFT();
 
     void saveFrames(save_req_t req);
 
@@ -76,10 +76,10 @@ public:
     int getDataHeight() const { return dataHeight; }
     camera_t getCameraType() const { return cam_type; }
 
-    uint32_t getStdDevN();
+    // uint32_t getStdDevN();
     double getFramePeriod();
 
-    inline void compute_snr(LVFrame *new_frame);
+    // inline void compute_snr(LVFrame *new_frame);
 
     volatile bool pixRemap;
     volatile bool is16bit;
@@ -100,11 +100,11 @@ public slots:
     void reportTimeout();
     void captureFrames();
     void captureDSFrames();
-    void captureSDFrames();
+    // void captureSDFrames();
     void reportFPS();
     void captureFramesRemote(const save_req_t &new_req);
     void applyMask(const QString &fileName);
-    void setStdDevN(int new_N);
+    // void setStdDevN(int new_N);
     void setFramePeriod(double period);
 
 private:
@@ -126,7 +126,7 @@ private:
     size_t frSize;
     camera_t cam_type;
 
-    uint32_t stddev_N; // controls standard deviation history window
+    // uint32_t stddev_N; // controls standard deviation history window
 
     std::queue<uint16_t*> frame_fifo;
     std::atomic<uint_fast32_t> save_count;

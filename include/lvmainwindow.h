@@ -12,13 +12,13 @@
 
 #include "image_type.h"
 #include "frameview_widget.h"
-#include "histogram_widget.h"
+// #include "histogram_widget.h"
 #include "line_widget.h"
-#include "fft_widget.h"
+// #include "fft_widget.h"
 #include "controlsbox.h"
 #include "saveserver.h"
 #include "cameraviewdialog.h"
-#include "computedevdialog.h"
+// #include "computedevdialog.h"
 #include "dsfprefdialog.h"
 
 class LVMainWindow : public QMainWindow
@@ -58,7 +58,7 @@ private:
     QAction *saveAsAct;
     QAction *resetAct;
     QAction *exitAct;
-    QAction *compAct;
+    // QAction *compAct;
     QAction *dsfAct;
     QAction *remap14Act;
     QAction *remap16Act;
@@ -79,22 +79,22 @@ private:
 
     FrameWorker *fw;
     QFuture<void> DSLoop;
-    QFuture<void> SDLoop;
+    // QFuture<void> SDLoop;
     QTabWidget *tab_widget;
     frameview_widget *raw_display;
     frameview_widget *dsf_display;
-    frameview_widget *sdv_display;
-    histogram_widget *hst_display;
+    // frameview_widget *sdv_display;
+    // histogram_widget *hst_display;
     line_widget *spec_display;
     line_widget *spec_mean_display;
     line_widget *spat_display;
     line_widget *spat_mean_display;
-    fft_widget *fft_display;
+    // fft_widget *fft_display;
     ControlsBox *cbox;
 
     SaveServer *server;
 
-    ComputeDevDialog *compDialog;
+    // ComputeDevDialog *compDialog;
     DSFPrefDialog *dsfDialog;
     CameraViewDialog *camDialog;
 
@@ -108,7 +108,7 @@ private slots:
     void save();
     void saveAs();
     void reset();
-    void change_compute_device(const QString &dev_name);
+    // void change_compute_device(const QString &dev_name);
     void show_about_window();
 };
 

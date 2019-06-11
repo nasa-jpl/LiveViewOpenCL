@@ -18,10 +18,12 @@ frameview_widget::frameview_widget(FrameWorker *fw,
         ceiling = 100.0;
         p_getFrame = &FrameWorker::getDSFrame;
         break;
+/*
     case STD_DEV:
         ceiling = 100.0;
         p_getFrame = &FrameWorker::getSDFrame;
         break;
+*/
     default:
         ceiling = UINT16_MAX;
         p_getFrame = &FrameWorker::getFrame;
@@ -281,7 +283,8 @@ void frameview_widget::showTooltip(bool show)
 void frameview_widget::setPlotMode(bool checked)
 {
     p_getFrame = checked ? &FrameWorker::getDSFrame
-                         : &FrameWorker::getSNRFrame;
+                         : &FrameWorker::getDSFrame;
+                         //: &FrameWorker::getSNRFrame;
 }
 
 QCPColorMap* frameview_widget::getColorMap()

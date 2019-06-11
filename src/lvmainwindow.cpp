@@ -16,7 +16,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     workerThread = new QThread;
     fw = new FrameWorker(settings, workerThread);
     fw->moveToThread(workerThread);
-    QFutureWatcher<void> fwWatcher;
+    // QFutureWatcher<void> fwWatcher;
     // Reserve proper take object error handling for later
     connect(fw, SIGNAL(error(QString)), this, SLOT(errorString(QString)));
     connect(workerThread, SIGNAL(started()), fw, SLOT(captureFrames()));
@@ -36,8 +36,8 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     if (fw->running()) {
         workerThread->start();
         DSLoop = QtConcurrent::run(fw, &FrameWorker::captureDSFrames);
-        SDLoop = QtConcurrent::run(fw, &FrameWorker::captureSDFrames);
-        fwWatcher.setFuture(SDLoop);
+        // SDLoop = QtConcurrent::run(fw, &FrameWorker::captureSDFrames);
+        // fwWatcher.setFuture(SDLoop);
         // connect(&fwWatcher, &QFutureWatcher<void>::finished, fw, &FrameWorker::deleteLater);
         connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
     } else {
@@ -49,27 +49,27 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
 
     raw_display = new frameview_widget(fw, BASE, settings);
     dsf_display = new frameview_widget(fw, DSF, settings);
-    sdv_display = new frameview_widget(fw, STD_DEV, settings);
-    hst_display = new histogram_widget(fw);
+    // sdv_display = new frameview_widget(fw, STD_DEV, settings);
+    // hst_display = new histogram_widget(fw);
     spec_display = new line_widget(fw, SPECTRAL_PROFILE);
     spec_mean_display = new line_widget(fw, SPECTRAL_MEAN);
     spat_display = new line_widget(fw, SPATIAL_PROFILE);
     spat_mean_display = new line_widget(fw, SPATIAL_MEAN);
-    fft_display = new fft_widget(fw);
+    // fft_display = new fft_widget(fw);
 
     // Set these two to be in the precision slider by default
     dsf_display->setPrecision(true);
-    sdv_display->setPrecision(true);
+    // sdv_display->setPrecision(true);
 
     tab_widget->addTab(raw_display, QString("Live View"));
     tab_widget->addTab(dsf_display, QString("Dark Subtraction"));
-    tab_widget->addTab(sdv_display, QString("Standard Deviation"));
-    tab_widget->addTab(hst_display, QString("Histogram"));
+    // tab_widget->addTab(sdv_display, QString("Standard Deviation"));
+    // tab_widget->addTab(hst_display, QString("Histogram"));
     tab_widget->addTab(spec_display, QString("Spectral Profile"));
     tab_widget->addTab(spec_mean_display, QString("Spectral Mean"));
     tab_widget->addTab(spat_display, QString("Spatial Profile"));
     tab_widget->addTab(spat_mean_display, QString("Spatial Mean"));
-    tab_widget->addTab(fft_display, QString("FFT of Plane Mean"));
+    // tab_widget->addTab(fft_display, QString("FFT of Plane Mean"));
 
     server = new SaveServer(this);
     connect(server, &SaveServer::startSavingRemote,
@@ -96,11 +96,11 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     createMenus();
 
     camDialog = new CameraViewDialog(fw->Camera);
-
+/*
     compDialog = new ComputeDevDialog(fw->STDFilter->getDeviceList());
     connect(compDialog, &ComputeDevDialog::device_changed,
             this, &LVMainWindow::change_compute_device);
-
+*/
     dsfDialog = new DSFPrefDialog();
     connect(dsfDialog, &DSFPrefDialog::applyMaskFromFile,
             fw, &FrameWorker::applyMask);
@@ -115,20 +115,20 @@ LVMainWindow::~LVMainWindow()
     fw->stop();
     if (DSLoop.isStarted())
         DSLoop.waitForFinished();
-    if (SDLoop.isStarted())
-        SDLoop.waitForFinished();
+    // if (SDLoop.isStarted())
+    //     SDLoop.waitForFinished();
     delete cbox;
     delete raw_display;
     delete dsf_display;
-    delete sdv_display;
-    delete hst_display;
+    // delete sdv_display;
+    // delete hst_display;
     delete spec_display;
     delete spec_mean_display;
     delete spat_display;
     delete spat_mean_display;
-    delete fft_display;
+    // delete fft_display;
     delete camDialog;
-    delete compDialog;
+    // delete compDialog;
     delete dsfDialog;
 }
 
@@ -168,13 +168,13 @@ void LVMainWindow::createActions()
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip("Exit LiveView");
     connect(exitAct, &QAction::triggered, this, &QWidget::close);
-
+/*
     compAct = new QAction("Change Compute Device...", this);
     compAct->setStatusTip("Use a different computing type for OpenCL calculations.");
     connect(compAct, &QAction::triggered, this, [this]() {
         compDialog->show();
     });
-
+*/
     dsfAct = new QAction("Dark Subtraction", this);
     dsfAct->setShortcut(QKeySequence::Underline); // This specifies the Ctrl+U key combo.
     dsfAct->setStatusTip("Modify settings when collecting dark subtraction frames.");
@@ -297,7 +297,7 @@ void LVMainWindow::createMenus()
     fileMenu->addAction(exitAct);
 
     prefMenu = menuBar()->addMenu("&Computation");
-    prefMenu->addAction(compAct);
+    // prefMenu->addAction(compAct);
     prefMenu->addAction(dsfAct);
     inversionSubMenu = prefMenu->addMenu("Remap Pixels");
     inversionSubMenu->addAction(remap14Act);
@@ -328,7 +328,7 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
     menu.exec(event->globalPos());
 
     QMenu compMenu(this);
-    compMenu.addAction(compAct);
+    // compMenu.addAction(compAct);
     compMenu.addAction(dsfAct);
     compMenu.exec(event->globalPos());
 }
@@ -394,12 +394,12 @@ void LVMainWindow::reset()
 {
     fw->resetDir(source_dir.toLatin1().data());
 }
-
+/*
 void LVMainWindow::change_compute_device(const QString &dev_name)
 {
     fw->STDFilter->change_device(dev_name);
 }
-
+*/
 void LVMainWindow::show_about_window()
 {
     QString infoLabel = QString("This version of LiveView has the SHA identifier:\n(%1)\n").arg(GIT_CURRENT_SHA1);
@@ -416,5 +416,5 @@ void LVMainWindow::changeGradients()
     int value = settings->value(QString("gradient"), QCPColorGradient::gpJet).toInt();
     raw_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
     dsf_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
-    sdv_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
+    // sdv_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
 }
