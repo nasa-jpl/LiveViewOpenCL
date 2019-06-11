@@ -165,15 +165,20 @@ frameview_widget::frameview_widget(FrameWorker *fw,
      * data. The SNR calculation is performed in the
      * FrameWorker::captureSDFrames loop function.
      */
+/*
     if (image_type == DSF) { //Dark Sub Widget Only
         QCheckBox *plotModeCheckbox =
                 new QCheckBox("Plot Signal-to-Noise Ratio", this);
         connect(plotModeCheckbox, &QCheckBox::toggled,
+
+
+
+
                 this, &frameview_widget::setPlotMode);
         plotModeCheckbox->setFixedWidth(150);
         bottomControls->addWidget(plotModeCheckbox);
     }
-
+*/
     bottomControls->addWidget(zoomOptions);
 
     qvbl->addWidget(qcp, 10);
