@@ -1,5 +1,5 @@
-#ifndef EDTCAMERA_H
 #define EDTCAMERA_H
+#ifndef EDTCAMERA_H
 
 
 #include <cstring>

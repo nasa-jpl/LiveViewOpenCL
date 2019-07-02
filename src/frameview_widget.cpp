@@ -18,10 +18,12 @@ frameview_widget::frameview_widget(FrameWorker *fw,
         ceiling = 100.0;
         p_getFrame = &FrameWorker::getDSFrame;
         break;
+/*
     case STD_DEV:
         ceiling = 100.0;
         p_getFrame = &FrameWorker::getSDFrame;
         break;
+*/
     default:
         ceiling = UINT16_MAX;
         p_getFrame = &FrameWorker::getFrame;
@@ -163,15 +165,20 @@ frameview_widget::frameview_widget(FrameWorker *fw,
      * data. The SNR calculation is performed in the
      * FrameWorker::captureSDFrames loop function.
      */
+/*
     if (image_type == DSF) { //Dark Sub Widget Only
         QCheckBox *plotModeCheckbox =
                 new QCheckBox("Plot Signal-to-Noise Ratio", this);
         connect(plotModeCheckbox, &QCheckBox::toggled,
+
+
+
+
                 this, &frameview_widget::setPlotMode);
         plotModeCheckbox->setFixedWidth(150);
         bottomControls->addWidget(plotModeCheckbox);
     }
-
+*/
     bottomControls->addWidget(zoomOptions);
 
     qvbl->addWidget(qcp, 10);
@@ -281,7 +288,8 @@ void frameview_widget::showTooltip(bool show)
 void frameview_widget::setPlotMode(bool checked)
 {
     p_getFrame = checked ? &FrameWorker::getDSFrame
-                         : &FrameWorker::getSNRFrame;
+                         : &FrameWorker::getDSFrame;
+                         //: &FrameWorker::getSNRFrame;
 }
 
 QCPColorMap* frameview_widget::getColorMap()

@@ -42,7 +42,6 @@ INCLUDEPATH += ./include \
 
 VPATH += ./include \
          ./src \
-         ./kernel \
          ./util \
          ./EDT_include
 
@@ -58,11 +57,8 @@ SOURCES += \
         darksubfilter.cpp \
         ctkrangeslider.cpp \
         osutils.cpp \
-        stddevfilter.cpp \
-        histogram_widget.cpp \
         line_widget.cpp \
         meanfilter.cpp \
-        fft_widget.cpp \
         saveserver.cpp \
         twoscomplimentfilter.cpp \
         fpslineedit.cpp
@@ -85,13 +81,8 @@ HEADERS += \
         darksubfilter.h \
         ctkrangeslider.h \
         lvtabapplication.h \
-        stddevfilter.h \
-        histogram_widget.h \
         line_widget.h \
         meanfilter.h \
-        fft_widget.h \
-        sliding_dft.h \
-        computedevdialog.h \
         saveserver.h \
         saveclient.h \
         dsfprefdialog.h \
@@ -106,9 +97,7 @@ RESOURCES += \
     kernel/kernel.qrc \
     qdarkstyle/style.qrc
 
-DISTFILES += \
-    kernel/stddev.cl
+#macx: LIBS += -framework OpenCL
+#else:unix|win32: LIBS += -lOpenCL
+#exists(lib/libpdv.a):LIBS += -L$$PWD/lib -lm -lpdv -ldl
 
-macx: LIBS += -framework OpenCL
-else:unix|win32: LIBS += -lOpenCL
-unix:!macx: LIBS += -L$$PWD/lib -lm -lpdv -ldl

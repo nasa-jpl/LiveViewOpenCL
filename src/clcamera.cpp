@@ -1,4 +1,5 @@
 #include "clcamera.h"
+#ifndef EDTCAMERA_H
 
 CLCamera::CLCamera(int channel_num,
                    int num_buffers,
@@ -80,3 +81,5 @@ uint16_t* CLCamera::getFrame()
     return image_p;
 
 }
+
+#endif

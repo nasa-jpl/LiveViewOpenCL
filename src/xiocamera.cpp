@@ -85,6 +85,9 @@ std::string XIOCamera::getFname()
         fname = xio_files[image_no++];
     } else {
         os::listdir(fname_list, data_dir);
+        if (fname_list.size() < 1) {
+            return fname;
+        }
         /* if necessary, there may need to be code to sort the "frames" in the data directory
         * by product name, as mtime is unreliable.
         */

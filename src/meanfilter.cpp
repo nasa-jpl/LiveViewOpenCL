@@ -2,7 +2,8 @@
 #include <cmath>
 
 MeanFilter::MeanFilter(int frame_width, int frame_height)
-    : dft_ready_read(false), frWidth(frame_width), frHeight(frame_height)
+    : //dft_ready_read(false),
+      frWidth(frame_width), frHeight(frame_height)
 {}
 
 MeanFilter::~MeanFilter()
@@ -25,9 +26,11 @@ void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRig
     case LV::pmDSF:
         p_getPixel = &MeanFilter::getDSFPixel;
         break;
+/*
     case LV::pmSNR:
         p_getPixel = &MeanFilter::getSNRPixel;
         break;
+*/
     }
     curFrame = frame;
 
@@ -51,7 +54,7 @@ void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRig
         }
     }
     frame_mean /= (frWidth * frHeight);
-
+/*
     dft_ready_read = dft.update(frame_mean);
     if (dft_ready_read && cam_running) {
         dft.get(frame->frame_fft);
@@ -60,7 +63,7 @@ void MeanFilter::compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRig
             frame->frame_fft[k] = 0.0f;
         }
     }
-
+*/
     for (r = 0; r < frHeight; r++) {
         frame->spectral_mean[r] /= nSamps;
     }
@@ -79,7 +82,7 @@ float MeanFilter::getDSFPixel(uint32_t index)
 {
     return curFrame->dsf_data[index];
 }
-
+/*
 float MeanFilter::getSNRPixel(uint32_t index)
 {
     return curFrame->snr_data[index];
@@ -89,3 +92,4 @@ bool MeanFilter::dftReady()
 {
     return dft_ready_read;
 }
+*/

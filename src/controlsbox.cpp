@@ -67,15 +67,15 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     connect(frame_handler->DSFilter, &DarkSubFilter::mask_frames_collected, this, [this](){
         this->collectDSFMask();
     });
-
+/*
     auto stdDevNSlider = new QSlider(this);
     stdDevNSlider->setOrientation(Qt::Horizontal);
     stdDevNSlider->setValue(100);
-    // stdDevNSlider->setEnabled(false);
+    stdDevNSlider->setEnabled(false);
     auto stdDevNBox = new QSpinBox(this);
     stdDevNBox->setMaximum(MAX_N);
-    stdDevNBox->setMinimum(1);
-    // stdDevNBox->setEnabled(false);
+    tdDevNBox->setMinimum(1);
+    stdDevNBox->setEnabled(false);
     stdDevNBox->setValue(static_cast<int>(frame_handler->getStdDevN()));
 
     // TODO: convert this to new style syntax. Ambiguity of valueChanged signal causes issues.
@@ -83,7 +83,7 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     connect(stdDevNSlider, &QSlider::valueChanged, this, [stdDevNBox, stdDevNSlider]() {
         stdDevNBox->setValue((stdDevNSlider->value() / 2) + 1);
     });
-
+*/
     auto cboxLayout = new QGridLayout(this);
     cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Range:", this), 0, 1, 1, 1);
@@ -101,8 +101,8 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     cboxLayout->addWidget(numFramesEdit, 1, 10, 1, 1);
     cboxLayout->addWidget(portLabel, 2, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Std. Dev. N:", this), 2, 1, 1, 1);
-    cboxLayout->addWidget(stdDevNBox, 2, 2, 1, 1);
-    cboxLayout->addWidget(stdDevNSlider, 2, 3, 1, 5);
+    // cboxLayout->addWidget(stdDevNBox, 2, 2, 1, 1);
+    // cboxLayout->addWidget(stdDevNSlider, 2, 3, 1, 5);
     cboxLayout->addWidget(new QLabel("Num. Avgs:", this), 2, 9, 1, 1);
     cboxLayout->addWidget(numAvgsEdit, 2, 10, 1, 1);
 
@@ -198,7 +198,7 @@ void ControlsBox::setMaxSpin(int new_max) {
 }
 
 void ControlsBox::setRangeSliderMin(int new_min) {
-    if(new_min <= max_box->value()) {
+    if (new_min <= max_box->value()) {
         rangeSlider->blockSignals(true);
         rangeSlider->setMinimumPosition(static_cast<int>(new_min * 99.0 / viewWidget->getDataMax()));
         rangeSlider->blockSignals(false);
@@ -206,7 +206,7 @@ void ControlsBox::setRangeSliderMin(int new_min) {
 }
 
 void ControlsBox::setRangeSliderMax(int new_max) {
-    if(new_max >= min_box->value()) {
+    if (new_max >= min_box->value()) {
         rangeSlider->blockSignals(true);
         rangeSlider->setMaximumPosition(static_cast<int>(new_max * 99.0 / viewWidget->getDataMax()));
         rangeSlider->blockSignals(false);
