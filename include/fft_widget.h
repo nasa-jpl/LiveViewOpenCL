@@ -18,6 +18,7 @@ public slots:
     void rescaleRange();
 
 private:
+    // This is a new comment. I'm contributing!! :)
     QCPBars *fft_bars;
     QCheckBox *DCMaskBox;
     QVector<double> freq_bins;
