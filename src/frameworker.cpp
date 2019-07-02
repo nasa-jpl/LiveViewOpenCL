@@ -85,11 +85,14 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         break;
     case CAMERA_LINK:
 #if !(__APPLE__ || __MACH__)
+#ifndef EDTCAMERA_H
         Camera = new CLCamera();
         break;
+#endif
 #else
         qFatal("Unable to use Camera Link interface on MacOS systems!");
 #endif
+        qDebug("pass");
     }
 
     bool cam_started = Camera->start();
