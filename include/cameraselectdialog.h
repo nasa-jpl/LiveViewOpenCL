@@ -24,8 +24,10 @@ public:
     {
         this->setWindowTitle("Select Camera Model");
         this->cameraList = (QStringList()
-#if !(__MACH__ || __APPLE__)
+#ifndef EDT_INDEPENDENT
+    #if !(__MACH__ || __APPLE__)
                             << QString("CL")
+    #endif
 #endif
                             << QString("SSD (ENVI)"))
                             << QString("SSD (XIO)");

@@ -14,8 +14,12 @@
 #include <QString>
 #include <QStringList>
 
-#if (__APPLE__ && __MACH__)
-    #include "OpenCL/opencl.h"
+#ifndef EDT_INDEPENDENT
+    #if (__APPLE__ && __MACH__)
+        #include "OpenCL/opencl.h"
+    #else
+        #include "CL/cl.h"
+    #endif
 #else
     #include "CL/cl.h"
 #endif

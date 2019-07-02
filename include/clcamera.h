@@ -22,7 +22,7 @@ public:
     virtual bool isRunning();
 
 private:
-    PdvDev* dev_p;
+   PdvDev* dev_p;
     uint16_t* image_p;
     int channel;
     int numbufs;

@@ -1,10 +1,14 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-#if (__APPLE__ && __MACH__)
-static const bool USE_DARK_STYLE = true;
+#ifndef EDT_INDEPENDENT
+    #if (__APPLE__ && __MACH__)
+        static const bool USE_DARK_STYLE = true;
+    #else
+        static const bool USE_DARK_STYLE = false; //dark style does not display some widgets properly on Linux
+    #endif
 #else
-static const bool USE_DARK_STYLE = false; // dark style does not display some widgets properly on Linux
+    static const bool USE_DARK_STYLE = false; // dark style does not display some widgets properly on Linux
 #endif
 static const unsigned int CPU_FRAME_BUFFER_SIZE = 200;
 static const unsigned int MAX_SIZE = 2560*2560;

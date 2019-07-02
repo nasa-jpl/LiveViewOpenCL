@@ -1,4 +1,5 @@
 #include "frameworker.h"
+#include "unistd.h"
 
 class LVFrameBuffer
 {
@@ -84,11 +85,15 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
                                 settings->value(QString("ssd_height"), 480).toInt());
         break;
     case CAMERA_LINK:
-#if !(__APPLE__ || __MACH__)
+#ifndef EDT_INDEPENDENT
+    #if !(__APPLE__ || __MACH__)
         Camera = new CLCamera();
         break;
-#else
+    #else
         qFatal("Unable to use Camera Link interface on MacOS systems!");
+    #endif
+#else
+    qFatal("Unable to use Camera Link interface on MacOS systems!");
 #endif
     }
 

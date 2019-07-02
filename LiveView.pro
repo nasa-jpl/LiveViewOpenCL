@@ -22,7 +22,11 @@ TEMPLATE = app
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+# DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+
+# You can compile LiveView without EDTpdv. In order to do so, uncomment the following line and make sure
+# EDT is not in your working directory
+# DEFINES += EDT_INDEPENDENT
 
 QMAKE_CXXFLAGS -= -std=gnu++11
 QMAKE_CXXFLAGS += -O3 -std=c++0x -Wno-inconsistent-missing-override -Wno-ignored-attributes -Wno-date-time
@@ -44,7 +48,7 @@ VPATH += ./include \
          ./src \
          ./kernel \
          ./util \
-         ./EDT_include
+exists(EDT_include/edtinc.h): VPATH += ./EDT_include
 
 SOURCES += \
         main.cpp \
@@ -111,4 +115,4 @@ DISTFILES += \
 
 macx: LIBS += -framework OpenCL
 else:unix|win32: LIBS += -lOpenCL
-unix:!macx: LIBS += -L$$PWD/lib -lm -lpdv -ldl
+exists(EDT_include/edtinc.h): unix:!macx: LIBS += -L$$PWD/lib -lm -lpdv -ldl
