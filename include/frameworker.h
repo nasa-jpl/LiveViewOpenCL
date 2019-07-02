@@ -18,9 +18,14 @@
 #include "cameramodel.h"
 #include "envicamera.h"
 #include "xiocamera.h"
+
 #if !(__APPLE__ || __MACH__)
 #include "clcamera.h"
 #endif
+#ifdef EDTCAMERA_H
+#include <unistd.h>
+#endif
+
 #include "twoscomplimentfilter.h"
 #include "darksubfilter.h"
 // #include "stddevfilter.h"

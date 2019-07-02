@@ -99,5 +99,5 @@ RESOURCES += \
 
 #macx: LIBS += -framework OpenCL
 #else:unix|win32: LIBS += -lOpenCL
-exists(lib/libpdv.a):LIBS += -L$$PWD/lib -lm -lpdv -ldl
+#exists(lib/libpdv.a):LIBS += -L$$PWD/lib -lm -lpdv -ldl
 
