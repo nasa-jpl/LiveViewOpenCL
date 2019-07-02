@@ -1,5 +1,6 @@
 *.o
 moc_*
+qrc_*
 *.app/
 .qmake.stash
 *.pro.user
