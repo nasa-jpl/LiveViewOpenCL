@@ -26,7 +26,7 @@ TEMPLATE = app
 
 # You can compile LiveView without EDTpdv. In order to do so, uncomment the following line and make sure
 # EDT is not in your working directory
-# DEFINES += EDT_INDEPENDENT
+DEFINES += EDT_INDEPENDENT
 
 QMAKE_CXXFLAGS -= -std=gnu++11
 QMAKE_CXXFLAGS += -O3 -std=c++0x -Wno-inconsistent-missing-override -Wno-ignored-attributes -Wno-date-time
