@@ -1,8 +1,12 @@
 #include "lvmainwindow.h"
+#include <QFileInfo>
+#include <QDir>
 
 LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     : QMainWindow(parent), settings(settings)
 {   
+    setAcceptDrops(true);
+
     // Hardcoded default window size
     this->resize(1560, 1000);
 
@@ -418,3 +422,23 @@ void LVMainWindow::changeGradients()
     dsf_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
     sdv_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
 }
+
+void LVMainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasUrls())
+    {
+        event->acceptProposedAction();
+    }
+}
+
+void LVMainWindow::dropEvent(QDropEvent *event)
+{
+
+    QFileInfo f;
+    foreach(const QUrl &url, event->mimeData()->urls())
+    {
+            const QString &filename = url.toLocalFile();
+            fw->resetDir(filename.toLatin1().data());
+    }
+}
+

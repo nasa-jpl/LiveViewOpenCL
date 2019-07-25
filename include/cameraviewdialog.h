@@ -23,7 +23,7 @@ public:
 
         QString infoList;
         switch(camera->getSourceType()) {
-#if !(__MACH__ || __APPLE__)
+#ifdef USE_EDT
         case CAMERA_LINK:
             infoList = QString(camera->getCameraName());
             break;

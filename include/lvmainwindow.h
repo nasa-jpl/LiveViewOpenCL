@@ -24,6 +24,7 @@
 class LVMainWindow : public QMainWindow
 {
     Q_OBJECT
+  //  setAcceptDrops(true);
 
 public:
     LVMainWindow(QSettings *settings, QWidget *parent = nullptr);
@@ -45,6 +46,8 @@ private:
     void createActions();
     void createMenus();
     void changeGradients();
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
 
     QMenu *fileMenu;
     QMenu *prefMenu;
