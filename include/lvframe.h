@@ -63,20 +63,14 @@ struct LVFrame
     {
         char buffer[256];
         if (error == -1) {
-#ifndef EDT_INDEPENDENT
-    #if (__APPLE__ && __MACH__)
+#if (__APPLE__ && __MACH__)
         int res;
         res = strerror_r(errno, buffer, 256);
         qWarning("[Errno %d]: %s: %d", errno, buffer, res);
-    #else
+#else
         char* err;
         err = strerror_r(errno, buffer, 256);
         qWarning("[Errno %d]: %s", errno, err);
-    #endif
-#else
-    char* err;
-    err = strerror_r(errno, buffer, 256);
-    qWarning("[Errno %d]: %s", errno, err);
 #endif
         }
     }

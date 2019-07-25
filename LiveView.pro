@@ -24,9 +24,9 @@ TEMPLATE = app
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 # DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-# You can compile LiveView without EDTpdv. In order to do so, uncomment the following line and make sure
-# EDT is not in your working directory
-DEFINES += EDT_INDEPENDENT
+# You can compile LiveView with EDTpdv. In order to do so, uncomment the following line and make sure
+# EDT is in your working directory
+# DEFINES += USE_EDT
 
 QMAKE_CXXFLAGS -= -std=gnu++11
 QMAKE_CXXFLAGS += -O3 -std=c++0x -Wno-inconsistent-missing-override -Wno-ignored-attributes -Wno-date-time

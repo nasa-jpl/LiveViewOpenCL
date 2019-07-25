@@ -23,12 +23,10 @@ public:
 
         QString infoList;
         switch(camera->getSourceType()) {
-#ifndef EDT_INDEPENDENT
-    #if !(__MACH__ || __APPLE__)
+#ifdef USE_EDT
         case CAMERA_LINK:
             infoList = QString(camera->getCameraName());
             break;
-    #endif
 #endif
         case XIO:
             infoList = "XIO file reader";

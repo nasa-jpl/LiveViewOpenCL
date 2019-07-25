@@ -19,10 +19,8 @@
 #include "envicamera.h"
 #include "xiocamera.h"
 
-#ifndef EDT_INDEPENDENT
-    #if !(__APPLE__||__MACH__)
-        #include "clcamera.h"
-    #endif
+#ifdef USE_EDT
+#include "clcamera.h"
 #endif
 
 #include "twoscomplimentfilter.h"
