@@ -169,11 +169,6 @@ void LVMainWindow::createActions()
     resetAct->setShortcuts(QKeySequence::Refresh);
     resetAct->setStatusTip("Restart the data stream");
     connect(resetAct, &QAction::triggered, this, &LVMainWindow::reset);
-    // Not relevant to CameraLink
-    if (source_type == CAMERA_LINK) {
-        openAct->setEnabled(false);
-        resetAct->setEnabled(false);
-    }
 
     exitAct = new QAction("E&xit", this);
     exitAct->setShortcuts(QKeySequence::Quit);
@@ -294,6 +289,13 @@ void LVMainWindow::createActions()
     });
     helpInfoAct = new QAction("About LiveView", this);
     connect(helpInfoAct, &QAction::triggered, this, &LVMainWindow::show_about_window);
+
+    // Not relevant to CameraLink
+    if (source_type == CAMERA_LINK) {
+        openAct->setEnabled(false);
+        resetAct->setEnabled(false);
+        fpsAct->setEnabled(false);
+    }
 }
 
 void LVMainWindow::createMenus()
