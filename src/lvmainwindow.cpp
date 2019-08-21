@@ -112,6 +112,12 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
         fw->setMaskSettings(dsfDialog->getMaskFile(),
                             dsfDialog->getAvgdFrames());
     });
+
+    fpsDialog = new FrameRateDialog(int(1000.0 / fw->getFramePeriod()));
+    connect(fpsDialog, &FrameRateDialog::framerate_changed,
+            this, [this](int frame_period){
+                fw->setFramePeriod(double(1000.0 / frame_period));
+    });
 }
 
 LVMainWindow::~LVMainWindow()
@@ -134,6 +140,7 @@ LVMainWindow::~LVMainWindow()
     delete camDialog;
     delete compDialog;
     delete dsfDialog;
+    delete fpsDialog;
 }
 
 void LVMainWindow::errorString(const QString &errstr)
@@ -177,6 +184,12 @@ void LVMainWindow::createActions()
     compAct->setStatusTip("Use a different computing type for OpenCL calculations.");
     connect(compAct, &QAction::triggered, this, [this]() {
         compDialog->show();
+    });
+
+    fpsAct = new QAction("Change Target FPS...", this);
+    fpsAct->setStatusTip("Change the playback speed for a file.");
+    connect(fpsAct, &QAction::triggered, this, [this]() {
+        fpsDialog->show();
     });
 
     dsfAct = new QAction("Dark Subtraction", this);
@@ -302,6 +315,7 @@ void LVMainWindow::createMenus()
 
     prefMenu = menuBar()->addMenu("&Computation");
     prefMenu->addAction(compAct);
+    prefMenu->addAction(fpsAct);
     prefMenu->addAction(dsfAct);
     inversionSubMenu = prefMenu->addMenu("Remap Pixels");
     inversionSubMenu->addAction(remap14Act);
@@ -333,6 +347,7 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
 
     QMenu compMenu(this);
     compMenu.addAction(compAct);
+    compMenu.addAction(fpsAct);
     compMenu.addAction(dsfAct);
     compMenu.exec(event->globalPos());
 }

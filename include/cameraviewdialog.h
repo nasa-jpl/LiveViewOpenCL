@@ -35,7 +35,7 @@ public:
             infoList = "ENVI file reader";
             break;
         default:
-            qDebug("警報：無法辨認相機型號，請選擇別的相機型號。");
+            qDebug("警報：無法辨認照相機型號，請選擇別的照相機型號。");
         }
 
         QLabel *infoLabel = new QLabel(QString("Camera type: %1").arg(infoList));

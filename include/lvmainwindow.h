@@ -20,6 +20,7 @@
 #include "cameraviewdialog.h"
 #include "computedevdialog.h"
 #include "dsfprefdialog.h"
+#include "frameratedialog.h"
 
 class LVMainWindow : public QMainWindow
 {
@@ -66,6 +67,7 @@ private:
     QAction *remap14Act;
     QAction *remap16Act;
     QAction *noRemapAct;
+    QAction *fpsAct;
 
     QAction *darkModeAct;
     QAction *modelSelectAct;
@@ -98,6 +100,7 @@ private:
     SaveServer *server;
 
     ComputeDevDialog *compDialog;
+    FrameRateDialog *fpsDialog;
     DSFPrefDialog *dsfDialog;
     CameraViewDialog *camDialog;
 
