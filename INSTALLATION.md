@@ -1,21 +1,56 @@
 # Installation Guide for LiveView
-LiveView must be built from source, rather than installed as a pre-compiled executable because it is in active development. To begin, obtain a copy of the source from the JPL GitHub by cloning the repository, entering this command in a terminal:
+## Quick Guide
+Run these commands:
+```
+    $ git clone https://github.com/nasa-jpl/LiveViewOpenSource
+    $ sudo apt-get install qt5-default     # Ubuntu/Debian
+    $ brew install qt                      # MacOS
+    $ cd LiveViewOpenSource/
+** If installing with the CameraLink interface enabled, see below **
+    $ qmake
+    $ make -j
+```
+To install LiveView with the CameraLink interface available, first check [Installing the EDT PDV Driver](https://github.com/nasa-jpl/LiveViewOpenSource/wiki/Installation-Guide#Installing-the-EDT-PDV-Driver):
+```
+    $ sudo /opt/EDTpdv/setup.sh
+    $ initcam -f /path/to/XXXX.cfg # camera config file
+    $ take
+```
+Note that there is a test camera configuration file called NGIS.cfg in the source directory of LiveViewOpenSource.
+
+## Detailed Guide
+LiveView must be built from source, rather than installed as a pre-compiled executable because it is in active development. If there is sufficient demand for a particular platform, please open an [issue](https://github.com/nasa-jpl/LiveViewOpenSource/issues) mentioning the need for a pre-compiled binary. To begin, obtain a copy of the source from the GitHub by cloning the repository, entering this command in a terminal:
 
 ```
-    $ git clone https://github.jpl.nasa.gov/jryan/LiveView-Experimental
+    $ git clone https://github.com/nasa-jpl/LiveViewOpenSource
 ```
 
-For git to work properly, ensure that you have logged into [JPL GitHub](https://github.jpl.nasa.gov/) at least once. If you wish to contribute to LiveView, and have not done so in the past, please configure your git profile at the terminal:
+If you wish to contribute to LiveView, and have not done so in the past, please configure your git profile at the terminal:
 
 ```
     $ git config --global user.name jryan
     $ git config --global user.email Jacqueline.Ryan@jpl.nasa.gov
 ```
 
-Replacing "jryan" in the example above with your own username, and "Jacqueline.Ryan@jpl.nasa.gov" with your own email (preferably a JPL email address).
+Replacing "jryan" in the example above with your own username, and "Jacqueline.Ryan@jpl.nasa.gov" with your own email.
 
 ## Installing on Unix-based Operating Systems
-Once a copy of the source has been obtained, enter the source directory and open the LiveView.pro file in QtCreator. If QtCreator is not on the target machine, it can be installed using the package manager provided by the Linux distribution used on that machine. For instance, on Ubuntu and Debian, this would be:
+### Getting Qt
+[Qt](https://www.qt.io/) is a library for building desktop applications and is the main dependency of LiveView. To build the source, a copy of Qt 5.6 or newer is required. This software is free and can be installed via the one of the following methods:
+
+* On Debian or Ubuntu: `sudo apt-get install qt5-default`
+* On MacOS: `brew install qt`
+* Alternatively, follow the [installation instructions on the Qt website](https://www.qt.io/download-qt-installer) 
+
+### Getting QtCreator (Recommended, but Optional)
+Once a copy of the source has been obtained, enter the source directory and open the LiveView.pro file in [QtCreator](https://doc.qt.io/qtcreator/). QtCreator is an IDE developed by the Qt Company, and is the editor used to develop LiveView. It is not required if the user does not plan to modify the code of LiveView.
+
+```
+    $ open LiveView.pro       # on MacOS
+    $ qtcreator LiveView.pro  # on Linux
+```
+
+If QtCreator is not on the target machine, it can be installed using the package manager provided by the Linux distribution used on that machine. For instance, on Ubuntu and Debian, this would be:
 
 ```
     $ sudo apt-get install qtcreator
@@ -30,7 +65,7 @@ As an additional resource, Qt provides an [online installation document](https:/
 Additional documentation for installing Qt is also provided for [RedHat and CentOS](https://wiki.qt.io/How_to_Install_Qt_5_and_Qwt_on_CentOS_6). On MacOS:
 
 ```
-    $ brew install qt
+    $ brew cask install qt-creator
 ```
 
 Launch QtCreator, and open LiveView.pro within the new folder containing the program source. Select "Configure Project" in the window that opens, then wait for the source to be parsed and loaded in. Optionally, go to the Projects pane in QtCreator by selecting the wrench icon in the top left. In this view, under Build Steps, click the Details button for Make, the second of the two steps. Inside there, under "Make arguments:" enter "-j".
@@ -68,10 +103,19 @@ Finally, re-open LiveView, either from QtCreator or from the new build directory
 ## Installing OpenCL Drivers for VM
 For Intel CPU-only environments in VMs.  Drivers need to be installed from [https://software.intel.com/en-us/articles/opencl-drivers](https://software.intel.com/en-us/articles/opencl-drivers) instead of those availible on aptitute (for Ubuntu).
 
+## Installing OpenCL Drivers on Ubuntu
+Some installations of Ubuntu will not have OpenCL installed by default. In that case, when attempting to compile LiveView, there will be compilation errors attempting to find the header "CL/cl.h". To install the OpenCL drivers, run the command:
+
+```
+    $ sudo apt install ocl-icd-* opencl-headers
+```
+
 ## Configuring Camera Link drivers for LiveView
 LiveView is compatible with Camera Link interfaces, which is a type of serial interface commonly used for connecting high-throughput devices to a computer. Engineering Design Team (EDT) provides an API for developing software to read from camera link devices using C++.
 
 ### Installing the EDT PDV driver
+* See also: [Starting the EDT PDV driver](https://github.com/nasa-jpl/LiveViewOpenSource/wiki/Starting-the-EDT-PDV-driver)
+
 To begin, go to the [EDT PDV downloads page](https://edt.com/file-category/pdv/). Select the Linux (.run) file option and download the script, you may have to right click and choose "Save Page As" if a plain text document opens up.
 
 The .run file is a shell script, and can be executed in the terminal:
@@ -90,27 +134,17 @@ Next, run the following two commands:
     $ take
 ```
 
-The path to NGIS.cfg is the path to the top-level directory of the repository containing LiveView. If those commands succeed, then EDT is now configured to run on your machine. Each time the machine is rebooted, the `setup.sh` and `initcam` steps will need to be re-run.
+The path to NGIS.cfg is the path to the top-level directory of the repository containing LiveView. If those commands succeed, then EDT is now configured to run on your machine. Each time the machine is rebooted, the `initcam` step will need to be re-run before starting LiveView. It is also a good idea to run take to ensure that the camera is working.
+
+Sometimes, the camera config file is not the default. If the camera connected to the computer does not match the configuration file provided with LiveView, the image may "scroll" up or down across the screen, or the image may not look correct. Many more camera configuration files can be found here:
+```
+    $ cd /opgs/EDTpdv/camera_config
+    $ initcam -f itb.cfg # for example
+```
+
+The specific configuration file will vary depending on the camera in use.
 
 ### Configuring LiveView to use a CameraLink interface
-Currently, since LiveView is in a development state, there is not a good, programmatic way that the camera interface can be switched while or before the program is running. As of right now, you will need to modify the code to use a Camera Link interface.
+When starting up LiveView for the first time, a window will open asking the user to select which type of interface to use as a data input, either the SSD (in xio format), an ENVI format file, or a Camera Link device connected directly to the system.
 
-Eventually, LiveView will instead present a Dialog the first time it is opened which enables the user to select from a drop down menu which camera interface to use, and then save that preference in a configuration file so that the same interface will be used every time LiveView is opened from then on. Additionally, the GUI should provide the ability to change this preference at a later point in time (requiring a restart of LiveView for the changes to take effect).
-
-To change the camera interface by modifying the code, open the file `frameworker.cpp` in QtCreator. The first line of the constructor should have a line like so:
-
-```
-    Camera = new SSDCamera();
-```
-
-which should be modified to:
-
-```
-    Camera = new CLCamera();
-```
-
-Rebuild and restart LiveView to verify that the program is now reading data from the Camera Link frame grabber card. If non-zero data appears in the window, then LiveView is now configured to use Camera Link.
-
-## Contact
-Please report any issues with installation to [Jackie Ryan](Jacqueline.Ryan@jpl.nasa.gov).
-
+If a user checks the box to "Never show this message again", but at a later point in time wishes to change their default input, the current method to change this election is to edit the configuration file. The `lvconfig.ini` configuration file will be located at `~/Library/Preferences/lvconfig.ini` on MacOS and `~/.config/lvconfig.ini` on Linux. Edit the value of the field "show_cam_dialog" from `false` to `true`.
