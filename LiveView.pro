@@ -68,8 +68,7 @@ SOURCES += \
         meanfilter.cpp \
         fft_widget.cpp \
         saveserver.cpp \
-        twoscomplimentfilter.cpp \
-        fpslineedit.cpp
+        twoscomplimentfilter.cpp
 exists(EDT_include/edtinc.h):SOURCES += clcamera.cpp
 
 HEADERS += \
@@ -102,7 +101,7 @@ HEADERS += \
         cameraselectdialog.h \
         twoscomplimentfilter.h \
         cameraviewdialog.h \
-        fpslineedit.h
+        frameratedialog.h
 exists(EDT_include/edtinc.h):HEADERS += clcamera.h
 
 RESOURCES += \
