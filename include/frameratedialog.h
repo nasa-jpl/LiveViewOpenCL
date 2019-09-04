@@ -29,11 +29,11 @@ public:
 
         QVBoxLayout *dialogLayout = new QVBoxLayout(this);
         dialogLayout->addWidget(topLabel);
-        QHBoxLayout *middleRow = new QHBoxLayout(this);
+        QHBoxLayout *middleRow = new QHBoxLayout();
         middleRow->addWidget(new QLabel("New Framerate (fps): "));
         middleRow->addWidget(fpsEdit);
         dialogLayout->addLayout(middleRow);
-        QHBoxLayout *bottomButtons = new QHBoxLayout(this);
+        QHBoxLayout *bottomButtons = new QHBoxLayout();
         bottomButtons->addWidget(applyButton);
         bottomButtons->addWidget(cancelButton);
         dialogLayout->addLayout(bottomButtons);
