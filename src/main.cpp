@@ -96,6 +96,12 @@ int main(int argc, char* argv[])
     qDebug() << "The compilation was performed by" << UNAME << "@" << HOST;
 
     LVMainWindow w(&settings);
+    if (w.notInitialized) {
+        splash.finish(&w);
+        auto ret_val = 1;
+        unlink(socket_path.data());
+        return ret_val;
+    }
     w.setGeometry(QStyle::alignedRect(
                       Qt::LeftToRight,
                       Qt::AlignCenter,

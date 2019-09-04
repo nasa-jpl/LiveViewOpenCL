@@ -24,6 +24,7 @@ public:
 
         fpsEdit = new QSpinBox(this);
         fpsEdit->setValue(framerate);
+        fpsEdit->setMaximum(1000);
 
         topLabel = new QLabel(QString("Current target playback framerate: %1 fps").arg(framerate));
 
