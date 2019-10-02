@@ -10,12 +10,13 @@ TwosComplimentFilter::TwosComplimentFilter(size_t frame_size) :
 
 void TwosComplimentFilter::apply_filter(uint16_t *pic_in, bool is16bit)
 {
-    uint16_t offset = is16bit ? 0xFFFF : 0x3FFF; //16 or 14 bits
+    uint16_t offset = is16bit ? (1<<16) - 1 : (1<<14) - 1; //16 or 14 bits
     size_t ndx;
+    memcpy(pic_buffer, pic_in, frSize * sizeof (uint16_t));
 
     for (ndx = 0; ndx < frSize; ndx++) {
-            pic_buffer[ndx] = pic_in[ndx] ^ offset;
+            pic_in[ndx] = (pic_buffer[ndx] ^ offset) + 1;
     }
 
-    memcpy(pic_in, pic_buffer, frSize * sizeof(uint16_t));
+    // memcpy(pic_in, pic_buffer, frSize * sizeof(uint16_t));
 }

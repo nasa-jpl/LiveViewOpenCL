@@ -15,7 +15,7 @@ class LVTabApplication : public QWidget
 public:
     LVTabApplication(FrameWorker *fw, QWidget *parent = nullptr) :
         QWidget(parent), dataMax(UINT16_MAX), dataMin(0.0),
-        isPrecise(false), frame_handler(fw)
+        timeout_display(false), isPrecise(false), frame_handler(fw)
     {
         frHeight = frame_handler->getFrameHeight();
         frWidth = frame_handler->getFrameWidth();
@@ -24,6 +24,10 @@ public:
 
         lowerRangeBoundX = 0;
         lowerRangeBoundY = 0;
+
+        connect(frame_handler->Camera, &CameraModel::started, this, [=]() {
+           this->renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
+        });
     }
 
     virtual ~LVTabApplication() {}
@@ -115,6 +119,8 @@ public slots:
 protected:
     double dataMax;
     double dataMin;
+
+    bool timeout_display;
 
     volatile double ceiling;
     volatile double floor;

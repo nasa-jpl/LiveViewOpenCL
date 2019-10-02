@@ -35,6 +35,7 @@ public:
 
 signals:
     void timeout();
+    void started();
 
 protected:
     int frame_width;

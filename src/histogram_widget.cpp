@@ -64,7 +64,12 @@ histogram_widget::histogram_widget(FrameWorker *fw, QWidget *parent) :
     this->setLayout(qvbl);
 
     connect(&renderTimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
-    renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
+    connect(frame_handler->Camera, &CameraModel::timeout, this, [=]() {
+        QVector<double> zero_data(hist_bins.length(), 0);
+        histogram->setData(hist_bins, zero_data);
+        qcp->replot();
+        renderTimer.stop();
+    });
 }
 
 void histogram_widget::handleNewFrame()

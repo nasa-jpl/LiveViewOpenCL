@@ -21,6 +21,7 @@ public:
         frame_vec.clear();
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
         Q_ASSERT(frame_vec.capacity() == 0);
+        qDebug() << "LVFrameBuffer Destruct";
     }
     void reset(const int num_frames, const int frame_width, const int frame_height)
     {
@@ -194,11 +195,12 @@ void FrameWorker::captureFrames()
     while (isRunning) {
         beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
-        end = high_resolution_clock::now();
-        if (Camera->isRunning() && pixRemap) {
+        if (pixRemap) {
             TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
         }
+        end = high_resolution_clock::now();
 
+        lvframe_buffer->incIndex();
 
         duration = duration_cast<milliseconds>(end - beg).count();
         this_frame_duration = duration_cast<microseconds>(end - last_frame).count();
@@ -209,8 +211,6 @@ void FrameWorker::captureFrames()
         if (++tickindex == MAXSAMPLES) {
             tickindex = 0;
         }
-
-        lvframe_buffer->incIndex();
 
         count++;
         if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI)) {
@@ -426,9 +426,14 @@ std::vector<float> FrameWorker::getFrame()
 {
     //Maintains reference to data by using vector for memory management
 
+    uint16_t last_ndx = lvframe_buffer->dsfIndex.load();
+    // int prev_ndx = (lvframe_buffer->lastIndex.load() - 1) % 200;
     std::vector<float> raw_data(frSize);
+    if (lvframe_buffer->frame(last_ndx)->raw_data[1000] > 35000) {
+        qDebug() << lvframe_buffer->fbIndex << lvframe_buffer->lastSTD()->raw_data[1000] << last_ndx << lvframe_buffer->frame(last_ndx)->raw_data[1000];
+    }
     for (unsigned int i = 0; i < frSize; i++) {
-        raw_data[i] = float(lvframe_buffer->recent()->raw_data[i]);
+        raw_data[i] = float(lvframe_buffer->frame(last_ndx)->raw_data[i]);
     }
     return raw_data;
 }

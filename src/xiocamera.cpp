@@ -26,6 +26,7 @@ XIOCamera::XIOCamera(int frWidth,
 XIOCamera::~XIOCamera()
 {
     running.store(false);
+    emit timeout();
     is_reading = false;
     readLoopFuture.waitForFinished();
 }
@@ -69,6 +70,7 @@ void XIOCamera::setDir(const char *dirname)
     }
 
     running.store(true);
+    emit started();
 
     readLoopFuture = QtConcurrent::run(this, &XIOCamera::readLoop);
 }
@@ -183,6 +185,7 @@ void XIOCamera::readFile()
             }
 
             running.store(true);
+            emit started();
             dev_p.close();
         }
     }

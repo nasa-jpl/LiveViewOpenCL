@@ -122,12 +122,6 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
 
 LVMainWindow::~LVMainWindow()
 {
-    fw->stop();
-    if (DSLoop.isStarted())
-        DSLoop.waitForFinished();
-    if (SDLoop.isStarted())
-        SDLoop.waitForFinished();
-    delete cbox;
     delete raw_display;
     delete dsf_display;
     delete sdv_display;
@@ -137,10 +131,16 @@ LVMainWindow::~LVMainWindow()
     delete spat_display;
     delete spat_mean_display;
     delete fft_display;
+    delete cbox;
     delete camDialog;
     delete compDialog;
     delete dsfDialog;
     delete fpsDialog;
+    fw->stop();
+    if (DSLoop.isStarted())
+        DSLoop.waitForFinished();
+    if (SDLoop.isStarted())
+        SDLoop.waitForFinished();
 }
 
 void LVMainWindow::errorString(const QString &errstr)
@@ -413,7 +413,9 @@ void LVMainWindow::saveAs()
 
 void LVMainWindow::reset()
 {
-    fw->resetDir(source_dir.toLatin1().data());
+    if (!source_dir.isEmpty()) {
+        fw->resetDir(source_dir.toLatin1().data());
+    }
 }
 
 void LVMainWindow::change_compute_device(const QString &dev_name)
