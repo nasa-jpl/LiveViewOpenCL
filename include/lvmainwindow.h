@@ -30,9 +30,7 @@ class LVMainWindow : public QMainWindow
 public:
     LVMainWindow(QSettings *settings, QWidget *parent = nullptr);
     ~LVMainWindow() override;
-
-public slots:
-    void errorString(const QString &);
+    bool notInitialized;
 
 signals:
     void saveRequest();

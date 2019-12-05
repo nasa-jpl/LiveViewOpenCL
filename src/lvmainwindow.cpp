@@ -5,6 +5,7 @@
 LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     : QMainWindow(parent), settings(settings)
 {   
+    notInitialized = true;
     setAcceptDrops(true);
 
     // Hardcoded default window size
@@ -21,12 +22,9 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     fw = new FrameWorker(settings, workerThread);
     fw->moveToThread(workerThread);
     QFutureWatcher<void> fwWatcher;
-    // Reserve proper take object error handling for later
-    connect(fw, SIGNAL(error(QString)), this, SLOT(errorString(QString)));
-    connect(workerThread, SIGNAL(started()), fw, SLOT(captureFrames()));
-    connect(fw, SIGNAL(finished()), workerThread, SLOT(quit()));
-
-    connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+    connect(workerThread, &QThread::started, fw, &FrameWorker::captureFrames);
+    connect(fw, &FrameWorker::finished, workerThread, &QThread::quit);
+    connect(workerThread, &QThread::finished, workerThread, &QThread::deleteLater);
 
     connect(fw, &FrameWorker::startSaving, this, [&](){
         saveAct->setEnabled(false);
@@ -46,6 +44,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
         connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
     } else {
         connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
+        return;
     }
 
     QWidget* mainWidget = new QWidget(this);
@@ -118,10 +117,15 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
             this, [this](int frame_period){
                 fw->setFramePeriod(double(1000.0 / frame_period));
     });
+    notInitialized = false;
 }
 
 LVMainWindow::~LVMainWindow()
 {
+    if (notInitialized) {
+        return;
+    }
+    delete cbox;
     delete raw_display;
     delete dsf_display;
     delete sdv_display;
@@ -141,11 +145,6 @@ LVMainWindow::~LVMainWindow()
         DSLoop.waitForFinished();
     if (SDLoop.isStarted())
         SDLoop.waitForFinished();
-}
-
-void LVMainWindow::errorString(const QString &errstr)
-{
-    qFatal("%s", errstr.toLatin1().data());
 }
 
 void LVMainWindow::createActions()

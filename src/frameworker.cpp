@@ -99,10 +99,13 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     if (!cam_started) {
         // In general, software camera models will always start, but some hardware camera models can fail
         // to start if the hardware is misconfigured.
-        emit error(QString("Unable to start camera stream! This is fatal."));
+        QMessageBox::critical(nullptr, QString("Camera Initialization Error"),
+                              QString("Unable to start camera stream! Check that a camera is connected and powered on."),
+                              QMessageBox::Ok);
         frWidth = 0;
         frHeight = 0;
         isRunning = false;    // want to make sure that we don't enter the event loop
+        return;
     } else {
         frWidth = Camera->getFrameWidth();
         frHeight = Camera->getFrameHeight();
@@ -110,8 +113,15 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         cam_type = Camera->getCameraType();
 
         if (frWidth == 0 || frHeight == 0) {
-            isRunning = false;
-            qFatal("Frame width and height can not be zero, please initialize camera.");
+            // In general, software camera models will always start, but some hardware camera models can fail
+            // to start if the hardware is misconfigured.
+            QMessageBox::critical(nullptr, QString("Camera Initialization Error"),
+                                  QString("Frame width and height can not be zero, camera failed to initialize."),
+                                  QMessageBox::Ok);
+            frWidth = 0;
+            frHeight = 0;
+            isRunning = false;    // want to make sure that we don't enter the event loop
+            return;
         } else {
             connect(Camera, &CameraModel::timeout, this, &FrameWorker::reportTimeout);
             isRunning = true;    // now set up to enter the event loop
@@ -195,7 +205,7 @@ void FrameWorker::captureFrames()
     while (isRunning) {
         beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
-        if (pixRemap) {
+        if (Camera->isRunning() && pixRemap) {
             TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
         }
         end = high_resolution_clock::now();
@@ -215,9 +225,9 @@ void FrameWorker::captureFrames()
         count++;
         if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI)) {
             delay(int64_t(frame_period_ms) - duration);
-        } else {
-            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-        }
+        } //else {
+        //    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+        //}
     }
 }
 
@@ -411,6 +421,7 @@ void FrameWorker::reportFPS()
     if (Camera->isRunning()) {
         isTimeout = false;
         fps = double(MAXSAMPLES) * 1000000.0 / double(ticksum);
+        qDebug() << "fps: " << fps;
         emit updateFPS(fps);
     }
 }
