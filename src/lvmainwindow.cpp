@@ -135,7 +135,6 @@ LVMainWindow::~LVMainWindow()
     delete spat_display;
     delete spat_mean_display;
     delete fft_display;
-    delete cbox;
     delete camDialog;
     delete compDialog;
     delete dsfDialog;

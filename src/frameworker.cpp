@@ -205,7 +205,7 @@ void FrameWorker::captureFrames()
     while (isRunning) {
         beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
-        if (Camera->isRunning() && pixRemap) {
+        if (pixRemap) {// if (Camera->isRunning() && pixRemap) {
             TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
         }
         end = high_resolution_clock::now();
@@ -421,7 +421,6 @@ void FrameWorker::reportFPS()
     if (Camera->isRunning()) {
         isTimeout = false;
         fps = double(MAXSAMPLES) * 1000000.0 / double(ticksum);
-        qDebug() << "fps: " << fps;
         emit updateFPS(fps);
     }
 }
@@ -440,9 +439,9 @@ std::vector<float> FrameWorker::getFrame()
     uint16_t last_ndx = lvframe_buffer->dsfIndex.load();
     // int prev_ndx = (lvframe_buffer->lastIndex.load() - 1) % 200;
     std::vector<float> raw_data(frSize);
-    if (lvframe_buffer->frame(last_ndx)->raw_data[1000] > 35000) {
-        qDebug() << lvframe_buffer->fbIndex << lvframe_buffer->lastSTD()->raw_data[1000] << last_ndx << lvframe_buffer->frame(last_ndx)->raw_data[1000];
-    }
+    // if (lvframe_buffer->frame(last_ndx)->raw_data[1000] > 35000) {
+    //     qDebug() << lvframe_buffer->fbIndex << lvframe_buffer->lastSTD()->raw_data[1000] << last_ndx << lvframe_buffer->frame(last_ndx)->raw_data[1000];
+    // }
     for (unsigned int i = 0; i < frSize; i++) {
         raw_data[i] = float(lvframe_buffer->frame(last_ndx)->raw_data[i]);
     }
