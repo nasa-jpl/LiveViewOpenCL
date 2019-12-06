@@ -116,7 +116,12 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
     connect(qcp, &QCustomPlot::mouseMove, this, &line_widget::moveCallout);
     connect(&renderTimer, &QTimer::timeout, this, &line_widget::handleNewFrame);
 
-    renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
+    connect(frame_handler->Camera, &CameraModel::timeout, this, [=]() {
+        QVector<double> zero_data(x.length(), 0);
+        qcp->graph(0)->setData(x, zero_data);
+        qcp->replot();
+        renderTimer.stop();
+    });
 }
 
 QVector<double> line_widget::getSpectralLine(QPointF coord)

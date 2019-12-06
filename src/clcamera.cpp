@@ -78,6 +78,7 @@ uint16_t* CLCamera::getFrame()
     } else if (recovering_timeout) {
         pdv_timeout_restart(dev_p, true);
         recovering_timeout = false;
+        emit started();
     }
 
     return image_p;
