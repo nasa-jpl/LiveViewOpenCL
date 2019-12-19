@@ -2,10 +2,13 @@
 #define SAVESERVER_H
 
 #include <QDebug>
+#include <QMetaType>
 #include <QtNetwork>
 #include <QThreadPool>
 
 #include "image_type.h"
+
+
 
 class SaveServer : public QObject
 {
@@ -13,6 +16,7 @@ class SaveServer : public QObject
 
 public:
     explicit SaveServer(QObject *parent = nullptr);
+    ~SaveServer();
 
     QHostAddress ipAdress;
     quint16 port;           // May have a value 0 to 65535
