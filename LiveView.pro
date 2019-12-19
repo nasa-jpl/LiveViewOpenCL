@@ -68,7 +68,8 @@ SOURCES += \
         meanfilter.cpp \
         fft_widget.cpp \
         saveserver.cpp \
-        twoscomplimentfilter.cpp
+        twoscomplimentfilter.cpp \
+        saveclient.cpp
 exists(EDT_include/edtinc.h):SOURCES += clcamera.cpp
 
 HEADERS += \
