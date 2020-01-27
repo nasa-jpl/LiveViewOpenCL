@@ -200,11 +200,11 @@ frameview_widget::frameview_widget(FrameWorker *fw,
             }
         }
         qcp->replot();
-        renderTimer.stop();
+        // renderTimer.stop();
     });
 
-
     if (frame_handler->running()) {
+        renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
         fpsclock.start(1000); // 1 sec
     }
 }

@@ -144,6 +144,8 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     topLeft = QPointF(0, 0);
     bottomRight = QPointF(frWidth, frHeight);
 
+    isTimeout = false;
+
     connect(this, &FrameWorker::doneSaving, this, [&]()
     {
         if (!SaveQueue.empty()) {
@@ -196,11 +198,11 @@ void FrameWorker::captureFrames()
     high_resolution_clock::time_point last_frame;
     int64_t duration;
     double this_frame_duration;
+    ticklist.fill(0);
 
-    auto fpsclock = new QTimer(this);
+    auto fpsclock = new QTimer();
     connect(fpsclock, &QTimer::timeout, this, &FrameWorker::reportFPS);
     fpsclock->start(1000);
-    ticklist.fill(0);
 
     while (isRunning) {
         beg = high_resolution_clock::now();
@@ -225,9 +227,9 @@ void FrameWorker::captureFrames()
         count++;
         if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI)) {
             delay(int64_t(frame_period_ms) - duration);
-        } //else {
-        //    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-        //}
+        } else {
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+        }
     }
 }
 

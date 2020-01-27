@@ -54,8 +54,12 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
         QVector<double> zero_data(freq_bins.length(), 0);
         fft_bars->setData(freq_bins, zero_data);
         qcp->replot();
-        renderTimer.stop();
+        // renderTimer.stop();
     });
+
+    if (frame_handler->running()) {
+        renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
+    }
 }
 
 void fft_widget::handleNewFrame()
