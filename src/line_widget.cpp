@@ -120,8 +120,12 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
         QVector<double> zero_data(x.length(), 0);
         qcp->graph(0)->setData(x, zero_data);
         qcp->replot();
-        renderTimer.stop();
+        // renderTimer.stop();
     });
+
+    if (frame_handler->running()) {
+        renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
+    }
 }
 
 QVector<double> line_widget::getSpectralLine(QPointF coord)
