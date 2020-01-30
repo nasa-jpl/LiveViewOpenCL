@@ -18,10 +18,13 @@ public:
 
     void apply_filter(uint16_t *pic_in)
     {
-        for (size_t r = 0; r <= nRows; r++) {
+        size_t row_offset, tap_offset;
+        for (size_t r = 0; r < nRows; r++) {
+            row_offset = r * nCols;
             for (size_t tap = 0; tap < nTaps; tap++) {
-                for (size_t x = 0; x <= tapWidth; x++) {
-                    pic_buffer[r * nCols + tap * tapWidth + x] = pic_in[nTaps * x + tap];
+                tap_offset = tap * tapWidth;
+                for (size_t x = 0; x < tapWidth; x++) {
+                    pic_buffer[row_offset + tap_offset + x] = pic_in[row_offset + nTaps * x + tap];
                 }
             }
         }
