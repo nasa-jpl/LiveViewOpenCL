@@ -72,6 +72,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
 {
     pixRemap = settings->value(QString("pix_remap"), false).toBool();
     is16bit = settings->value(QString("remap16"), false).toBool();
+    interlace = settings->value(QString("interlace"), false).toBool();
     Camera = nullptr;
 
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
@@ -131,6 +132,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     frSize = size_t(frWidth * dataHeight);
     lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frWidth, dataHeight);
     TwosFilter = new TwosComplimentFilter(size_t(frSize));
+    IlaceFilter = new InterlaceFilter(size_t(frHeight), size_t(frWidth));
     DSFilter = new DarkSubFilter(size_t(frSize));
     stddev_N = MAX_N; // arbitrary starting point
     STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
@@ -156,7 +158,6 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
             saving = false;
         }
     });
-
 }
 
 FrameWorker::~FrameWorker()
@@ -165,6 +166,8 @@ FrameWorker::~FrameWorker()
     delete STDFilter;
     delete MEFilter;
     delete DSFilter;
+    delete TwosFilter;
+    delete IlaceFilter;
     delete Camera;
 }
 
@@ -209,6 +212,9 @@ void FrameWorker::captureFrames()
         lvframe_buffer->current()->raw_data = Camera->getFrame();
         if (pixRemap) {// if (Camera->isRunning() && pixRemap) {
             TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
+        }
+        if (interlace) {
+            IlaceFilter->apply_filter(lvframe_buffer->current()->raw_data);
         }
         end = high_resolution_clock::now();
 

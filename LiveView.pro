@@ -102,7 +102,8 @@ HEADERS += \
         cameraselectdialog.h \
         twoscomplimentfilter.h \
         cameraviewdialog.h \
-        frameratedialog.h
+        frameratedialog.h \
+    include/interlacefilter.h
 exists(EDT_include/edtinc.h):HEADERS += clcamera.h
 
 RESOURCES += \

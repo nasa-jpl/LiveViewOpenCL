@@ -65,6 +65,7 @@ private:
     QAction *remap14Act;
     QAction *remap16Act;
     QAction *noRemapAct;
+    QAction *ilaceAct;
     QAction *fpsAct;
 
     QAction *darkModeAct;
