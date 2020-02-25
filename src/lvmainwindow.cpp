@@ -230,6 +230,14 @@ void LVMainWindow::createActions()
         remap16Act->setChecked(false);
     });
 
+    ilaceAct = new QAction("De-interlace Columns");
+    ilaceAct->setCheckable(true);
+    ilaceAct->setChecked(settings->value(QString("interlace"), false).toBool());
+    connect(ilaceAct, &QAction::triggered, this, [this]() {
+        fw->interlace = ilaceAct->isChecked();
+        settings->setValue(QString("interlace"), ilaceAct->isChecked());
+    });
+
     darkModeAct = new QAction("&Dark Mode (Takes Effect on Restart)", this);
     darkModeAct->setCheckable(true);
     darkModeAct->setChecked(settings->value(QString("dark"), false).toBool());
@@ -321,6 +329,7 @@ void LVMainWindow::createMenus()
     inversionSubMenu->addAction(remap14Act);
     inversionSubMenu->addAction(remap16Act);
     inversionSubMenu->addAction(noRemapAct);
+    prefMenu->addAction(ilaceAct);
 
     viewMenu = menuBar()->addMenu("&View");
     viewMenu->addAction(darkModeAct);
