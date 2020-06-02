@@ -21,6 +21,7 @@ ENVICamera::ENVICamera(int frWidth,
 ENVICamera::~ENVICamera()
 {
     running.store(false);
+    emit timeout();
     is_reading = false;
     readLoopFuture.waitForFinished();
 }
@@ -82,6 +83,7 @@ void ENVICamera::setDir(const char *filename)
 
     is_reading = true;
     running.store(true);
+    emit started();
 
     readLoopFuture = QtConcurrent::run(this, &ENVICamera::readLoop);
 }

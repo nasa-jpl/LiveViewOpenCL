@@ -5,6 +5,8 @@ SaveServer::SaveServer(QObject *parent)
     : QObject(parent),  port(50000),
       tcpServer(nullptr), networkSession(nullptr)
 {
+    qRegisterMetaType<save_req_t>("save_req_t");
+
     QThreadPool::globalInstance()->setMaxThreadCount(5);
 
     QNetworkConfigurationManager manager;
@@ -31,6 +33,11 @@ SaveServer::SaveServer(QObject *parent)
     }
 
     connect(tcpServer, &QTcpServer::newConnection, this, &SaveServer::startClient);
+}
+
+SaveServer::~SaveServer()
+{
+    tcpServer->close();
 }
 
 void SaveServer::sessionOpened()
@@ -78,9 +85,7 @@ void SaveServer::sessionOpened()
 
 void SaveServer::startClient()
 {
-    auto client = new SaveClient(tcpServer->nextPendingConnection());
-    connect(client, &SaveClient::saveFrames, this, [&](save_req_t req)
-    {
-        emit startSavingRemote(req);
-    });
+    auto client = new SaveClient(tcpServer->nextPendingConnection()->socketDescriptor());
+    connect(client, &SaveClient::saveFrames, this, &SaveServer::startSavingRemote);
+    QThreadPool::globalInstance()->start(client);
 }

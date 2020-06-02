@@ -40,7 +40,7 @@ QCheckBox:disabled {
 QCheckBox::indicator,
 QGroupBox::indicator {
     width: 18px;
-    height: 18px;
+    height: 30px;
 }
 
 QGroupBox::indicator {

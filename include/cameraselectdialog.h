@@ -24,7 +24,7 @@ public:
     {
         this->setWindowTitle("Select Camera Model");
         this->cameraList = (QStringList()
-#if !(__MACH__ || __APPLE__)
+#ifdef USE_EDT
                             << QString("CL")
 #endif
                             << QString("SSD (ENVI)"))
@@ -100,7 +100,6 @@ private slots:
                         cameraListView->selectionModel()->selectedIndexes()[0],
                         Qt::DisplayRole).toString().toStdString()]);
         s->setValue(QString("show_cam_dialog"), doNotShowBox->checkState() == 0);
-        qDebug() << s->value(QString("cam_model")).toInt();
         if (s->value(QString("cam_model"), "XIO").toInt() == 0 ||
             s->value(QString("cam_model"), "ENVI").toInt() == 1) {
             dim_dialog->exec();

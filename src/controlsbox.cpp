@@ -13,18 +13,18 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
             this, SLOT(tabChanged(int)));
     viewWidget = getCurrentTab();
 
-    fpsLabel = new QLineEdit("Warning: No Frames Received");
+    fpsLabel = new QLabel("Warning: No Frames Received");
     fpsLabel->setFixedWidth(200);
-    fpsLabel->setValidator(new QDoubleValidator(1.0, 250.0, 1, fpsLabel));
+    // fpsLabel->setValidator(new QDoubleValidator(1.0, 250.0, 1, fpsLabel));
 
-    connect(fpsLabel, &QLineEdit::editingFinished, this, [this]() {
+    /* connect(fpsLabel, &QLineEdit::editingFinished, this, [this]() {
         QString fpstext = fpsLabel->text();
         bool ok;
         double fpsdb = fpstext.toDouble(&ok); // Check whether value is a number
         if (ok) {
             frame_handler->setFramePeriod(1000.0 / fpsdb);
         }
-    });
+    }); */
 
     QLabel *ipLabel = new QLabel(QString("IP Address: %1").arg(ipAddress), this);
     QLabel *portLabel = new QLabel(QString("Port Label: %1").arg(port), this);

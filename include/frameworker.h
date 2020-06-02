@@ -18,10 +18,13 @@
 #include "cameramodel.h"
 #include "envicamera.h"
 #include "xiocamera.h"
-#if !(__APPLE__ || __MACH__)
+
+#ifdef USE_EDT
 #include "clcamera.h"
 #endif
+
 #include "twoscomplimentfilter.h"
+#include "interlacefilter.h"
 #include "darksubfilter.h"
 #include "stddevfilter.h"
 #include "meanfilter.h"
@@ -51,6 +54,7 @@ public:
     std::vector<float> getFrame();
 
     TwosComplimentFilter* TwosFilter;
+    InterlaceFilter* IlaceFilter;
     DarkSubFilter* DSFilter;
     StdDevFilter* STDFilter;
     MeanFilter* MEFilter;
@@ -83,6 +87,7 @@ public:
 
     volatile bool pixRemap;
     volatile bool is16bit;
+    volatile bool interlace;
     QSettings *settings;
     QPointF bottomRight;
     QPointF topLeft;

@@ -26,6 +26,7 @@ XIOCamera::XIOCamera(int frWidth,
 XIOCamera::~XIOCamera()
 {
     running.store(false);
+    emit timeout();
     is_reading = false;
     readLoopFuture.waitForFinished();
 }
@@ -69,6 +70,7 @@ void XIOCamera::setDir(const char *dirname)
     }
 
     running.store(true);
+    emit started();
 
     readLoopFuture = QtConcurrent::run(this, &XIOCamera::readLoop);
 }
@@ -85,6 +87,9 @@ std::string XIOCamera::getFname()
         fname = xio_files[image_no++];
     } else {
         os::listdir(fname_list, data_dir);
+        if (fname_list.size() < 1) {
+            return fname;
+        }
         /* if necessary, there may need to be code to sort the "frames" in the data directory
         * by product name, as mtime is unreliable.
         */
@@ -180,6 +185,7 @@ void XIOCamera::readFile()
             }
 
             running.store(true);
+            emit started();
             dev_p.close();
         }
     }

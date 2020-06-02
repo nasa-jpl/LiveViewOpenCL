@@ -51,7 +51,16 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(barsScrolledY(QCPRange)));
 
     connect(&renderTimer, &QTimer::timeout, this, &fft_widget::handleNewFrame);
-    renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
+    connect(frame_handler->Camera, &CameraModel::timeout, this, [=]() {
+        QVector<double> zero_data(freq_bins.length(), 0);
+        fft_bars->setData(freq_bins, zero_data);
+        qcp->replot();
+        // renderTimer.stop();
+    });
+
+    if (frame_handler->running()) {
+        renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
+    }
 }
 
 void fft_widget::handleNewFrame()

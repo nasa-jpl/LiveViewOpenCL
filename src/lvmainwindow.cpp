@@ -1,8 +1,13 @@
 #include "lvmainwindow.h"
+#include <QFileInfo>
+#include <QDir>
 
 LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     : QMainWindow(parent), settings(settings)
 {   
+    notInitialized = true;
+    setAcceptDrops(true);
+
     // Hardcoded default window size
     this->resize(1560, 1000);
 
@@ -17,12 +22,9 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     fw = new FrameWorker(settings, workerThread);
     fw->moveToThread(workerThread);
     QFutureWatcher<void> fwWatcher;
-    // Reserve proper take object error handling for later
-    connect(fw, SIGNAL(error(QString)), this, SLOT(errorString(QString)));
-    connect(workerThread, SIGNAL(started()), fw, SLOT(captureFrames()));
-    connect(fw, SIGNAL(finished()), workerThread, SLOT(quit()));
-
-    connect(workerThread, SIGNAL(finished()), workerThread, SLOT(deleteLater()));
+    connect(workerThread, &QThread::started, fw, &FrameWorker::captureFrames);
+    connect(fw, &FrameWorker::finished, workerThread, &QThread::quit);
+    connect(workerThread, &QThread::finished, workerThread, &QThread::deleteLater);
 
     connect(fw, &FrameWorker::startSaving, this, [&](){
         saveAct->setEnabled(false);
@@ -42,6 +44,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
         connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
     } else {
         connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
+        return;
     }
 
     QWidget* mainWidget = new QWidget(this);
@@ -108,15 +111,20 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
         fw->setMaskSettings(dsfDialog->getMaskFile(),
                             dsfDialog->getAvgdFrames());
     });
+
+    fpsDialog = new FrameRateDialog(int(1000.0 / fw->getFramePeriod()));
+    connect(fpsDialog, &FrameRateDialog::framerate_changed,
+            this, [this](int frame_period){
+                fw->setFramePeriod(double(1000.0 / frame_period));
+    });
+    notInitialized = false;
 }
 
 LVMainWindow::~LVMainWindow()
 {
-    fw->stop();
-    if (DSLoop.isStarted())
-        DSLoop.waitForFinished();
-    if (SDLoop.isStarted())
-        SDLoop.waitForFinished();
+    if (notInitialized) {
+        return;
+    }
     delete cbox;
     delete raw_display;
     delete dsf_display;
@@ -130,11 +138,12 @@ LVMainWindow::~LVMainWindow()
     delete camDialog;
     delete compDialog;
     delete dsfDialog;
-}
-
-void LVMainWindow::errorString(const QString &errstr)
-{
-    qFatal("%s", errstr.toLatin1().data());
+    delete fpsDialog;
+    fw->stop();
+    if (DSLoop.isStarted())
+        DSLoop.waitForFinished();
+    if (SDLoop.isStarted())
+        SDLoop.waitForFinished();
 }
 
 void LVMainWindow::createActions()
@@ -158,11 +167,6 @@ void LVMainWindow::createActions()
     resetAct->setShortcuts(QKeySequence::Refresh);
     resetAct->setStatusTip("Restart the data stream");
     connect(resetAct, &QAction::triggered, this, &LVMainWindow::reset);
-    // Not relevant to CameraLink
-    if (source_type == CAMERA_LINK) {
-        openAct->setEnabled(false);
-        resetAct->setEnabled(false);
-    }
 
     exitAct = new QAction("E&xit", this);
     exitAct->setShortcuts(QKeySequence::Quit);
@@ -173,6 +177,12 @@ void LVMainWindow::createActions()
     compAct->setStatusTip("Use a different computing type for OpenCL calculations.");
     connect(compAct, &QAction::triggered, this, [this]() {
         compDialog->show();
+    });
+
+    fpsAct = new QAction("Change Target FPS...", this);
+    fpsAct->setStatusTip("Change the playback speed for a file.");
+    connect(fpsAct, &QAction::triggered, this, [this]() {
+        fpsDialog->show();
     });
 
     dsfAct = new QAction("Dark Subtraction", this);
@@ -218,6 +228,14 @@ void LVMainWindow::createActions()
         settings->setValue(QString("pix_remap"), false);
         remap14Act->setChecked(false);
         remap16Act->setChecked(false);
+    });
+
+    ilaceAct = new QAction("De-interlace Columns");
+    ilaceAct->setCheckable(true);
+    ilaceAct->setChecked(settings->value(QString("interlace"), false).toBool());
+    connect(ilaceAct, &QAction::triggered, this, [this]() {
+        fw->interlace = ilaceAct->isChecked();
+        settings->setValue(QString("interlace"), ilaceAct->isChecked());
     });
 
     darkModeAct = new QAction("&Dark Mode (Takes Effect on Restart)", this);
@@ -277,6 +295,13 @@ void LVMainWindow::createActions()
     });
     helpInfoAct = new QAction("About LiveView", this);
     connect(helpInfoAct, &QAction::triggered, this, &LVMainWindow::show_about_window);
+
+    // Not relevant to CameraLink
+    if (source_type == CAMERA_LINK) {
+        openAct->setEnabled(false);
+        resetAct->setEnabled(false);
+        fpsAct->setEnabled(false);
+    }
 }
 
 void LVMainWindow::createMenus()
@@ -298,11 +323,13 @@ void LVMainWindow::createMenus()
 
     prefMenu = menuBar()->addMenu("&Computation");
     prefMenu->addAction(compAct);
+    prefMenu->addAction(fpsAct);
     prefMenu->addAction(dsfAct);
     inversionSubMenu = prefMenu->addMenu("Remap Pixels");
     inversionSubMenu->addAction(remap14Act);
     inversionSubMenu->addAction(remap16Act);
     inversionSubMenu->addAction(noRemapAct);
+    prefMenu->addAction(ilaceAct);
 
     viewMenu = menuBar()->addMenu("&View");
     viewMenu->addAction(darkModeAct);
@@ -329,6 +356,7 @@ void LVMainWindow::contextMenuEvent(QContextMenuEvent *event)
 
     QMenu compMenu(this);
     compMenu.addAction(compAct);
+    compMenu.addAction(fpsAct);
     compMenu.addAction(dsfAct);
     compMenu.exec(event->globalPos());
 }
@@ -392,7 +420,9 @@ void LVMainWindow::saveAs()
 
 void LVMainWindow::reset()
 {
-    fw->resetDir(source_dir.toLatin1().data());
+    if (!source_dir.isEmpty()) {
+        fw->resetDir(source_dir.toLatin1().data());
+    }
 }
 
 void LVMainWindow::change_compute_device(const QString &dev_name)
@@ -418,3 +448,23 @@ void LVMainWindow::changeGradients()
     dsf_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
     sdv_display->getColorMap()->setGradient(QCPColorGradient(static_cast<QCPColorGradient::GradientPreset>(value)));
 }
+
+void LVMainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasUrls())
+    {
+        event->acceptProposedAction();
+    }
+}
+
+void LVMainWindow::dropEvent(QDropEvent *event)
+{
+
+    QFileInfo f;
+    foreach(const QUrl &url, event->mimeData()->urls())
+    {
+            const QString &filename = url.toLocalFile();
+            fw->resetDir(filename.toLatin1().data());
+    }
+}
+

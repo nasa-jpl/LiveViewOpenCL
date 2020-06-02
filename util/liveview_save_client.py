@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
 
+# Standard Modules
+import argparse
 import json
+import signal
+import sys
+from time import sleep
 import zlib
+
+# Qt Modules
 from PyQt5.QtCore import *
 from PyQt5.QtNetwork import *
+
+def signal_handler(sig, frame):
+    print("Disconnecting...")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 class SaveClient(QObject):
     def __init__(self, address, port, parent=None):
@@ -35,6 +48,7 @@ class SaveClient(QObject):
             "The following error occurred: %s" % self.socket.errorString())
         if message:
             print(message)
+            sys.exit(1)
 
     def requestSave(self, file_name, n_frames, n_avgs=1):
         requestDoc = json.dumps(
@@ -47,7 +61,7 @@ class SaveClient(QObject):
         reqBlock = qCompress(requestDoc)
         self.socket.write(reqBlock)
         self.socket.waitForReadyRead(2000) # Wait for 2 secs.
-        if self.socket.bytesAvailable() >= 0:
+        if self.socket.bytesAvailable() > 0:
             respBlock = self.socket.readAll()
             response = qUncompress(respBlock)
             respDoc = json.loads(bytearray(response))
@@ -64,12 +78,29 @@ class SaveClient(QObject):
         else:
             return False
 
-def main():
-    client = SaveClient("137.79.193.242", "50000")
-    res = client.requestSave("Hello.dat", 100)
-    if res:
-        print("Received a reply!")
+
+def main(ipAddress, portNumber, frames=100):
+    running = True
+    client = SaveClient(ipAddress, portNumber)
+    print("Requesting to save frames every 20 seconds indefinitely. Press Ctrl-C to exit.")
+    while running == True:
+        print("Sending a request to save frames...")
+        res = client.requestSave("./Hello.dat", frames)
+        if res:
+            print("Received a reply!")
+        sleep(20)
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='''
+        This is an example script for testing the network-based request
+        feature of LiveView. It implements basic TCP communication with a
+        LiveView server. The client will request to save 100 frames from
+        the server to the local directory every 20 seconds indefinitely. 
+        ''')
+    parser.add_argument("ip", help="IP address of the server to connect to.")
+    parser.add_argument("port", type=int, help="Port number of the server.")
+    args = parser.parse_args()
+    main(args.ip, str(args.port))

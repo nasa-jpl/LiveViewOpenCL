@@ -23,9 +23,9 @@ bool CLCamera::start()
 {
     std::lock_guard<std::mutex> lock{dev_p_lock};
     dev_p = nullptr;
-    dev_p = pdv_open_channel(EDT_INTERFACE, 0, channel);
-    if (dev_p == nullptr) {
-        qFatal("Could not open Camera Link device on channel 0. Is there a camera connected and powered on?");
+    if ((dev_p = pdv_open_channel(EDT_INTERFACE, 0, channel)) == NULL) {
+        qWarning("Could not open Camera Link device on channel 0. Is there a camera connected and powered on?");
+        return false;
     }
     pdv_flush_fifo(dev_p);
     int size = pdv_get_dmasize(dev_p);
@@ -44,7 +44,10 @@ bool CLCamera::start()
 
     frame_height = camera_type == CL_6604A ? data_height - 1 : data_height;
 
-    pdv_multibuf(dev_p, numbufs);
+    if (pdv_multibuf(dev_p, numbufs) == -1) {
+        qWarning("Could not open Camera Link device on channel 0. Is there a camera connected and powered on?");
+        return false;
+    }
     numbufs = 16;
     pdv_start_images(dev_p, numbufs);
     pdv_set_timeout(dev_p, 2000);
@@ -75,6 +78,7 @@ uint16_t* CLCamera::getFrame()
     } else if (recovering_timeout) {
         pdv_timeout_restart(dev_p, true);
         recovering_timeout = false;
+        emit started();
     }
 
     return image_p;

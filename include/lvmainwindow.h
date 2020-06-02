@@ -20,17 +20,17 @@
 #include "cameraviewdialog.h"
 #include "computedevdialog.h"
 #include "dsfprefdialog.h"
+#include "frameratedialog.h"
 
 class LVMainWindow : public QMainWindow
 {
     Q_OBJECT
+  //  setAcceptDrops(true);
 
 public:
     LVMainWindow(QSettings *settings, QWidget *parent = nullptr);
     ~LVMainWindow() override;
-
-public slots:
-    void errorString(const QString &);
+    bool notInitialized;
 
 signals:
     void saveRequest();
@@ -45,6 +45,8 @@ private:
     void createActions();
     void createMenus();
     void changeGradients();
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
 
     QMenu *fileMenu;
     QMenu *prefMenu;
@@ -63,6 +65,8 @@ private:
     QAction *remap14Act;
     QAction *remap16Act;
     QAction *noRemapAct;
+    QAction *ilaceAct;
+    QAction *fpsAct;
 
     QAction *darkModeAct;
     QAction *modelSelectAct;
@@ -95,6 +99,7 @@ private:
     SaveServer *server;
 
     ComputeDevDialog *compDialog;
+    FrameRateDialog *fpsDialog;
     DSFPrefDialog *dsfDialog;
     CameraViewDialog *camDialog;
 

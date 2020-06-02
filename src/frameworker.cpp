@@ -1,4 +1,5 @@
 #include "frameworker.h"
+#include "unistd.h"
 
 class LVFrameBuffer
 {
@@ -20,6 +21,7 @@ public:
         frame_vec.clear();
         std::vector<LVFrame*>(frame_vec).swap(frame_vec);
         Q_ASSERT(frame_vec.capacity() == 0);
+        qDebug() << "LVFrameBuffer Destruct";
     }
     void reset(const int num_frames, const int frame_width, const int frame_height)
     {
@@ -70,6 +72,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
 {
     pixRemap = settings->value(QString("pix_remap"), false).toBool();
     is16bit = settings->value(QString("remap16"), false).toBool();
+    interlace = settings->value(QString("interlace"), false).toBool();
     Camera = nullptr;
 
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
@@ -84,11 +87,11 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
                                 settings->value(QString("ssd_height"), 480).toInt());
         break;
     case CAMERA_LINK:
-#if !(__APPLE__ || __MACH__)
+#ifdef USE_EDT
         Camera = new CLCamera();
         break;
 #else
-        qFatal("Unable to use Camera Link interface on MacOS systems!");
+        qFatal("Unable to use Camera Link interface on unconfigured systems!");
 #endif
     }
 
@@ -97,10 +100,13 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     if (!cam_started) {
         // In general, software camera models will always start, but some hardware camera models can fail
         // to start if the hardware is misconfigured.
-        emit error(QString("Unable to start camera stream! This is fatal."));
+        QMessageBox::critical(nullptr, QString("Camera Initialization Error"),
+                              QString("Unable to start camera stream! Check that a camera is connected and powered on."),
+                              QMessageBox::Ok);
         frWidth = 0;
         frHeight = 0;
         isRunning = false;    // want to make sure that we don't enter the event loop
+        return;
     } else {
         frWidth = Camera->getFrameWidth();
         frHeight = Camera->getFrameHeight();
@@ -108,8 +114,15 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         cam_type = Camera->getCameraType();
 
         if (frWidth == 0 || frHeight == 0) {
-            isRunning = false;
-            qFatal("Frame width and height can not be zero, please initialize camera.");
+            // In general, software camera models will always start, but some hardware camera models can fail
+            // to start if the hardware is misconfigured.
+            QMessageBox::critical(nullptr, QString("Camera Initialization Error"),
+                                  QString("Frame width and height can not be zero, camera failed to initialize."),
+                                  QMessageBox::Ok);
+            frWidth = 0;
+            frHeight = 0;
+            isRunning = false;    // want to make sure that we don't enter the event loop
+            return;
         } else {
             connect(Camera, &CameraModel::timeout, this, &FrameWorker::reportTimeout);
             isRunning = true;    // now set up to enter the event loop
@@ -119,6 +132,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     frSize = size_t(frWidth * dataHeight);
     lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frWidth, dataHeight);
     TwosFilter = new TwosComplimentFilter(size_t(frSize));
+    IlaceFilter = new InterlaceFilter(size_t(frHeight), size_t(frWidth));
     DSFilter = new DarkSubFilter(size_t(frSize));
     stddev_N = MAX_N; // arbitrary starting point
     STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
@@ -132,6 +146,8 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     topLeft = QPointF(0, 0);
     bottomRight = QPointF(frWidth, frHeight);
 
+    isTimeout = false;
+
     connect(this, &FrameWorker::doneSaving, this, [&]()
     {
         if (!SaveQueue.empty()) {
@@ -142,7 +158,6 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
             saving = false;
         }
     });
-
 }
 
 FrameWorker::~FrameWorker()
@@ -151,6 +166,8 @@ FrameWorker::~FrameWorker()
     delete STDFilter;
     delete MEFilter;
     delete DSFilter;
+    delete TwosFilter;
+    delete IlaceFilter;
     delete Camera;
 }
 
@@ -184,20 +201,24 @@ void FrameWorker::captureFrames()
     high_resolution_clock::time_point last_frame;
     int64_t duration;
     double this_frame_duration;
+    ticklist.fill(0);
 
-    auto fpsclock = new QTimer(this);
+    auto fpsclock = new QTimer();
     connect(fpsclock, &QTimer::timeout, this, &FrameWorker::reportFPS);
     fpsclock->start(1000);
-    ticklist.fill(0);
 
     while (isRunning) {
         beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
-        end = high_resolution_clock::now();
-        if (Camera->isRunning() && pixRemap) {
+        if (pixRemap) {// if (Camera->isRunning() && pixRemap) {
             TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
         }
+        if (interlace) {
+            IlaceFilter->apply_filter(lvframe_buffer->current()->raw_data);
+        }
+        end = high_resolution_clock::now();
 
+        lvframe_buffer->incIndex();
 
         duration = duration_cast<milliseconds>(end - beg).count();
         this_frame_duration = duration_cast<microseconds>(end - last_frame).count();
@@ -208,8 +229,6 @@ void FrameWorker::captureFrames()
         if (++tickindex == MAXSAMPLES) {
             tickindex = 0;
         }
-
-        lvframe_buffer->incIndex();
 
         count++;
         if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI)) {
@@ -425,9 +444,14 @@ std::vector<float> FrameWorker::getFrame()
 {
     //Maintains reference to data by using vector for memory management
 
+    uint16_t last_ndx = lvframe_buffer->dsfIndex.load();
+    // int prev_ndx = (lvframe_buffer->lastIndex.load() - 1) % 200;
     std::vector<float> raw_data(frSize);
+    // if (lvframe_buffer->frame(last_ndx)->raw_data[1000] > 35000) {
+    //     qDebug() << lvframe_buffer->fbIndex << lvframe_buffer->lastSTD()->raw_data[1000] << last_ndx << lvframe_buffer->frame(last_ndx)->raw_data[1000];
+    // }
     for (unsigned int i = 0; i < frSize; i++) {
-        raw_data[i] = float(lvframe_buffer->recent()->raw_data[i]);
+        raw_data[i] = float(lvframe_buffer->frame(last_ndx)->raw_data[i]);
     }
     return raw_data;
 }

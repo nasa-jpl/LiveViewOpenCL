@@ -195,6 +195,17 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     }
     colorMapData = new QCPColorMapData(frWidth, frHeight, QCPRange(0, frWidth-1), QCPRange(0, frHeight-1));
     colorMap->setData(colorMapData);
+
+    connect(frame_handler->Camera, &CameraModel::timeout, this, [=]() {
+        for (int col = 0; col < frWidth; col++) {
+            for (int row = 0; row < frHeight; row++ ) {
+                colorMap->data()->setCell(col, row, 0); // y-axis NOT reversed
+            }
+        }
+        qcp->replot();
+        // renderTimer.stop();
+    });
+
     if (frame_handler->running()) {
         renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
         fpsclock.start(1000); // 1 sec
@@ -203,8 +214,8 @@ frameview_widget::frameview_widget(FrameWorker *fw,
 
 void frameview_widget::handleNewFrame()
 {
-    if (!this->isHidden() && frame_handler->running()) {
-
+    if (!this->isHidden() && frame_handler->Camera->isRunning()) {
+        timeout_display = true;
         std::vector<float>image_data{(frame_handler->*p_getFrame)()};
         for (int col = 0; col < frWidth; col++) {
             for (int row = 0; row < frHeight; row++ ) {
@@ -214,6 +225,11 @@ void frameview_widget::handleNewFrame()
         }
         qcp->replot();
         count++;
+    } else {
+        if (timeout_display) {
+
+            timeout_display = false;
+        }
     }
 
     // count-based FPS counter, gets slower to update the lower the fps,
