@@ -76,6 +76,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     Camera = nullptr;
 
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
+    case RC:
     case XIO:
         Camera = new XIOCamera(settings->value(QString("ssd_width"), 640).toInt(),
                                settings->value(QString("ssd_height"), 480).toInt(),
