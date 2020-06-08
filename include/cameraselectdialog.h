@@ -15,6 +15,8 @@
 #include <QSettings>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QTcpSocket>
+#include <QHostAddress>
 
 class CameraSelectDialog : public QDialog
 {
@@ -139,12 +141,16 @@ public:
         ipmaDialogLayout->addWidget(ip_addr, 2, 1, 1, 1);
         ipmaDialogLayout->addWidget(ip_port, 2, 2, 1, 1);
         ipmaDialogLayout->addWidget(connectIpButton, 3, 1, 1, 1);
+
+        statusLabel = new QLabel(s->value(QString("connection_status"), "").toString());
+        heightLabel = new QLabel(s->value(QString("received_height"), "").toString());
+        widthLabel = new QLabel(s->value(QString("received_width"), "").toString());
         ipmaDialogLayout->addWidget(new QLabel("Status:"), 4, 1, 1, 1);
-        ipmaDialogLayout->addWidget(new QLabel(s->value(QString("connection_status"), "").toString()), 4, 2, 1, 1);
+        ipmaDialogLayout->addWidget(statusLabel, 4, 2, 1, 1);
         ipmaDialogLayout->addWidget(new QLabel("Height (px):"), 5, 1, 1, 1);
-        ipmaDialogLayout->addWidget(new QLabel(s->value(QString("received_height"), "").toString()), 5, 2, 1, 1);
+        ipmaDialogLayout->addWidget(heightLabel, 5, 2, 1, 1);
         ipmaDialogLayout->addWidget(new QLabel("Width (px):"), 6, 1, 1, 1);
-        ipmaDialogLayout->addWidget(new QLabel(s->value(QString("received_width"), "").toString()), 6, 2, 1, 1);
+        ipmaDialogLayout->addWidget(widthLabel, 6, 2, 1, 1);
 
         QVBoxLayout *ipDamDimmaDialogLayout = new QVBoxLayout(ip_dialog);
         ipDamDimmaDialogLayout->addLayout(ipmaDialogLayout);
@@ -183,10 +189,34 @@ private slots:
     void ip_connect() // This establishes a connection to the server and gets the information like size as the handshake.
     {
         s->setValue(QString("ip_address"), ip_addr->text() + ip_port->text());
-        s->setValue(QString("connection_status"), "Connected");
-        s->setValue(QString("received_height"), "Testing");
-        s->setValue(QString("received_width"), "Testing");
-        qDebug( "Clicked" );
+        qDebug() << "Connecting to " << ip_addr->text() << ":" << ip_port->text();
+
+        QTcpSocket *connection = new QTcpSocket(this);
+        connection->connectToHost(QHostAddress(ip_addr->text()),ip_port->text().toUShort());
+
+        if(connection->waitForConnected(1000)) { // Wait for connection
+            qDebug() << "Connected!";
+            connection->write("Hey ;)");
+        } else {
+            connection->close();
+            statusLabel->setText("Connection Failed");
+            return;
+        }
+        qDebug() << "After Connected";
+
+        if(connection->waitForReadyRead(10000)) { // Wait for reading to be ready
+            qDebug() << connection->readAll();
+        } else {
+            connection->close();
+            statusLabel->setText("Handshake Failed");
+            return;
+        }
+        qDebug() << "Finished Reading";
+        connection->close();
+        statusLabel->setText("Connected");
+        heightLabel->setText("Height");
+        widthLabel->setText("Width");
+
     }
 
     void connection_accept()
@@ -210,6 +240,9 @@ private:
     QLineEdit *vertical;
     QLineEdit *ip_addr;
     QLineEdit *ip_port;
+    QLabel *statusLabel;
+    QLabel *heightLabel;
+    QLabel *widthLabel;
 };
 
 #endif // CAMERASELECTDIALOG_H
