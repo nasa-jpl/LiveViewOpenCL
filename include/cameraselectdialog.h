@@ -2,6 +2,7 @@
 #define CAMERASELECTDIALOG_H
 
 #include "lvmainwindow.h"
+#include "string.h"
 
 #include <QDebug>
 #include <QDialog>
@@ -17,6 +18,7 @@
 #include <QLineEdit>
 #include <QTcpSocket>
 #include <QHostAddress>
+#include <QByteArray>
 
 class CameraSelectDialog : public QDialog
 {
@@ -188,6 +190,7 @@ private slots:
 
     void ip_connect() // This establishes a connection to the server and gets the information like size as the handshake.
     {
+        // All of this will be turned into an object
         s->setValue(QString("ip_address"), ip_addr->text() + ip_port->text());
         qDebug() << "Connecting to " << ip_addr->text() << ":" << ip_port->text();
 
@@ -197,6 +200,7 @@ private slots:
         if(connection->waitForConnected(1000)) { // Wait for connection
             qDebug() << "Connected!";
             connection->write("Hey ;)");
+            connection->waitForBytesWritten();
         } else {
             connection->close();
             statusLabel->setText("Connection Failed");
@@ -205,18 +209,39 @@ private slots:
         qDebug() << "After Connected";
 
         if(connection->waitForReadyRead(10000)) { // Wait for reading to be ready
-            qDebug() << connection->readAll();
+            //qDebug() << connection->readAll();
+            const QByteArray connectionMessage = qUncompress(connection->readAll());
+            const QJsonObject messageObj = QJsonDocument::fromJson(connectionMessage).object();
+            qDebug() << messageObj;
+            if (messageObj.contains("requestType") && messageObj["requestType"].isString()) {
+                qDebug() << "Detected request.";
+                const QString &requestType = messageObj["requestType"].toString();
+                const double &requestHeight = messageObj["height"].toDouble();
+                const double &requestWidth = messageObj["width"].toDouble();
+                if (QString::compare(requestType, QString("\"Handshake\""), Qt::CaseInsensitive)) {
+                    qDebug() << "Detected Handshake.";
+                    qDebug() << requestHeight;
+                    qDebug() << requestWidth;
+                    qDebug() << messageObj.value("height").toInt();
+                    // Connection confirmed, set handshake to true
+                    statusLabel->setText("Connected");
+                    heightLabel->setText(QString::number(requestHeight));
+                    widthLabel->setText(QString::number(requestWidth));
+                    return;
+                }
+            } else {
+                // If there is no requestType, return an error to the client.
+                connection->close();
+                statusLabel->setText("Handshake Failed");
+                qDebug() << "Got invalid handshake.";
+                return;
+            }
         } else {
             connection->close();
             statusLabel->setText("Handshake Failed");
+            qDebug() << "Did not get handshake response from server.";
             return;
         }
-        qDebug() << "Finished Reading";
-        connection->close();
-        statusLabel->setText("Connected");
-        heightLabel->setText("Height");
-        widthLabel->setText("Width");
-
     }
 
     void connection_accept()
