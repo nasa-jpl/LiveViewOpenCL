@@ -77,6 +77,11 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
 
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
     case RC:
+        Camera = new RemoteCamera(settings->value(QString("ssd_width"), 640).toInt(),
+                               settings->value(QString("ssd_height"), 480).toInt(),
+                               settings->value(QString("ssd_height"), 480).toInt(),
+                               settings->value(QString("socket_descriptor")).toInt()); // This may not account for some failure cases
+        break;
     case XIO:
         Camera = new XIOCamera(settings->value(QString("ssd_width"), 640).toInt(),
                                settings->value(QString("ssd_height"), 480).toInt(),

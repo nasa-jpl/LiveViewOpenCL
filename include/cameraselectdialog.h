@@ -119,7 +119,7 @@ public:
         ip_port->setPlaceholderText("69696");
         ip_port->setValidator(portValidator);
 
-        QPushButton *okIpButton = new QPushButton("&Done", ip_dialog);
+        okIpButton = new QPushButton("&Done", ip_dialog);
         okIpButton->setEnabled(false); // Default state should be disabled
         connect(okIpButton, &QPushButton::clicked,
                 ip_dialog, &QDialog::accept);
@@ -194,7 +194,7 @@ private slots:
         s->setValue(QString("ip_address"), ip_addr->text() + ip_port->text());
         qDebug() << "Connecting to " << ip_addr->text() << ":" << ip_port->text();
 
-        QTcpSocket *connection = new QTcpSocket(this);
+        QTcpSocket *connection = new QTcpSocket();
         connection->connectToHost(QHostAddress(ip_addr->text()),ip_port->text().toUShort());
 
         if(connection->waitForConnected(1000)) { // Wait for connection
@@ -212,21 +212,16 @@ private slots:
             //qDebug() << connection->readAll();
             const QByteArray connectionMessage = qUncompress(connection->readAll());
             const QJsonObject messageObj = QJsonDocument::fromJson(connectionMessage).object();
-            qDebug() << messageObj;
             if (messageObj.contains("requestType") && messageObj["requestType"].isString()) {
-                qDebug() << "Detected request.";
                 const QString &requestType = messageObj["requestType"].toString();
                 const double &requestHeight = messageObj["height"].toDouble();
                 const double &requestWidth = messageObj["width"].toDouble();
                 if (QString::compare(requestType, QString("\"Handshake\""), Qt::CaseInsensitive)) {
-                    qDebug() << "Detected Handshake.";
-                    qDebug() << requestHeight;
-                    qDebug() << requestWidth;
-                    qDebug() << messageObj.value("height").toInt();
                     // Connection confirmed, set handshake to true
                     statusLabel->setText("Connected");
                     heightLabel->setText(QString::number(requestHeight));
                     widthLabel->setText(QString::number(requestWidth));
+                    okIpButton->setEnabled(true);
                     return;
                 }
             } else {
@@ -246,8 +241,8 @@ private slots:
 
     void connection_accept()
     {
-        s->setValue(QString("ssd_width"), horizontal->text());
-        s->setValue(QString("ssd_height"), vertical->text());
+        s->setValue(QString("ssd_width"), widthLabel->text());
+        s->setValue(QString("ssd_height"), heightLabel->text());
         this->accept();
     }
 
@@ -268,6 +263,7 @@ private:
     QLabel *statusLabel;
     QLabel *heightLabel;
     QLabel *widthLabel;
+    QPushButton *okIpButton;
 };
 
 #endif // CAMERASELECTDIALOG_H
