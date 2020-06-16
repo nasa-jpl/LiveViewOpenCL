@@ -14,10 +14,21 @@ RemoteCamera::RemoteCamera(int frWidth,
     data_height = dataHeight;
 
     socket = new QTcpSocket();
-    socket->setSocketDescriptor(Descriptor); // may need to check that the connection is still active
+    socket->setSocketDescriptor(Descriptor);
     qDebug() << socket->readAll(); // I need to do this to make sure I don't miss anything (according to sources :))
 
     connect(socket, &QTcpSocket::stateChanged, this, &RemoteCamera::SocketStateChanged);
+    socket->waitForConnected();
+    qDebug() << "Waiting for connected" << socket->state(); // This line is required to check that we are still connected.
+//    socket->write("tHiS iS a BUnCh Of DaTA");
+//    qDebug() << "Wrote";
+//    socket->waitForBytesWritten();
+//    qDebug() << "Waited for written";
+//    socket->waitForReadyRead();
+//    qDebug() << "Waited for read";
+
+//    // Convert the data
+//    QByteArray buffer = socket->readAll();
 
     header.resize(size_t(headsize));
     std::fill(header.begin(), header.end(), 0);
@@ -176,8 +187,12 @@ uint16_t* RemoteCamera::getFrame()
     {
         qDebug() << "Getting frame from socket...";
         socket->write("Ready");
+        qDebug() << "Wrote";
         socket->waitForBytesWritten();
+        qDebug() << "Waited for written";
         socket->waitForReadyRead();
+        qDebug() << "Waited for read";
+
         // Convert the data
         QByteArray buffer = socket->readAll();
         QDataStream dstream(buffer);

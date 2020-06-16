@@ -221,6 +221,7 @@ private slots:
                     statusLabel->setText("Connected");
                     heightLabel->setText(QString::number(requestHeight));
                     widthLabel->setText(QString::number(requestWidth));
+                    s->setValue(QString("socket_descriptor"), connection->socketDescriptor()); // Should this be done during connection_accept()
                     okIpButton->setEnabled(true);
                     return;
                 }
