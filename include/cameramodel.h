@@ -33,6 +33,9 @@ public:
     camera_t getCameraType() const { return camera_type; }
     source_t getSourceType() const { return source_type; }
 
+public slots:
+    void windowInitialized() { qDebug() << "Initialized Window"; window_initialized = true; }
+
 signals:
     void timeout();
     void started();
@@ -44,7 +47,7 @@ protected:
     char *camera_name;
     camera_t camera_type;
     source_t source_type;
-
+    bool window_initialized;
     std::atomic<bool> running;
 };
 

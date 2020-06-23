@@ -113,11 +113,13 @@ public:
         ip_addr = new QLineEdit;
         ip_addr->setPlaceholderText("127.0.0.1");
         ip_addr->setValidator(ipValidator);
+        ip_addr->setText(s->value(QString("ip_address"), "").toString());
 
         QIntValidator *portValidator = new QIntValidator(0, 99999, this);
         ip_port = new QLineEdit;
         ip_port->setPlaceholderText("69696");
         ip_port->setValidator(portValidator);
+        ip_port->setText(s->value(QString("ip_port"), "").toString());
 
         okIpButton = new QPushButton("&Done", ip_dialog);
         okIpButton->setEnabled(false); // Default state should be disabled
@@ -191,7 +193,8 @@ private slots:
     void ip_connect() // This establishes a connection to the server and gets the information like size as the handshake.
     {
         // All of this will be turned into an object
-        s->setValue(QString("ip_address"), ip_addr->text() + ip_port->text());
+        s->setValue(QString("ip_address"), ip_addr->text());
+        s->setValue(QString("ip_port"), ip_port->text());
         qDebug() << "Connecting to " << ip_addr->text() << ":" << ip_port->text();
 
         QTcpSocket *connection = new QTcpSocket();
