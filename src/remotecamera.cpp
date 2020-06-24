@@ -8,7 +8,7 @@ RemoteCamera::RemoteCamera(int frWidth,
     tmoutPeriod(100) // milliseconds
 {
     source_type = RC;
-    camera_type = SSD_RC;
+    camera_type = ETH_RC;
     frame_width = frWidth;
     frame_height = frHeight;
     data_height = dataHeight;
@@ -63,16 +63,22 @@ uint16_t* RemoteCamera::getFrame()
             if (!socket->waitForReadyRead(500)) // If it timed out
             {
                 qDebug() << "Timed out";
+                is_receiving = false;
                 return temp_frame.data(); // Return existing frame
             }
             //qDebug() << "Waited for read";
 
             // Convert the data
-            QByteArray buffer = socket->read(framesize*2);
-            QDataStream dstream(buffer);
+            QByteArray buffer = socket->readAll();
             size_t dataSize = buffer.size();
+            QDataStream dstream(buffer);
+            for (size_t i = 0; i < dataSize; i++)
+            {
+                uint16_t temp_int;
+                dstream >> temp_int;
+                temp_frame[i] = (temp_int >> 8) | ( temp_int << 8); // Bits are interpretted as mid-little endian, so we just shift them back
+            }
 
-            for (size_t i = 0; i < dataSize; i++) { dstream >> temp_frame[i]; } // Do I need a for loop?
             //qDebug() << "Returning Data";
             is_receiving = false;
             return temp_frame.data();

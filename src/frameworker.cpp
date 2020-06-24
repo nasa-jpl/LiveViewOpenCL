@@ -215,7 +215,6 @@ void FrameWorker::captureFrames()
     while (isRunning) {
         beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
-        qDebug() << lvframe_buffer->current()->raw_data[0];
         if (pixRemap) {// if (Camera->isRunning() && pixRemap) {
             TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
         }
@@ -237,7 +236,7 @@ void FrameWorker::captureFrames()
         }
 
         count++;
-        if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI)) {
+        if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI || cam_type == ETH_RC)) {
             delay(int64_t(frame_period_ms) - duration);
         } else {
             QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
