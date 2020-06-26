@@ -62,7 +62,7 @@ private:
     size_t image_no;
     std::queue<uint16_t> receive_q;
     std::vector<uint16_t> dummy;
-    std::vector<std::atomic<uint16_t>> temp_frame (framesize);
+    std::vector<std::atomic<uint16_t>> temp_frame (framesize, 0);
 
     QFuture<void> readLoopFuture;
     int tmoutPeriod;

@@ -215,6 +215,7 @@ void FrameWorker::captureFrames()
     while (isRunning) {
         beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
+        //qDebug() << lvframe_buffer->current()->raw_data[0];
         if (pixRemap) {// if (Camera->isRunning() && pixRemap) {
             TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
         }
