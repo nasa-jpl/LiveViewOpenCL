@@ -47,6 +47,33 @@ RemoteCamera::~RemoteCamera()
     readLoopFuture.waitForFinished();
 }
 
+void RemoteCamera::SocketRead()
+{
+    qDebug() << "Starting Read";
+    uint32_t byte_pos = 0; // Two bytes per pixel
+    uint32_t frame_byte_size = framesize*2;
+    do {
+        if (!socket->waitForReadyRead(500)) // If it timed out
+        {
+            qDebug() << "Timed out";
+            is_receiving = false;
+            break; // Return existing frame if we wait too long
+        }
+        // Convert the data
+        QByteArray buffer = socket->read(frame_byte_size - byte_pos);
+        size_t dataSize = buffer.size();
+        QDataStream dstream(buffer);
+        for (uint32_t i = byte_pos; i < dataSize + byte_pos; i++) // Go through each byte in the message
+        {
+            uint16_t temp_int;
+            dstream >> temp_int;
+            temp_frame[i] = (temp_int >> 8) | ( temp_int << 8); // Bits are interpretted as mid-little endian, so we just shift them back
+        }
+        byte_pos += dataSize;
+        qDebug() << "Received msg"<< dataSize << "Bytes position" << byte_pos;
+    } while (byte_pos < frame_byte_size);
+}
+
 uint16_t* RemoteCamera::getFrame()
 {
     // Prompt the server to send a frame over
@@ -59,27 +86,10 @@ uint16_t* RemoteCamera::getFrame()
             socket->write("Ready");
             //qDebug() << "Wrote";
             socket->waitForBytesWritten(100);
-            //qDebug() << "Waited for written";
-            if (!socket->waitForReadyRead(500)) // If it timed out
-            {
-                qDebug() << "Timed out";
-                is_receiving = false;
-                return temp_frame.data(); // Return existing frame
-            }
-            //qDebug() << "Waited for read";
-
-            // Convert the data
-            QByteArray buffer = socket->readAll();
-            size_t dataSize = buffer.size();
-            QDataStream dstream(buffer);
-            for (size_t i = 0; i < dataSize; i++)
-            {
-                uint16_t temp_int;
-                dstream >> temp_int;
-                temp_frame[i] = (temp_int >> 8) | ( temp_int << 8); // Bits are interpretted as mid-little endian, so we just shift them back
-            }
+            this->SocketRead();
 
             //qDebug() << "Returning Data";
+            qDebug() << temp_frame[0] << temp_frame[1] << temp_frame[2];
             is_receiving = false;
             return temp_frame.data();
         } else {
