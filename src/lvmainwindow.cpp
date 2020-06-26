@@ -20,8 +20,6 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     // Load the worker thread
     workerThread = new QThread;
     fw = new FrameWorker(settings, workerThread);
-    CameraModel *cam = fw->Camera;
-    connect(this, &LVMainWindow::initialized, cam, &CameraModel::windowInitialized);
     fw->moveToThread(workerThread);
     QFutureWatcher<void> fwWatcher;
     connect(workerThread, &QThread::started, fw, &FrameWorker::captureFrames);
@@ -120,7 +118,6 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
                 fw->setFramePeriod(double(1000.0 / frame_period));
     });
     notInitialized = false;
-    emit initialized();
 }
 
 LVMainWindow::~LVMainWindow()

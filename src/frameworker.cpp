@@ -102,6 +102,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     }
 
     bool cam_started = Camera->start();
+
     if (!cam_started) {
         // In general, software camera models will always start, but some hardware camera models can fail
         // to start if the hardware is misconfigured.
@@ -215,7 +216,6 @@ void FrameWorker::captureFrames()
     while (isRunning) {
         beg = high_resolution_clock::now();
         lvframe_buffer->current()->raw_data = Camera->getFrame();
-        //qDebug() << lvframe_buffer->current()->raw_data[0];
         if (pixRemap) {// if (Camera->isRunning() && pixRemap) {
             TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
         }
@@ -448,7 +448,7 @@ void FrameWorker::resetDir(const char *dirname)
 
 std::vector<float> FrameWorker::getFrame()
 {
-    // Maintains reference to data by using vector for memory management
+    //Maintains reference to data by using vector for memory management
 
     uint16_t last_ndx = lvframe_buffer->dsfIndex.load();
     // int prev_ndx = (lvframe_buffer->lastIndex.load() - 1) % 200;

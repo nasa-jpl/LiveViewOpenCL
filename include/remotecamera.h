@@ -40,7 +40,7 @@ public:
               QObject *parent = nullptr);
     ~RemoteCamera();
 
-    // No setDir function because the source is the server (one place)
+    // No setDir function because the only source is the server
 
     virtual uint16_t* getFrame();
     void PopFrame();
@@ -50,6 +50,10 @@ public slots:
     void SocketStateChanged(QTcpSocket::SocketState state = QTcpSocket::UnconnectedState);
     void SocketReady();
 private:
+    // Not including for now because I want an unbuffered system
+//    std::string getFname();
+//    void readFile();
+//    void readLoop();
 
     QTcpSocket *socket;
 
@@ -66,7 +70,6 @@ private:
 
     QFuture<void> readLoopFuture;
     int tmoutPeriod;
-
 };
 
 #endif // REMOTECAMERA_H

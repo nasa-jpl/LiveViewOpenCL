@@ -34,7 +34,6 @@ public:
 
 signals:
     void saveRequest();
-    void initialized();
 
 protected:
 #ifndef QT_NO_CONTEXTMENU

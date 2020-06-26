@@ -3,7 +3,7 @@
 RemoteCamera::RemoteCamera(int frWidth,
         int frHeight, int dataHeight, int Descriptor,
         QObject *parent
-) : CameraModel(parent), nFrames(32), framesize(frWidth * dataHeight),
+) : CameraModel(parent), nFrames(32), framesize(0),
     headsize(frWidth * int(sizeof(uint16_t))), image_no(0),
     tmoutPeriod(100) // milliseconds
 {
@@ -20,11 +20,16 @@ RemoteCamera::RemoteCamera(int frWidth,
     connect(socket, &QTcpSocket::stateChanged, this, &RemoteCamera::SocketStateChanged);
     connect(socket, &QTcpSocket::readyRead, this, &RemoteCamera::SocketReady);
     socket->waitForConnected();
-    is_connected = true;
     qDebug() << "Waiting for connected" << socket->state(); // This line is required to check that we are still connected.
+//    socket->write("tHiS iS a BUnCh Of DaTA");
+//    qDebug() << "Wrote";
+//    socket->waitForBytesWritten();
+//    qDebug() << "Waited for written";
+//    socket->waitForReadyRead();
+//    qDebug() << "Waited for read";
 
-    is_receiving = false;
-    window_initialized = false;
+//    // Convert the data
+//    QByteArray buffer = socket->readAll();
 
 
     dummy.resize(size_t(frame_width * data_height));
@@ -40,69 +45,163 @@ RemoteCamera::~RemoteCamera()
     running.store(false);
     socket->disconnect();
     emit timeout();
-    is_connected = false;
+    is_reading = false;
     readLoopFuture.waitForFinished();
 }
 
-void RemoteCamera::SocketReady() // Receives data and puts it on the stack
-{
-    if(is_connected && socket->isReadable()) { // Not sure if we need this check
-        // Add the whole buffer to the queue
-        QByteArray buffer = socket->readAll();
-        size_t bufferSize = buffer.size();
-        qDebug() << "Received Something" << receive_q.size() << bufferSize;
-        QDataStream dstream(buffer);
-        for (size_t i = 0; i < bufferSize; i++)
-        {
-            uint16_t temp_int;
-            dstream >> temp_int;
-            receive_q.push((temp_int >> 8) | ( temp_int << 8)); // Bits are interpretted as mid-little endian, so we just shift them back
-        }
-    }
-}
+//std::string RemoteCamera::getFname()
+//{
+//    std::string fname; // will return empty string if no unread files are found.
+//    std::vector<std::string> fname_list;
+//    bool has_file = false;
+//    if (data_dir.empty()) {
+//        return fname;
+//    }
+//    if (image_no < xio_files.size()) {
+//        fname = xio_files[image_no++];
+//    } else {
+//        os::listdir(fname_list, data_dir);
+//        if (fname_list.size() < 1) {
+//            return fname;
+//        }
+//        /* if necessary, there may need to be code to sort the "frames" in the data directory
+//        * by product name, as mtime is unreliable.
+//        */
+//        std::sort(fname_list.begin(), fname_list.end(), doj::alphanum_less<std::string>());
+//        for (auto f = fname_list.end() - 1; f != fname_list.begin(); --f) {
+//            has_file = std::find(xio_files.begin(), xio_files.end(), *f) != xio_files.end();
+//            std::string ext = os::getext(*f);
+//            std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+//            if ((*f).empty() or (std::strcmp(ext.data(), "xio") != 0 and
+//                                 std::strcmp(ext.data(), "decomp") != 0)) {
+//                continue;
+//            } else if (has_file) {
+//                break;
+//            } else {
+//                xio_files.emplace_back(*f);
+//            }
 
-void RemoteCamera::PopFrame()
-{
-    if (receive_q.size() >= framesize) // Only if we have enough elements in the queue
-    {
-        for (size_t i = 0; i < framesize; i++)
-        {
-            if (receive_q.empty()) {
-                qDebug() << "ERROR EMPTY QUEUE";
-                break;
-            }
-            //qDebug() << "pop" << receive_q.size();
-            temp_frame[i].store(receive_q.front());
-            receive_q.pop();
-            //qDebug() << "pop" << receive_q.size();
-        }
-        image_no++;
-        qDebug() << "Image Number:" << image_no << receive_q.size();
-    }
-}
+//        }
 
-bool RemoteCamera::RequestFrame() // Prompt the server to send a frame over
+//        if (image_no < xio_files.size()) {
+//            fname = xio_files[image_no++];
+//        }
+//    }
+
+//    return fname;
+//}
+
+//void RemoteCamera::readFile()
+//{
+//    is_reading = true;
+//    bool validFile = false;
+//    while(!validFile) {
+//        ifname = getFname();
+//        if (ifname.empty()) {
+//            if (dev_p.is_open()) {
+//                dev_p.close();
+//            }
+
+//            if (running.load()) {
+//                running.store(false);
+//                emit timeout();
+//            }
+//            return; //If we're out of files, give up
+//        }
+//        // otherwise check if data is valid
+//        dev_p.open(ifname, std::ios::in | std::ios::binary);
+//        if (!dev_p.is_open()) {
+//            qDebug() << "Could not open file" << ifname.data() << ". Does it exist?";
+//            dev_p.clear();
+//            readFile();
+//            return;
+//        }
+
+//        // qDebug() << "Successfully opened " << ifname.data();
+//        dev_p.unsetf(std::ios::skipws);
+
+//        dev_p.read(reinterpret_cast<char*>(header.data()), headsize);
+
+//        std::streampos filesize(0);
+//        std::string ext = os::getext(ifname);
+//        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+//        if (!std::strcmp(ext.data(), "decomp")) {
+//            dev_p.seekg(0, std::ios::end);
+//            filesize = dev_p.tellg();
+//            dev_p.seekg(headsize, std::ios::beg);
+//        } else {
+//            // convert the raw hex string to decimal, one digit at a time.
+//            filesize = int(header[7]) * 16777216 + int(header[6]) * 65536 + int(header[5]) * 256 + int(header[4]);
+//        }
+
+//        framesize = static_cast<size_t>(filesize / nFrames);
+//        if (framesize == 0) { //If header reports a 0 filesize (invalid data), then skip this file.
+//            dev_p.close();
+//            qDebug().nospace() << "Skipped file \"" << ifname.data() << "\" due to invalid data.";
+//        } else { //otherwise we load it
+//            validFile = true;
+//            dev_p.seekg(headsize, std::ios::beg);
+
+//            // qDebug() << "File size is" << filesize << "bytes, which corresponds to a framesize of" << framesize << "bytes.";
+
+//            std::vector<uint16_t> zero_vec(size_t(frame_width * data_height) - (size_t(framesize) / sizeof(uint16_t)));
+//            std::fill(zero_vec.begin(), zero_vec.end(), 0);
+
+//            std::vector<uint16_t> copy_vec(size_t(framesize), 0);
+
+//            for (int n = 0; n < nFrames; ++n) {
+//                dev_p.read(reinterpret_cast<char*>(copy_vec.data()), std::streamsize(framesize));
+//                frame_buf.emplace_front(copy_vec);
+
+//                if (framesize / sizeof(uint16_t) < size_t(frame_width * data_height)) {
+//                    std::copy(zero_vec.begin(), zero_vec.end(), frame_buf[size_t(n)].begin() + framesize / sizeof(uint16_t));
+//                }
+//            }
+
+//            running.store(true);
+//            emit started();
+//            dev_p.close();
+//        }
+//    }
+//}
+
+//void RemoteCamera::readLoop()
+//{
+//    QTime remTime;
+//    do {
+//        // Yeah yeah whatever it's a magic buffer size recommendation
+//        if (frame_buf.size() <= 96) {
+//            readFile();
+//        } else {
+//            remTime = QTime::currentTime().addMSecs(tmoutPeriod);
+//            while(QTime::currentTime() < remTime) {
+//                QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+//            }
+//        }
+//    } while (is_reading);
+//}
+
+uint16_t* RemoteCamera::getFrame()
 {
-    if(socket->isWritable()) // Validate that socket is ready
+    // Prompt the server to send a frame over
+    if(is_reading && socket->isWritable()) // Validate that socket is ready
     {
+        qDebug() << "Getting frame from socket...";
         socket->write("Ready");
-        return socket->waitForBytesWritten(100);
-    } else {
-        return false;
-    }
-}
+        qDebug() << "Wrote";
+        socket->waitForBytesWritten();
+        qDebug() << "Waited for written";
+        socket->waitForReadyRead();
+        qDebug() << "Waited for read";
 
-uint16_t* RemoteCamera::getFrame() // Returns the most recent frame
-{
-    if(is_connected && window_initialized)
-    {
-        qDebug() << "Getting frame" << receive_q.size();
-        this->RequestFrame();
-        this->PopFrame();
-        return temp_frame[i].store.data();
-
+        // Convert the data
+        QByteArray buffer = socket->readAll();
+        QDataStream dstream(buffer);
+        size_t dataSize = buffer.size();
+        std::vector<uint16_t> out(dataSize, 0);
+        for (size_t i = 0; i < dataSize; i++) { dstream >> out[i]; } // Do I need a for loop?
+        return out.data();
     } else {
-        //qDebug() << "Returning Dummy Data";
         return dummy.data();
     }
 }
@@ -114,15 +213,12 @@ void RemoteCamera::SocketStateChanged(QTcpSocket::SocketState state)
     case QTcpSocket::ConnectedState:
         // Do nothing, we should be in this state no but investigate becuase we would need to be somewhere else
         break;
-    case QTcpSocket::UnconnectedState: // We might not want to quit once we enter this state, because we might recover.
-        qDebug() << "Unconnected State";
-        is_connected = false;
+    case QTcpSocket::UnconnectedState:
+        is_reading = false;
         emit timeout();
         break;
     default:
-        qDebug() << "WEIRD STATE ENCOUNTERED. QUITTING" << state;
-        is_connected = false;
-        socket->disconnect();
+        qDebug() << "WEIRD STATE ENCOUNTERED. QUITTING";
         emit timeout();
         break;
     }
