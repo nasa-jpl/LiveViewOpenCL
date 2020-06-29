@@ -49,13 +49,11 @@ RemoteCamera::~RemoteCamera()
 
 void RemoteCamera::SocketRead()
 {
-    qDebug() << "Starting Read";
     uint32_t byte_pos = 0; // Two bytes per pixel
     uint32_t frame_byte_size = framesize*2;
     do {
-        if (!socket->waitForReadyRead(500)) // If it timed out
+        if (!socket->waitForReadyRead(2000)) // If it timed out
         {
-            qDebug() << "Timed out";
             is_receiving = false;
             break; // Return existing frame if we wait too long
         }
@@ -70,7 +68,6 @@ void RemoteCamera::SocketRead()
             temp_frame[i] = (temp_int >> 8) | ( temp_int << 8); // Bits are interpretted as mid-little endian, so we just shift them back
         }
         byte_pos += dataSize;
-        qDebug() << "Received msg"<< dataSize << "Bytes position" << byte_pos;
     } while (byte_pos < frame_byte_size);
 }
 
@@ -89,16 +86,14 @@ uint16_t* RemoteCamera::getFrame()
             this->SocketRead();
 
             //qDebug() << "Returning Data";
-            qDebug() << temp_frame[0] << temp_frame[1] << temp_frame[2];
+            image_no ++;
             is_receiving = false;
-            return temp_frame.data();
-        } else {
-            //qDebug() << "Dummy data";
-            //qDebug() << "---";
-            return temp_frame.data();
         }
+        qDebug() << image_no << "- Image Received";
+        return temp_frame.data();
     } else {
         //qDebug() << "Returning Dummy Data";
+        qDebug() << image_no << "Dummy Returned";
         return dummy.data();
     }
 }
