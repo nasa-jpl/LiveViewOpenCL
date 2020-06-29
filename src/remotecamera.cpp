@@ -86,29 +86,18 @@ uint16_t* RemoteCamera::getFrame()
             socket->write("Ready");
             //qDebug() << "Wrote";
             socket->waitForBytesWritten(100);
-            //qDebug() << "Waited for written";
-            if (!socket->waitForReadyRead(500)) // If it timed out
-            {
-                qDebug() << "Timed out";
-                return temp_frame.data(); // Return existing frame
-            }
-            //qDebug() << "Waited for read";
-
-            // Convert the data
-            QByteArray buffer = socket->read(framesize*2);
-            QDataStream dstream(buffer);
-            size_t dataSize = buffer.size();
+            this->SocketRead();
 
             for (size_t i = 0; i < dataSize; i++) { dstream >> temp_frame[i]; } // Do I need a for loop?
             //qDebug() << "Returning Data";
+            image_no ++;
             is_receiving = false;
-            return temp_frame.data();
-        } else {
-            //qDebug() << "Dummy data";
-            //qDebug() << "---";
-            return temp_frame.data();
         }
+        qDebug() << image_no << "- Image Received";
+        return temp_frame.data();
     } else {
+        //qDebug() << "Returning Dummy Data";
+        qDebug() << image_no << "Dummy Returned";
         return dummy.data();
     }
 }

@@ -43,8 +43,7 @@ public:
     // No setDir function because the only source is the server
 
     virtual uint16_t* getFrame();
-    void PopFrame();
-    bool RequestFrame();
+    void SocketRead();
 
 public slots:
     void SocketStateChanged(QTcpSocket::SocketState state = QTcpSocket::UnconnectedState);
