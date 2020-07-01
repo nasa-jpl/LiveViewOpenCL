@@ -103,21 +103,25 @@ public:
         ip_dialog = new QDialog;
         ip_dialog->setWindowTitle("Configure IP Connection");
 
-        QString IpRange = "(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])";
-        QRegularExpression IpRegex ("^" + IpRange
-                                    + "(\\." + IpRange + ")"
-                                    + "(\\." + IpRange + ")"
-                                    + "(\\." + IpRange + ")$");
-        QRegularExpressionValidator *ipValidator = new QRegularExpressionValidator(IpRegex, this);
+        //QString IpRange = "(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])";
+//        QRegularExpression IpRegex ("^" + IpRange
+//                                    + "(\\." + IpRange + ")"
+//                                    + "(\\." + IpRange + ")"
+//                                    + "(\\." + IpRange + ")$");
+        QRegularExpression Ipv6Regex ("((^\s*((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))\s*$)|(^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$))");
+
+        QRegularExpressionValidator *ipValidator = new QRegularExpressionValidator(Ipv6Regex, this);
 
         ip_addr = new QLineEdit;
         ip_addr->setPlaceholderText("127.0.0.1");
         ip_addr->setValidator(ipValidator);
+        ip_addr->setText(s->value(QString("ip_address"), "").toString());
 
         QIntValidator *portValidator = new QIntValidator(0, 99999, this);
         ip_port = new QLineEdit;
         ip_port->setPlaceholderText("69696");
         ip_port->setValidator(portValidator);
+        ip_port->setText(s->value(QString("ip_port"), "").toString());
 
         okIpButton = new QPushButton("&Done", ip_dialog);
         okIpButton->setEnabled(false); // Default state should be disabled
@@ -191,7 +195,8 @@ private slots:
     void ip_connect() // This establishes a connection to the server and gets the information like size as the handshake.
     {
         // All of this will be turned into an object
-        s->setValue(QString("ip_address"), ip_addr->text() + ip_port->text());
+        s->setValue(QString("ip_address"), ip_addr->text());
+        s->setValue(QString("ip_port"), ip_port->text());
         qDebug() << "Connecting to " << ip_addr->text() << ":" << ip_port->text();
 
         QTcpSocket *connection = new QTcpSocket();

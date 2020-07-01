@@ -4,12 +4,11 @@
 #include <stdlib.h>
 #include <cstring>
 #include <fstream>
-#include <queue>
+#include <deque>
 #include <vector>
 #include <array>
 #include <algorithm>
 #include <chrono>
-#include <atomic>
 
 #include <QDebug>
 #include <QDir>
@@ -40,35 +39,37 @@ public:
               QObject *parent = nullptr);
     ~RemoteCamera();
 
-    // No setDir function because the only source is the server
+    // No setDir function because the source is the server (one place)
 
     virtual uint16_t* getFrame();
     void SocketRead();
 
 public slots:
     void SocketStateChanged(QTcpSocket::SocketState state = QTcpSocket::UnconnectedState);
-    void SocketReady();
 private:
-    // Not including for now because I want an unbuffered system
-//    std::string getFname();
-//    void readFile();
-//    void readLoop();
 
     QTcpSocket *socket;
 
     bool is_receiving; // Flag that is true while requesting a frame
     bool is_connected; // Flag that is true when server is connected
+    std::ifstream dev_p;
+    std::string ifname;
+    std::string data_dir;
+    std::streampos bufsize;
     const int nFrames;
     size_t framesize;
     const int headsize;
 
     size_t image_no;
-    std::queue<uint16_t> receive_q;
+    std::vector<std::string> xio_files;
+    std::deque< std::vector<uint16_t> > frame_buf;
+    std::vector<unsigned char> header;
     std::vector<uint16_t> dummy;
-    std::vector<std::atomic<uint16_t>> temp_frame (framesize);
+    std::vector<uint16_t> temp_frame;
 
     QFuture<void> readLoopFuture;
     int tmoutPeriod;
+
 };
 
 #endif // REMOTECAMERA_H

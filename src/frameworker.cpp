@@ -74,7 +74,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     is16bit = settings->value(QString("remap16"), false).toBool();
     interlace = settings->value(QString("interlace"), false).toBool();
     Camera = nullptr;
-
+    qDebug() << "Socket Des" << settings->value(QString("socket_descriptor")).toInt();
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
     case RC:
         Camera = new RemoteCamera(settings->value(QString("ssd_width"), 640).toInt(),
