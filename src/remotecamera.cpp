@@ -12,13 +12,30 @@ RemoteCamera::RemoteCamera(int frWidth,
     frame_width = frWidth;
     frame_height = frHeight;
     data_height = dataHeight;
+    socket_descriptor = Descriptor;
+}
+
+RemoteCamera::~RemoteCamera()
+{
+    running.store(false);
+    emit timeout();
+    is_connected = false;
+    readLoopFuture.waitForFinished();
+}
+
+bool RemoteCamera::start()
+{
     qDebug() << "Attempting Connection";
     socket = new QTcpSocket();
-    socket->setSocketDescriptor(Descriptor);
+    socket->setSocketDescriptor(socket_descriptor);
     qDebug() << socket->readAll(); // I need to do this to make sure I don't miss anything (according to sources :))
 
     connect(socket, &QTcpSocket::stateChanged, this, &RemoteCamera::SocketStateChanged);
-    socket->waitForConnected();
+    if (!socket->waitForConnected(1000))
+    {
+        qDebug() << "Could not complete descriptor pass-off";
+        return false;
+    }
     is_connected = true;
     qDebug() << "Waiting for connected" << socket->state(); // This line is required to check that we are still connected.
 
@@ -37,14 +54,8 @@ RemoteCamera::RemoteCamera(int frWidth,
     temp_frame.resize(size_t(frame_width * data_height));
     std::fill(temp_frame.begin(), temp_frame.end(), 0);
     running.store(true);
-}
 
-RemoteCamera::~RemoteCamera()
-{
-    running.store(false);
-    emit timeout();
-    is_connected = false;
-    readLoopFuture.waitForFinished();
+    return true;
 }
 
 void RemoteCamera::SocketRead()
@@ -52,10 +63,15 @@ void RemoteCamera::SocketRead()
     uint32_t byte_pos = 0; // Two bytes per pixel
     uint32_t frame_byte_size = framesize*2;
     do {
-        if (!socket->waitForReadyRead(2000)) // If it timed out
+        qDebug() << "Bytes available to read" << socket->bytesAvailable();
+        if (!socket->waitForReadyRead(500)) // If it timed out
         {
-            is_receiving = false;
-            break; // Return existing frame if we wait too long
+            if (!(socket->bytesAvailable() > 0))
+            {
+                qDebug() << "Timed Out" << byte_pos;
+                is_receiving = false;
+                break; // Return existing frame if we wait too long
+            }
         }
         // Convert the data
         QByteArray buffer = socket->read(frame_byte_size - byte_pos);
@@ -68,6 +84,7 @@ void RemoteCamera::SocketRead()
             temp_frame[i] = (temp_int >> 8) | ( temp_int << 8); // Bits are interpretted as mid-little endian, so we just shift them back
         }
         byte_pos += dataSize;
+        qDebug() << "Read bytes from socket" << byte_pos;
     } while (byte_pos < frame_byte_size);
 }
 
@@ -79,7 +96,7 @@ uint16_t* RemoteCamera::getFrame()
         if(socket->isWritable() && !is_receiving) // Validate that socket is ready
         {
             is_receiving = true; // Forces only one request to go out at a time
-            //qDebug() << "Getting frame from socket...";
+            qDebug() << "Getting frame from socket..." << image_no + 1;
             socket->write("Ready");
             //qDebug() << "Wrote";
             socket->waitForBytesWritten(100);

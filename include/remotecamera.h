@@ -37,10 +37,9 @@ public:
               int dataHeight = 480,
               int Descriptor = 0,
               QObject *parent = nullptr);
-    ~RemoteCamera();
+    virtual ~RemoteCamera();
 
-    // No setDir function because the source is the server (one place)
-
+    virtual bool start();
     virtual uint16_t* getFrame();
     void SocketRead();
 
@@ -59,6 +58,7 @@ private:
     const int nFrames;
     size_t framesize;
     const int headsize;
+    int socket_descriptor;
 
     size_t image_no;
     std::vector<std::string> xio_files;
