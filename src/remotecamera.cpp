@@ -60,32 +60,48 @@ bool RemoteCamera::start()
 
 void RemoteCamera::SocketRead()
 {
-    uint32_t byte_pos = 0; // Two bytes per pixel
     uint32_t frame_byte_size = framesize*2;
+    uint32_t pixel_pos = 0; // Two bytes per pixel
+    unsigned char odd_byte_left = 0;
+    bool odd_byte = false;
     do {
-        qDebug() << "Bytes available to read" << socket->bytesAvailable();
-        if (!socket->waitForReadyRead(500)) // If it timed out
-        {
-            if (!(socket->bytesAvailable() > 0))
-            {
-                qDebug() << "Timed Out" << byte_pos;
+        if (!socket->waitForReadyRead(500)) { // If it timed out return existing frame
+            if (!(socket->bytesAvailable() > 0)) {
+                qDebug() << "Timed Out" << pixel_pos;
                 is_receiving = false;
-                break; // Return existing frame if we wait too long
+                break;
             }
         }
-        // Convert the data
-        QByteArray buffer = socket->read(frame_byte_size - byte_pos);
+        QByteArray buffer = socket->read(frame_byte_size - pixel_pos*2);
+        if (odd_byte) {
+            buffer.prepend(odd_byte_left);
+        }
         size_t dataSize = buffer.size();
         QDataStream dstream(buffer);
-        for (uint32_t i = byte_pos; i < dataSize + byte_pos; i++) // Go through each byte in the message
-        {
+        for (uint32_t i = pixel_pos; i < (dataSize >> 1) + pixel_pos; i++) { // Go through each pixel in the message
             uint16_t temp_int;
-            dstream >> temp_int;
+            dstream >> temp_int; // Each pixel is 2 bytes
             temp_frame[i] = (temp_int >> 8) | ( temp_int << 8); // Bits are interpretted as mid-little endian, so we just shift them back
         }
-        byte_pos += dataSize;
-        qDebug() << "Read bytes from socket" << byte_pos;
-    } while (byte_pos < frame_byte_size);
+        if (!dstream.atEnd()) { // Handle the case where we read an odd number of bytes
+            dstream >> odd_byte_left;
+            odd_byte = true;
+        } else {
+            odd_byte = false;
+        }
+
+        pixel_pos += (dataSize >> 1);
+        qDebug() << "Read pixels from socket" << pixel_pos << odd_byte << dataSize;
+    } while (pixel_pos < framesize && is_connected); // While we still have more pixels and the connection is active
+//    QByteArray buffer = socket->read(frame_byte_size);
+//    size_t dataSize = buffer.size();
+//    QDataStream dstream(buffer);
+//    for (uint32_t i = 0; i < framesize; i++) // Go through each pixel in the message
+//    {
+//        uint16_t temp_int;
+//        dstream >> temp_int;
+//        temp_frame[i] = (temp_int >> 8) | ( temp_int << 8); // Bits are interpretted as mid-little endian, so we just shift them back to the correct orientation
+//    }
 }
 
 uint16_t* RemoteCamera::getFrame()
@@ -96,7 +112,7 @@ uint16_t* RemoteCamera::getFrame()
         if(socket->isWritable() && !is_receiving) // Validate that socket is ready
         {
             is_receiving = true; // Forces only one request to go out at a time
-            qDebug() << "Getting frame from socket..." << image_no + 1;
+            qDebug() << "Getting frame from socket..." << image_no;
             socket->write("Ready");
             //qDebug() << "Wrote";
             socket->waitForBytesWritten(100);

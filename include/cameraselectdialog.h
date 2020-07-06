@@ -211,7 +211,6 @@ private slots:
             statusLabel->setText("Connection Failed");
             return;
         }
-        qDebug() << "After Connected";
 
         if(connection->waitForReadyRead(10000)) { // Wait for reading to be ready
             //qDebug() << connection->readAll();
