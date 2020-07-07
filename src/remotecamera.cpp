@@ -28,6 +28,7 @@ bool RemoteCamera::start()
     qDebug() << "Attempting Connection";
     socket = new QTcpSocket();
     socket->setSocketDescriptor(socket_descriptor);
+    socket->setReadBufferSize(framesize*2*4);
     qDebug() << socket->readAll(); // I need to do this to make sure I don't miss anything (according to sources :))
 
     connect(socket, &QTcpSocket::stateChanged, this, &RemoteCamera::SocketStateChanged);
@@ -37,7 +38,7 @@ bool RemoteCamera::start()
         return false;
     }
     is_connected = true;
-    qDebug() << "Waiting for connected" << socket->state(); // This line is required to check that we are still connected.
+
 
     is_receiving = false;
     window_initialized = false;
@@ -60,10 +61,11 @@ bool RemoteCamera::start()
 
 void RemoteCamera::SocketRead()
 {
-    uint32_t frame_byte_size = framesize*2;
-    uint32_t pixel_pos = 0; // Two bytes per pixel
+    uint32_t frame_byte_size = framesize*2; // Two bytes per pixel
+    uint32_t pixel_pos = 0;
     unsigned char odd_byte_left = 0;
     bool odd_byte = false;
+    QByteArray buffer(frame_byte_size, 0);
     do {
         if (!socket->waitForReadyRead(500)) { // If it timed out return existing frame
             if (!(socket->bytesAvailable() > 0)) {
@@ -72,7 +74,8 @@ void RemoteCamera::SocketRead()
                 break;
             }
         }
-        QByteArray buffer = socket->read(frame_byte_size - pixel_pos*2);
+        //qDebug() << "Bytes: " << buffer.size() << frame_byte_size << pixel_pos*2 << socket->bytesAvailable() << socket->isValid() << socket->readBufferSize();
+        buffer = socket->read(std::min((frame_byte_size - pixel_pos*2), (unsigned int)socket->bytesAvailable()));
         if (odd_byte) {
             buffer.prepend(odd_byte_left);
         }
@@ -91,17 +94,8 @@ void RemoteCamera::SocketRead()
         }
 
         pixel_pos += (dataSize >> 1);
-        qDebug() << "Read pixels from socket" << pixel_pos << odd_byte << dataSize;
-    } while (pixel_pos < framesize && is_connected); // While we still have more pixels and the connection is active
-//    QByteArray buffer = socket->read(frame_byte_size);
-//    size_t dataSize = buffer.size();
-//    QDataStream dstream(buffer);
-//    for (uint32_t i = 0; i < framesize; i++) // Go through each pixel in the message
-//    {
-//        uint16_t temp_int;
-//        dstream >> temp_int;
-//        temp_frame[i] = (temp_int >> 8) | ( temp_int << 8); // Bits are interpretted as mid-little endian, so we just shift them back to the correct orientation
-//    }
+        //qDebug() << "Read pixels from socket" << pixel_pos << odd_byte << dataSize;
+    } while (pixel_pos < framesize && is_connected); // While we still have more pixels
 }
 
 uint16_t* RemoteCamera::getFrame()
@@ -118,11 +112,10 @@ uint16_t* RemoteCamera::getFrame()
             socket->waitForBytesWritten(100);
             this->SocketRead();
 
-            //qDebug() << "Returning Data";
-            image_no ++;
             is_receiving = false;
         }
         qDebug() << image_no << "- Image Received";
+        image_no ++;
         return temp_frame.data();
     } else {
         //qDebug() << "Returning Dummy Data";
