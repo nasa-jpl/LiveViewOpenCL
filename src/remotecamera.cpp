@@ -39,7 +39,6 @@ bool RemoteCamera::start()
     }
     is_connected = true;
 
-
     is_receiving = false;
     window_initialized = false;
 
@@ -109,7 +108,6 @@ uint16_t* RemoteCamera::getFrame()
             is_receiving = true; // Forces only one request to go out at a time
             qDebug() << "Getting frame from socket..." << image_no;
             int written = socket->write("Ready");
-            //qDebug() << "Wrote";
             if (written == -1) {
                 qDebug() << "Failed to write...";
                 return temp_frame.data();
@@ -135,7 +133,7 @@ void RemoteCamera::SocketStateChanged(QTcpSocket::SocketState state)
     qDebug() << "Socket has changed state" << state;
     switch (state) {
     case QTcpSocket::ConnectedState:
-        // Do nothing, we should be in this state no but investigate becuase we would need to be somewhere else
+        // Do nothing, we should be in this state. But investigate we should never be going back here
         break;
     case QTcpSocket::UnconnectedState: // We might not want to quit once we enter this state, because we might recover.
         qDebug() << "Unconnected State";

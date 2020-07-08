@@ -213,7 +213,7 @@ private slots:
         }
 
         if(connection->waitForReadyRead(10000)) { // Wait for reading to be ready
-            //qDebug() << connection->readAll();
+            // qDebug() << connection->readAll();
             const QByteArray connectionMessage = qUncompress(connection->readAll());
             const QJsonObject messageObj = QJsonDocument::fromJson(connectionMessage).object();
             if (messageObj.contains("requestType") && messageObj["requestType"].isString()) {
