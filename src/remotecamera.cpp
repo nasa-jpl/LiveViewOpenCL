@@ -80,7 +80,8 @@ void RemoteCamera::SocketRead()
             buffer.prepend(odd_byte_left);
         }
         size_t dataSize = buffer.size();
-        QDataStream dstream(buffer);
+        qDebug() << "Datastream: " << dataSize << pixel_pos*2 << odd_byte;
+        QDataStream dstream(&buffer, QIODevice::ReadOnly);
         for (uint32_t i = pixel_pos; i < (dataSize >> 1) + pixel_pos; i++) { // Go through each pixel in the message
             uint16_t temp_int;
             dstream >> temp_int; // Each pixel is 2 bytes
@@ -107,9 +108,14 @@ uint16_t* RemoteCamera::getFrame()
         {
             is_receiving = true; // Forces only one request to go out at a time
             qDebug() << "Getting frame from socket..." << image_no;
-            socket->write("Ready");
+            int written = socket->write("Ready");
             //qDebug() << "Wrote";
+            if (written == -1) {
+                qDebug() << "Failed to write...";
+                return temp_frame.data();
+            }
             socket->waitForBytesWritten(100);
+            socket->flush();
             this->SocketRead();
 
             is_receiving = false;
