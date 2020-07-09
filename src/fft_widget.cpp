@@ -5,6 +5,7 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
 {
     DCMaskBox = new QCheckBox(QString("Mask DC component"), this);
     DCMaskBox->setChecked(true);
+    DCMaskBox->setStyleSheet("QCheckBox { outline: none }");
     qcp->xAxis->setLabel("Frequency [Hz]");
     qcp->yAxis->setLabel("Magnitude");
 

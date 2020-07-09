@@ -145,10 +145,12 @@ frameview_widget::frameview_widget(FrameWorker *fw,
 
     QCheckBox *hideXbox = new QCheckBox("Hide Crosshair", this);
     connect(hideXbox, SIGNAL(toggled(bool)), this, SLOT(hideCrosshair(bool)));
+    hideXbox->setStyleSheet("QCheckBox { outline: none }");
     hideXbox->setFixedWidth(150);
 
     QCheckBox *showTipBox = new QCheckBox("Show Value at Cursor", this);
     connect(showTipBox, SIGNAL(toggled(bool)), this, SLOT(showTooltip(bool)));
+    showTipBox->setStyleSheet("QCheckBox { outline: none }");
     showTipBox->setFixedWidth(200);
 
     auto qvbl = new QVBoxLayout(this);
@@ -168,6 +170,7 @@ frameview_widget::frameview_widget(FrameWorker *fw,
                 new QCheckBox("Plot Signal-to-Noise Ratio", this);
         connect(plotModeCheckbox, &QCheckBox::toggled,
                 this, &frameview_widget::setPlotMode);
+        plotModeCheckbox->setStyleSheet("QCheckBox { outline: none }");
         plotModeCheckbox->setFixedWidth(150);
         bottomControls->addWidget(plotModeCheckbox);
     }
