@@ -31,6 +31,9 @@ public:
     LVMainWindow(QSettings *settings, QWidget *parent = nullptr);
     ~LVMainWindow() override;
     bool notInitialized;
+    void initialize() {
+        emit initialized();
+    }
 
 signals:
     void saveRequest();

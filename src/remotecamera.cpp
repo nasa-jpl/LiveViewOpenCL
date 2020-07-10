@@ -13,6 +13,7 @@ RemoteCamera::RemoteCamera(int frWidth,
     frame_height = frHeight;
     data_height = dataHeight;
     socket_descriptor = Descriptor;
+    pixel_size = 2;
 }
 
 RemoteCamera::~RemoteCamera()
@@ -38,6 +39,7 @@ bool RemoteCamera::start()
         return false;
     }
     is_connected = true;
+    data_socket.setDevice(socket); // This is what we are reading from
 
     is_receiving = false;
     window_initialized = false;
@@ -60,51 +62,86 @@ bool RemoteCamera::start()
 
 void RemoteCamera::SocketRead()
 {
+    uint32_t byte_pos = 0;
+    /*if (!socket->waitForReadyRead(500)) { // If it timed out return existing frame
+        if (!(socket->bytesAvailable() >= pixel_size)) {
+            qDebug() << "Timed Out" << pixel_pos;
+            return;
+        }
+    }
+
+    while(pixel_pos < framesize) { // Could cause indefinite wait, add timeout
+        //qDebug() << "Bytes" << socket->bytesAvailable();
+        //if (socket->bytesAvailable() >= pixel_size) {
+        uint16_t temp_int;
+        data_socket >> temp_int;
+        temp_frame[pixel_pos] = (temp_int >> 8) | ( temp_int << 8); // Bits are interpretted as mid-little endian, so we just shift them back
+        pixel_pos++;
+        //}
+    }
+    qDebug() << "Bytes" << socket->bytesAvailable() << pixel_pos;*/
     uint32_t frame_byte_size = framesize*2; // Two bytes per pixel
-    uint32_t pixel_pos = 0;
-    unsigned char odd_byte_left = 0;
-    bool odd_byte = false;
-    QByteArray buffer(frame_byte_size, 0);
+    uint32_t min_read_size = frame_byte_size/32;
+//    QByteArray buffer(frame_byte_size, 0);
+//    unsigned char odd_byte_left = 0;
+//    bool odd_byte = false;
+    qint64 bytes_read = 0;
+    char *receive = (char *)calloc(frame_byte_size, sizeof (char));
     do {
         if (!socket->waitForReadyRead(500)) { // If it timed out return existing frame
             if (!(socket->bytesAvailable() > 0)) {
-                qDebug() << "Timed Out" << pixel_pos;
+                qDebug() << "Timed Out" << byte_pos;
                 is_receiving = false;
                 break;
             }
         }
-        //qDebug() << "Bytes: " << buffer.size() << frame_byte_size << pixel_pos*2 << socket->bytesAvailable() << socket->isValid() << socket->readBufferSize();
-        buffer = socket->read(std::min((frame_byte_size - pixel_pos*2), (unsigned int)socket->bytesAvailable()));
-        if (odd_byte) {
-            buffer.prepend(odd_byte_left);
+//        if (odd_byte) { // Copy the
+//            receive[0] = odd_byte_left;
+//        }
+        //qDebug() << "Bytes: " << byte_pos << socket->bytesAvailable();
+        if (socket->bytesAvailable() < 0){
+            qDebug() << "NEGATIVE BYTES AVAILABLE *********";
+            break;
+        } else if (socket->bytesAvailable() <= min_read_size && byte_pos < (frame_byte_size - min_read_size)) {
+            continue;
         }
-        size_t dataSize = buffer.size();
-        qDebug() << "Datastream: " << dataSize << pixel_pos*2 << odd_byte;
-        QDataStream dstream(&buffer, QIODevice::ReadOnly);
-        for (uint32_t i = pixel_pos; i < (dataSize >> 1) + pixel_pos; i++) { // Go through each pixel in the message
-            uint16_t temp_int;
-            dstream >> temp_int; // Each pixel is 2 bytes
-            temp_frame[i] = (temp_int >> 8) | ( temp_int << 8); // Bits are interpretted as mid-little endian, so we just shift them back
-        }
-        if (!dstream.atEnd()) { // Handle the case where we read an odd number of bytes
-            dstream >> odd_byte_left;
-            odd_byte = true;
-        } else {
-            odd_byte = false;
-        }
+        bytes_read = socket->read(receive, std::min((frame_byte_size - byte_pos), (unsigned int)socket->bytesAvailable()));
+        //qDebug() << "Read: " << byte_pos << bytes_read << socket->bytesAvailable();
+        std::memcpy((char*)temp_frame.data() + byte_pos, receive, bytes_read);
+//        QByteArray read_data(frame_byte_size, 0);
 
-        pixel_pos += (dataSize >> 1);
+//        std::memcpy(read_data.data(), buffer.data(), buffer.size());
+//        size_t dataSize = buffer.size();
+//        qDebug() << "Datastream: " << dataSize << pixel_pos*2 << odd_byte;
+//        QDataStream dstream(&buffer, QIODevice::ReadOnly); // Pretty sure error is happening here.
+//        uint32_t i;
+//        for (i = 0; i < (bytes_read >> 1); i++) { // Go through each pixel in the receive buffer
+//            uint16_t temp_int;
+////            dstream >> temp_int; // Each pixel is 2 bytes
+//            temp_int = (receive[i*2] >> 8) | ( receive[i*2 + 1] << 8);
+//            temp_frame[pixel_pos + i] = temp_int; // Bits are interpretted as mid-little endian, so we just shift them back
+//            qDebug() << "pixel" << temp_int;
+//        }
+//        if (i*2 < bytes_read) { // Handle the case where we read an odd number of bytes
+//            odd_byte_left = (receive[i*2] >> 8) | ( receive[i*2 + 1] << 8);
+//            odd_byte = true;
+//        } else {
+//            odd_byte = false;
+//        }
+
+        byte_pos += bytes_read;
         //qDebug() << "Read pixels from socket" << pixel_pos << odd_byte << dataSize;
-    } while (pixel_pos < framesize && is_connected); // While we still have more pixels
+    } while (byte_pos < frame_byte_size && is_connected); // While we still have more pixels
+    free(receive);
+    qDebug() << "Finished Receiving Frame: " << byte_pos;
 }
 
 uint16_t* RemoteCamera::getFrame()
 {
     // Prompt the server to send a frame over
-    if(is_connected && window_initialized)
-    {
-        if(socket->isWritable() && !is_receiving) // Validate that socket is ready
-        {
+    if(is_connected && window_initialized) {
+        qDebug() << "Can Receive" << is_receiving;
+        if(socket->isWritable() && !is_receiving) { // Validate that socket is ready
             is_receiving = true; // Forces only one request to go out at a time
             qDebug() << "Getting frame from socket..." << image_no;
             int written = socket->write("Ready");
@@ -115,7 +152,6 @@ uint16_t* RemoteCamera::getFrame()
             socket->waitForBytesWritten(100);
             socket->flush();
             this->SocketRead();
-
             is_receiving = false;
         }
         qDebug() << image_no << "- Image Received";

@@ -59,7 +59,8 @@ private:
     size_t framesize;
     const int headsize;
     int socket_descriptor;
-
+    QDataStream data_socket;
+    qint64 pixel_size;
     size_t image_no;
     std::vector<std::string> xio_files;
     std::deque<std::vector<uint16_t>> frame_buf;

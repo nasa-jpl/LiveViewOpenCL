@@ -120,7 +120,6 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
                 fw->setFramePeriod(double(1000.0 / frame_period));
     });
     notInitialized = false;
-    emit initialized();
 }
 
 LVMainWindow::~LVMainWindow()

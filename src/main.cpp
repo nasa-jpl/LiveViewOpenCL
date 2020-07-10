@@ -63,7 +63,9 @@ int main(int argc, char* argv[])
     QSettings settings(QStandardPaths::writableLocation(
                            QStandardPaths::ConfigLocation)
                        + "/lvconfig.ini", QSettings::IniFormat);
-
+    qDebug() << QStandardPaths::writableLocation(
+                    QStandardPaths::ConfigLocation)
+                + "/lvconfig.ini", QSettings::IniFormat;
     if (settings.value(QString("dark"), USE_DARK_STYLE).toBool()) {
         QFile f(":qdarkstyle/style.qss");
 
@@ -109,7 +111,7 @@ int main(int argc, char* argv[])
                       a.desktop()->availableGeometry()));
     w.show();
     splash.finish(&w);
-
+    w.initialize();
     auto ret_val = a.exec();
     unlink(socket_path.data());
 
