@@ -40,8 +40,11 @@ public:
     virtual ~RemoteCamera();
 
     virtual bool start();
-    virtual uint16_t* getFrame();
+
+    qint64 SafeRead(char *read_buffer, int max);
+    qint64 SafeWrite(char *write_buffer);
     void SocketRead();
+    virtual uint16_t* getFrame();
 
 public slots:
     void SocketStateChanged(QTcpSocket::SocketState state = QTcpSocket::UnconnectedState);
@@ -51,6 +54,7 @@ private:
 
     bool is_receiving; // Flag that is true while requesting a frame
     bool is_connected; // Flag that is true when server is connected
+    std::mutex socket_mutex;
     std::ifstream dev_p;
     std::string ifname;
     std::string data_dir;

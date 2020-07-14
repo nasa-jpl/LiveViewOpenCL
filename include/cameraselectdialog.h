@@ -204,7 +204,7 @@ private slots:
 
         if(connection->waitForConnected(1000)) { // Wait for connection
             qDebug() << "Connected!";
-            connection->write("Hey ;)");
+            connection->write("ClientConnect");
             connection->waitForBytesWritten();
         } else {
             connection->close();

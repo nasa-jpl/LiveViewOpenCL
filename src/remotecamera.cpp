@@ -60,6 +60,16 @@ bool RemoteCamera::start()
     return true;
 }
 
+qint64 RemoteCamera::SafeRead(char *read_buffer, int max_bytes) {
+    const std::lock_guard<std::mutex> lock(socket_mutex);
+    return socket->read(read_buffer, max_bytes);
+}
+
+qint64 RemoteCamera::SafeWrite(char *write_buffer) {
+    const std::lock_guard<std::mutex> lock(socket_mutex);
+    return socket->write(write_buffer);
+}
+
 void RemoteCamera::SocketRead()
 {
     uint32_t byte_pos = 0;
@@ -81,9 +91,11 @@ void RemoteCamera::SocketRead()
         } else if (socket->bytesAvailable() <= min_read_size && byte_pos < (frame_byte_size - min_read_size)) {
             continue;
         }
-        bytes_read = socket->read(receive, std::min((frame_byte_size - byte_pos), (unsigned int)socket->bytesAvailable()));
-        //qDebug() << "Read: " << byte_pos << bytes_read << socket->bytesAvailable();
+
+        bytes_read = SafeRead(receive, std::min((frame_byte_size - byte_pos), (unsigned int)socket->bytesAvailable()));
+
         std::memcpy((char*)temp_frame.data() + byte_pos, receive, bytes_read);
+
         byte_pos += bytes_read;
     } while (byte_pos < frame_byte_size && is_connected); // While we still have more pixels
     free(receive);
@@ -98,7 +110,7 @@ uint16_t* RemoteCamera::getFrame()
         if(socket->isWritable() && !is_receiving) { // Validate that socket is ready
             is_receiving = true; // Forces only one request to go out at a time
             qDebug() << "Getting frame from socket..." << image_no;
-            int written = socket->write("Ready");
+            int written = SafeWrite("ReadyFrame");
             if (written == -1) {
                 qDebug() << "Failed to write...";
                 return temp_frame.data();
