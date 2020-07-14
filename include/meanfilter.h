@@ -16,6 +16,8 @@ public:
     MeanFilter(int frame_width, int frame_height);
     ~MeanFilter();
 
+    LVFrame *curFrame;
+
     void compute_mean(LVFrame *frame, QPointF topLeft, QPointF bottomRight,
                       LV::PlotMode pm, bool cam_running);
     bool dftReady();
@@ -26,7 +28,7 @@ private:
     float getDSFPixel(uint32_t index);
     float getSNRPixel(uint32_t index);
 
-    LVFrame *curFrame;
+    //LVFrame *curFrame;
 
     SlidingDFT<float, FFT_INPUT_LENGTH> dft;
     bool dft_ready_read;

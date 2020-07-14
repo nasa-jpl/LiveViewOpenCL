@@ -37,6 +37,8 @@ class overlay_widget : public QWidget
 
     FrameWorker *fw;
     QTimer rendertimer;
+    MeanFilter *me;
+    LVFrame *curFrame;
 
     /* GUI elements */
     QVBoxLayout qvbl; // for others
@@ -71,12 +73,15 @@ class overlay_widget : public QWidget
     QCPRange boundedRange_x;
     QCPRange boundedRange_y;
 
+    QCPItemRect *crosshairX;
+    QCPItemRect *crosshairY;
+
     int x_coord;
     volatile int y_coord;
     bool allow_callouts = true;
 
 public:
-    explicit overlay_widget(FrameWorker *fw, image_t image_type , QWidget *parent = 0);
+    explicit overlay_widget(FrameWorker *fw, image_t image_type , QWidget *parent = 0, MeanFilter *me);
     virtual ~overlay_widget();
 
     /*! \addtogroup getters

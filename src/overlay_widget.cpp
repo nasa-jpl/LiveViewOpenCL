@@ -13,7 +13,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
     qcp = NULL;
     this->fw = fw;
     this->me = me;
-    ceiling = fw->base_ceiling;
+    ceiling = UINT16_MAX;
     floor = 0;
     frHeight = fw->getFrameHeight();
     frWidth = fw->getFrameWidth();
@@ -58,7 +58,6 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
     qcp->addLayer("Box Layer", qcp->currentLayer());
     qcp->setCurrentLayer("Box Layer");
     callout = new QCPItemText(qcp);
-    qcp->addItem(callout);
     callout->position->setCoords(xAxisMax / 2, ceiling - 1000);
     callout->setFont(QFont(font().family(), 16));
     callout->setPen(QPen(Qt::black));
@@ -72,15 +71,22 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
     qcp->addLayer("Arrow Layer", qcp->currentLayer(), QCustomPlot::limBelow);
     qcp->setCurrentLayer("Arrow Layer");
     arrow = new QCPItemLine(qcp);
-    qcp->addItem(arrow);
     arrow->start->setParentAnchor(callout->bottom);
     arrow->setHead(QCPLineEnding::esSpikeArrow);
     arrow->setSelectable(false);
     arrow->setVisible(false);
     qcp->setInteractions(QCP::iRangeZoom | QCP::iSelectItems | QCP::iRangeDrag);
 
+    // Create a crosshair made of two 0-width boxes
+    // that allows users to select lines of data to
+    // view in detail in the "profile" panes
+    crosshairX = new QCPItemRect(qcp);
+    crosshairX->setPen(QPen(Qt::white));
+    crosshairY = new QCPItemRect(qcp);
+    crosshairY->setPen(QPen(Qt::white));
+
     qcp->yAxis->setLabel("Pixel Magnitude [DN]");
-    qcp->yAxis->setRange(QCPRange(0, fw->base_ceiling)); //From 0 to 2^16
+    qcp->yAxis->setRange(QCPRange(0, UINT16_MAX)); //From 0 to 2^16
 
     qcp->graph(0)->setData(x, y);
 
@@ -185,7 +191,7 @@ void overlay_widget::handleNewFrame()
      */
     float *local_image_ptr;
     bool isMeanProfile = itype == SPECTRAL_MEAN || itype == SPATIAL_MEAN;
-    if (!this->isHidden() &&  fw->curFrame != NULL && ((fw->crosshair_x != -1 && fw->crosshair_y != -1) || isMeanProfile)) {
+    if (!this->isHidden() &&  me->curFrame != NULL && ((crosshairX != -1 && crosshairY != -1) || isMeanProfile)) {
         allow_callouts = true;
 
         switch (itype)
@@ -217,7 +223,7 @@ void overlay_widget::handleNewFrame()
             // same as mean:
         case SPATIAL_MEAN:
 
-            local_image_ptr = fw->curFrame->horizontal_mean_profile; // horizontal profiles
+            local_image_ptr = me->curFrame->horizontal_mean_profile; // horizontal profiles
             for (int c = 0; c < frWidth; c++)
                 y[c] = double(local_image_ptr[c]);
             break;
