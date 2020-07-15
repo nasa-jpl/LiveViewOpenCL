@@ -67,7 +67,10 @@ qint64 RemoteCamera::SafeRead(char *read_buffer, int max_bytes) {
 
 qint64 RemoteCamera::SafeWrite(char *write_buffer) {
     const std::lock_guard<std::mutex> lock(socket_mutex);
-    return socket->write(write_buffer);
+    quint64 status = socket->write(write_buffer);
+    socket->waitForBytesWritten(100);
+    socket->flush();
+    return status;
 }
 
 void RemoteCamera::SocketRead()
@@ -115,8 +118,7 @@ uint16_t* RemoteCamera::getFrame()
                 qDebug() << "Failed to write...";
                 return temp_frame.data();
             }
-            socket->waitForBytesWritten(100);
-            socket->flush();
+
             this->SocketRead();
             is_receiving = false;
         }
