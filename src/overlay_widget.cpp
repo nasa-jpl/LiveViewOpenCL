@@ -26,7 +26,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
     qcp->setNotAntialiasedElement(QCP::aeAll);
 
     qcp->plotLayout()->insertRow(0);
-    plotTitle = new QCPPlotTitle(qcp);
+    //plotTitle = new QCPPlotTitle(qcp);
     qcp->plotLayout()->addElement(0, 0, plotTitle);
     qcp->addGraph();
 
@@ -189,9 +189,9 @@ void overlay_widget::handleNewFrame()
      * The y-axis data is reversed in these images.
      * \author Jackie Ryan
      */
-    float *local_image_ptr;
+    //float *local_image_ptr;
     bool isMeanProfile = itype == SPECTRAL_MEAN || itype == SPATIAL_MEAN;
-    if (!this->isHidden() &&  me->curFrame != NULL && ((crosshairX != -1 && crosshairY != -1) || isMeanProfile)) {
+    if (!this->isHidden() &&  me->curFrame != NULL && ((crosshairX && crosshairY) || isMeanProfile)) {
         allow_callouts = true;
 
         switch (itype)
@@ -199,11 +199,11 @@ void overlay_widget::handleNewFrame()
         //case VERTICAL_CROSS:
             // same as mean:
         case SPECTRAL_MEAN:
-            local_image_ptr = me->curFrame->vertical_mean_profile; // vertical profiles
-            for (int r = 0; r < frHeight; r++)
-            {
-                y[r] = double(local_image_ptr[r]);
-            }
+            //local_image_ptr = me->curFrame->vertical_mean_profile; // vertical profiles
+            //for (int r = 0; r < frHeight; r++)
+            //{
+                //y[r] = double(local_image_ptr[r]);
+            //}
             break;
         /*case VERT_OVERLAY:
             local_image_ptr = fw->curFrame->vertical_mean_profile; // vertical profiles
@@ -223,9 +223,9 @@ void overlay_widget::handleNewFrame()
             // same as mean:
         case SPATIAL_MEAN:
 
-            local_image_ptr = me->curFrame->horizontal_mean_profile; // horizontal profiles
-            for (int c = 0; c < frWidth; c++)
-                y[c] = double(local_image_ptr[c]);
+            //local_image_ptr = me->curFrame->horizontal_mean_profile; // horizontal profiles
+            //for (int c = 0; c < frWidth; c++)
+                //y[c] = double(local_image_ptr[c]);
             break;
         default:
             // do nothing
@@ -249,7 +249,7 @@ void overlay_widget::handleNewFrame()
     } else {
         plotTitle->setText("No Crosshair designated");
         allow_callouts = false;
-        qcp->graph(0)->clearData();
+        //qcp->graph(0)->clearData();
         qcp->replot();
     }
     boundedRange_y = qcp->yAxis->range();
@@ -353,14 +353,14 @@ void overlay_widget::defaultZoom()
     QCPRange boundedRange_vert;
 
     // if(dark_sub_enabled)
-    if(fw->usingDSF())
+    /*if(fw->usingDSF())
     {
         boundedRange_vert.lower = -200;
         boundedRange_vert.upper = 200;
     } else {
         boundedRange_vert.lower = 0;
         boundedRange_vert.upper = 65535;
-    }
+    }*/
 
     QCPRange boundedRange_horiz;
     boundedRange_horiz.lower = 0;
@@ -393,7 +393,7 @@ void overlay_widget::moveCallout(QMouseEvent *e)
 {
     // Note, e->posF() was used for previous QT Library versions.
     if ((callout->selectTest(e->pos(), true) < (0.99 * qcp->selectionTolerance())) && (e->buttons() & Qt::LeftButton)) {
-        callout->position->setPixelPoint(e->pos());
+        callout->position->setPixelPosition(e->pos());
     } else {
         return;
     }

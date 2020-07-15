@@ -81,7 +81,7 @@ class overlay_widget : public QWidget
     bool allow_callouts = true;
 
 public:
-    explicit overlay_widget(FrameWorker *fw, image_t image_type , QWidget *parent = 0, MeanFilter *me);
+    explicit overlay_widget(FrameWorker *fw, image_t image_type , QWidget *parent = 0, MeanFilter *me = 0);
     virtual ~overlay_widget();
 
     /*! \addtogroup getters
