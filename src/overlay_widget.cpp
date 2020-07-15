@@ -26,9 +26,11 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
     qcp->setNotAntialiasedElement(QCP::aeAll);
 
     qcp->plotLayout()->insertRow(0);
-    //plotTitle = new QCPPlotTitle(qcp);
+    plotTitle = new QCPTextElement(qcp, "No crosshair selected");
+    plotTitle->setFont(QFont(font().family(), 20));
     qcp->plotLayout()->addElement(0, 0, plotTitle);
-    qcp->addGraph();
+    
+    qcp->addGraph(nullptr, nullptr);
 
     // Vertical LH Overlay:
     qcp->addGraph();
@@ -38,13 +40,35 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
     qcp->addGraph();
     qcp->graph(2)->setPen(QPen(Qt::red));
 
-    if (itype == SPECTRAL_MEAN) {
-        xAxisMax = frHeight;
-        qcp->xAxis->setLabel("Y index");
-    } else if (itype == SPATIAL_MEAN) {
-        xAxisMax = frWidth;
-        qcp->xAxis->setLabel("X index");
+    switch (image_type) {
+    case SPATIAL_PROFILE:
+        xAxisMax = static_cast<int>(frWidth);
+        qcp->xAxis->setLabel("Spatial index");
+        p_getLine = &line_widget::getSpatialLine;
+        break;
+    case SPECTRAL_MEAN:
+        xAxisMax = static_cast<int>(frHeight);
+        qcp->xAxis->setLabel("Spectral index");
+        p_getLine = &line_widget::getSpectralMean;
+        plotTitle->setText(QString("Spectral Mean of Single Frame"));
+        break;
+    case SPATIAL_MEAN:
+        xAxisMax = static_cast<int>(frWidth);
+        qcp->xAxis->setLabel("Spatial index");
+        p_getLine = &line_widget::getSpatialMean;
+        plotTitle->setText(QString("Spatial Mean of Single Frame"));
+        break;
+    case SPECTRAL_PROFILE:
+        xAxisMax = static_cast<int>(frHeight);
+        qcp->xAxis->setLabel("Spectral index");
+        p_getLine = &line_widget::getSpectralLine;
+        break;
+    default:
+        xAxisMax = static_cast<int>(frHeight);
+        qcp->xAxis->setLabel("Spectral index");
+        p_getLine = &line_widget::getSpectralLine;
     }
+
     x = QVector<double>(xAxisMax);
     for (int i = 0; i < xAxisMax; i++)
         x[i] = double(i);
