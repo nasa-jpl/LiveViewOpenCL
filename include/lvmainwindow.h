@@ -13,6 +13,7 @@
 #include "image_type.h"
 #include "frameview_widget.h"
 #include "histogram_widget.h"
+#include "overlay_widget.h"
 #include "line_widget.h"
 #include "fft_widget.h"
 #include "controlsbox.h"
@@ -93,6 +94,7 @@ private:
     line_widget *spec_mean_display;
     line_widget *spat_display;
     line_widget *spat_mean_display;
+    overlay_widget *overlay_display;
     fft_widget *fft_display;
     ControlsBox *cbox;
 
