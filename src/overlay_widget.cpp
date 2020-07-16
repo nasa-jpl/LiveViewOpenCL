@@ -44,34 +44,39 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
     case SPATIAL_PROFILE:
         xAxisMax = static_cast<int>(frWidth);
         qcp->xAxis->setLabel("Spatial index");
-        p_getLine = &line_widget::getSpatialLine;
+        //p_getLine = &line_widget::getSpatialLine;
         break;
     case SPECTRAL_MEAN:
         xAxisMax = static_cast<int>(frHeight);
         qcp->xAxis->setLabel("Spectral index");
-        p_getLine = &line_widget::getSpectralMean;
+        //p_getLine = &line_widget::getSpectralMean;
         plotTitle->setText(QString("Spectral Mean of Single Frame"));
         break;
     case SPATIAL_MEAN:
         xAxisMax = static_cast<int>(frWidth);
         qcp->xAxis->setLabel("Spatial index");
-        p_getLine = &line_widget::getSpatialMean;
+        //p_getLine = &line_widget::getSpatialMean;
         plotTitle->setText(QString("Spatial Mean of Single Frame"));
         break;
     case SPECTRAL_PROFILE:
         xAxisMax = static_cast<int>(frHeight);
         qcp->xAxis->setLabel("Spectral index");
-        p_getLine = &line_widget::getSpectralLine;
+        //p_getLine = &line_widget::getSpectralLine;
         break;
     default:
         xAxisMax = static_cast<int>(frHeight);
         qcp->xAxis->setLabel("Spectral index");
-        p_getLine = &line_widget::getSpectralLine;
+        //p_getLine = &line_widget::getSpectralLine;
     }
 
+    p_getFrame = &FrameWorker::getFrame;
+
+    upperRangeBoundX = xAxisMax;
+
     x = QVector<double>(xAxisMax);
-    for (int i = 0; i < xAxisMax; i++)
+    for (int i = 0; i < xAxisMax; i++) {
         x[i] = double(i);
+    }
 
     y = QVector<double>(xAxisMax);
     y_lh = QVector<double>(xAxisMax);
@@ -81,6 +86,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
 
     qcp->addLayer("Box Layer", qcp->currentLayer());
     qcp->setCurrentLayer("Box Layer");
+
     callout = new QCPItemText(qcp);
     callout->position->setCoords(xAxisMax / 2, ceiling - 1000);
     callout->setFont(QFont(font().family(), 16));
@@ -92,8 +98,10 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
     callout->setSelectedPen(QPen(Qt::black));
     callout->setSelectedColor(Qt::black);
     callout->setVisible(false);
+
     qcp->addLayer("Arrow Layer", qcp->currentLayer(), QCustomPlot::limBelow);
     qcp->setCurrentLayer("Arrow Layer");
+
     arrow = new QCPItemLine(qcp);
     arrow->start->setParentAnchor(callout->bottom);
     arrow->setHead(QCPLineEnding::esSpikeArrow);
