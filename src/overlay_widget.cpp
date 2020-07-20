@@ -2,21 +2,21 @@
 #include "constants.h"
 /* #define QDEBUG */
 
-overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *parent, MeanFilter *me) :
-    QWidget(parent), LVTabApplication(fw, parent), image_type(image_t)
+overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
+    LVTabApplication(fw, parent), image_type(image_t)
 {
     /*! \brief Establishes a plot for a specified image type.
      * \param image_type Determines the type of graph that will be output by profile_widget
      * \author Jackie Ryan
      * \author Noah Levy */
     
-    qcp = NULL;
-    this->fw = fw;
-    this->me = me;
+    //qcp = NULL;
+    //this->fw = fw;
+    //this->me = me;
     ceiling = UINT16_MAX;
     floor = 0;
-    frHeight = fw->getFrameHeight();
-    frWidth = fw->getFrameWidth();
+    //frHeight = fw->getFrameHeight();
+    //frWidth = fw->getFrameWidth();
     x_coord = -1;
     y_coord = -1;
 
@@ -202,6 +202,50 @@ overlay_widget::~overlay_widget()
     delete overlay_img;
 }
 
+QVector<double> overlay_widget::getSpectralLine(QPointF coord)
+{
+    QVector<double> graphData(static_cast<int>(frHeight));
+    auto col = int(coord.y());
+    std::vector<float> image_data = (frame_handler->*p_getFrame)();
+    for (int r = 0; r < frHeight; r++) {
+        graphData[r] = static_cast<double>(image_data[size_t(r * frWidth + col)]);
+    }
+    return graphData;
+}
+
+QVector<double> overlay_widget::getSpatialLine(QPointF coord)
+{
+    QVector<double> graphData(static_cast<int>(frWidth));
+    int row = int(coord.x());
+    std::vector<float> image_data = (frame_handler->*p_getFrame)();
+    for (int c = 0; c < frWidth; c++) {
+        graphData[c] = static_cast<double>(image_data[size_t(row * frWidth + c)]);
+    }
+    return graphData;
+}
+
+QVector<double> overlay_widget::getSpectralMean(QPointF coord)
+{
+    Q_UNUSED(coord);
+    QVector<double> graphData(static_cast<int>(frHeight));
+    float *mean_data = frame_handler->getSpectralMean();
+    for (int r = 0; r < frHeight; r++) {
+        graphData[r] = static_cast<double>(mean_data[r]);
+    }
+    return graphData;
+}
+
+QVector<double> overlay_widget::getSpatialMean(QPointF coord)
+{
+    Q_UNUSED(coord);
+    QVector<double> graphData(static_cast<int>(frWidth));
+    float *mean_data = frame_handler->getSpatialMean();
+    for (int c = 0; c < frWidth; c++) {
+        graphData[c] = static_cast<double>(mean_data[c]);
+    }
+    return graphData;
+}
+
 // public functions
 double overlay_widget::getFloor()
 {
@@ -226,7 +270,7 @@ void overlay_widget::handleNewFrame()
     
     if (!this->isHidden() /*&& frame_handler->running()*/) {
         //QPointF *center = frame_handler->getCenter();
-        if (itype == SPECTRAL_MEAN || itype == SPATIAL_MEAN /*|| center->x() > -0.1*/) {
+        if (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN /*|| center->x() > -0.1*/) {
             //y = (this->*p_getLine)(*center);
             qcp->graph(0)->setData(x, y);
             // replotting is slow when the data set is chaotic... TODO: develop an optimization here
@@ -258,7 +302,7 @@ void overlay_widget::handleNewFrame()
 
         if (callout->visible())
             updateCalloutValue();
-        switch (itype) {
+        switch (image_type) {
         case SPATIAL_MEAN: plotTitle->setText(QString("Horizontal Mean Profile")); break;
         //case HORIZONTAL_CROSS: plotTitle->setText(QString("Horizontal Profile centered @ y = %1").arg(fw->crosshair_y)); break;
         case SPECTRAL_MEAN: plotTitle->setText(QString("Vertical Mean Profile")); break;
