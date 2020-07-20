@@ -3,13 +3,13 @@
 /* #define QDEBUG */
 
 overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *parent, MeanFilter *me) :
-    QWidget(parent)
+    QWidget(parent), LVTabApplication(fw, parent), image_type(image_t)
 {
     /*! \brief Establishes a plot for a specified image type.
      * \param image_type Determines the type of graph that will be output by profile_widget
      * \author Jackie Ryan
      * \author Noah Levy */
-    itype = image_type;
+    
     qcp = NULL;
     this->fw = fw;
     this->me = me;
@@ -69,9 +69,9 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
         //p_getLine = &line_widget::getSpectralLine;
     }
 
-    p_getFrame = &FrameWorker::getFrame;
+    //p_getFrame = &FrameWorker::getFrame;
 
-    upperRangeBoundX = xAxisMax;
+    //upperRangeBoundX = xAxisMax;
 
     x = QVector<double>(xAxisMax);
     for (int i = 0; i < xAxisMax; i++) {
@@ -83,6 +83,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
     y_rh = QVector<double>(xAxisMax);
 
     qcp->xAxis->setRange(QCPRange(0, xAxisMax));
+    qcp->setInteractions(QCP::iRangeZoom | QCP::iSelectItems);
 
     qcp->addLayer("Box Layer", qcp->currentLayer());
     qcp->setCurrentLayer("Box Layer");
@@ -192,6 +193,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_type, QWidget *par
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(profileScrolledY(QCPRange)));
     connect(showCalloutCheck, SIGNAL(clicked()), this, SLOT(hideCallout()));
     connect(&rendertimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
+    //connect(frame_handler, &FrameWorker::crosshairChanged, this, &line_widget::updatePlotTitle);
 
     rendertimer.start(FRAME_DISPLAY_PERIOD_MSECS);
 }
@@ -221,22 +223,21 @@ void overlay_widget::handleNewFrame()
      * The y-axis data is reversed in these images.
      * \author Jackie Ryan
      */
-    //float *local_image_ptr;
-    bool isMeanProfile = itype == SPECTRAL_MEAN || itype == SPATIAL_MEAN;
-    if (!this->isHidden() &&  me->curFrame != NULL && ((crosshairX && crosshairY) || isMeanProfile)) {
-        allow_callouts = true;
+    
+    if (!this->isHidden() /*&& frame_handler->running()*/) {
+        //QPointF *center = frame_handler->getCenter();
+        if (itype == SPECTRAL_MEAN || itype == SPATIAL_MEAN /*|| center->x() > -0.1*/) {
+            //y = (this->*p_getLine)(*center);
+            qcp->graph(0)->setData(x, y);
+            // replotting is slow when the data set is chaotic... TODO: develop an optimization here
+            qcp->replot();
+            /*if (!hideTracer->isChecked()) {
+                callout->setText(QString(" x: %1 \n y: %2 ").arg(static_cast<int>(tracer->graphKey()))
+                             .arg(y[static_cast<int>(tracer->graphKey())]));
+            }*/
+        }
+    }
 
-        switch (itype)
-        {
-        //case VERTICAL_CROSS:
-            // same as mean:
-        case SPECTRAL_MEAN:
-            //local_image_ptr = me->curFrame->vertical_mean_profile; // vertical profiles
-            //for (int r = 0; r < frHeight; r++)
-            //{
-                //y[r] = double(local_image_ptr[r]);
-            //}
-            break;
         /*case VERT_OVERLAY:
             local_image_ptr = fw->curFrame->vertical_mean_profile; // vertical profiles
             for (int r = 0; r < frHeight; r++)
@@ -250,19 +251,6 @@ void overlay_widget::handleNewFrame()
             qcp->graph(1)->setData(x, y_lh);
             qcp->graph(2)->setData(x, y_rh);
             break;*/
-
-        //case HORIZONTAL_CROSS:
-            // same as mean:
-        case SPATIAL_MEAN:
-
-            //local_image_ptr = me->curFrame->horizontal_mean_profile; // horizontal profiles
-            //for (int c = 0; c < frWidth; c++)
-                //y[c] = double(local_image_ptr[c]);
-            break;
-        default:
-            // do nothing
-            break;
-        }
 
 	// display x and y:
         qcp->graph(0)->setData(x, y);
@@ -278,32 +266,37 @@ void overlay_widget::handleNewFrame()
         //case VERT_OVERLAY: plotTitle->setText(QString("Vertical Overlay")); break; // TODO: Add useful things here
         default: break;
         }
-    } else {
+    //} else {
         plotTitle->setText("No Crosshair designated");
         allow_callouts = false;
         //qcp->graph(0)->clearData();
         qcp->replot();
-    }
+    //}
     boundedRange_y = qcp->yAxis->range();
     boundedRange_x = qcp->xAxis->range();
 }
+//}
+
 void overlay_widget::updateCeiling(int c)
 {
     /*! \brief Change the value of the ceiling for this widget to the input parameter and replot the color scale. */
     ceiling = (double)c;
     rescaleRange();
 }
+
 void overlay_widget::updateFloor(int f)
 {
     /*! \brief Change the value of the floor for this widget to the input parameter and replot the color scale. */
     floor = (double)f;
     rescaleRange();
 }
+
 void overlay_widget::rescaleRange()
 {
     /*! \brief Set the color scale of the display to the last used values for this widget */
     qcp->yAxis->setRange(QCPRange(floor, ceiling));
 }
+
 void overlay_widget::profileScrolledX(const QCPRange &newRange)
 {
     /*! \brief Controls the behavior of zooming the plot.
