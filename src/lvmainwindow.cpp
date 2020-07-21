@@ -58,8 +58,8 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     spec_mean_display = new line_widget(fw, SPECTRAL_MEAN);
     spat_display = new line_widget(fw, SPATIAL_PROFILE);
     spat_mean_display = new line_widget(fw, SPATIAL_MEAN);
-    overlay_display = new overlay_widget(fw, SPECTRAL_PROFILE);
     fft_display = new fft_widget(fw);
+    overlay_display = new overlay_widget(fw, SPECTRAL_PROFILE);
 
     // Set these two to be in the precision slider by default
     dsf_display->setPrecision(true);
@@ -73,8 +73,8 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     tab_widget->addTab(spec_mean_display, QString("Spectral Mean"));
     tab_widget->addTab(spat_display, QString("Spatial Profile"));
     tab_widget->addTab(spat_mean_display, QString("Spatial Mean"));
-    tab_widget->addTab(overlay_display, QString("Overlay Widget"));
     tab_widget->addTab(fft_display, QString("FFT of Plane Mean"));
+    tab_widget->addTab(overlay_display, QString("Overlay Widget"));
 
     server = new SaveServer(this);
     connect(server, &SaveServer::startSavingRemote,
