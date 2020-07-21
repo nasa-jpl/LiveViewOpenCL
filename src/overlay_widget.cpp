@@ -44,34 +44,34 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     case SPATIAL_PROFILE:
         xAxisMax = static_cast<int>(frWidth);
         qcp->xAxis->setLabel("Spatial index");
-        //p_getLine = &line_widget::getSpatialLine;
+        p_getOverlay = &overlay_widget::getSpatialLine;
         break;
     case SPECTRAL_MEAN:
         xAxisMax = static_cast<int>(frHeight);
         qcp->xAxis->setLabel("Spectral index");
-        //p_getLine = &line_widget::getSpectralMean;
+        p_getOverlay = &overlay_widget::getSpectralMean;
         plotTitle->setText(QString("Spectral Mean of Single Frame"));
         break;
     case SPATIAL_MEAN:
         xAxisMax = static_cast<int>(frWidth);
         qcp->xAxis->setLabel("Spatial index");
-        //p_getLine = &line_widget::getSpatialMean;
+        p_getOverlay = &overlay_widget::getSpatialMean;
         plotTitle->setText(QString("Spatial Mean of Single Frame"));
         break;
     case SPECTRAL_PROFILE:
         xAxisMax = static_cast<int>(frHeight);
         qcp->xAxis->setLabel("Spectral index");
-        //p_getLine = &line_widget::getSpectralLine;
+        p_getOverlay = &overlay_widget::getSpectralLine;
         break;
     default:
         xAxisMax = static_cast<int>(frHeight);
         qcp->xAxis->setLabel("Spectral index");
-        //p_getLine = &line_widget::getSpectralLine;
+        p_getOverlay = &overlay_widget::getSpectralLine;
     }
 
-    //p_getFrame = &FrameWorker::getFrame;
+    p_getFrame = &FrameWorker::getFrame;
 
-    //upperRangeBoundX = xAxisMax;
+    upperRangeBoundX = xAxisMax;
 
     x = QVector<double>(xAxisMax);
     for (int i = 0; i < xAxisMax; i++) {
@@ -268,10 +268,10 @@ void overlay_widget::handleNewFrame()
      * \author Jackie Ryan
      */
     
-    if (!this->isHidden() /*&& frame_handler->running()*/) {
-        //QPointF *center = frame_handler->getCenter();
-        if (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN /*|| center->x() > -0.1*/) {
-            //y = (this->*p_getLine)(*center);
+    if (!this->isHidden() && frame_handler->running()) {
+        QPointF *center = frame_handler->getCenter();
+        if (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN || center->x() > -0.1) {
+            y = (this->*p_getOverlay)(*center);
             qcp->graph(0)->setData(x, y);
             // replotting is slow when the data set is chaotic... TODO: develop an optimization here
             qcp->replot();
