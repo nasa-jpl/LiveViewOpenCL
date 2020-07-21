@@ -86,6 +86,12 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
 
     qcp->setInteractions(QCP::iRangeZoom | QCP::iSelectItems);
 
+    qcp->yAxis->setLabel("Pixel Magnitude [DN]");
+    setCeiling((1<<16) -1);
+    setFloor(0);
+
+    qcp->graph(0)->setData(x, y);
+
     qcp->addLayer("Box Layer", qcp->currentLayer());
     qcp->setCurrentLayer("Box Layer");
 
@@ -111,18 +117,36 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     arrow->setVisible(false);
     qcp->setInteractions(QCP::iRangeZoom | QCP::iSelectItems | QCP::iRangeDrag);
 
+    setDarkMode(fw->settings->value(QString("dark"), USE_DARK_STYLE).toBool());
+
     // Create a crosshair made of two 0-width boxes
     // that allows users to select lines of data to
     // view in detail in the "profile" panes
-    crosshairX = new QCPItemRect(qcp);
-    crosshairX->setPen(QPen(Qt::white));
-    crosshairY = new QCPItemRect(qcp);
-    crosshairY->setPen(QPen(Qt::white));
+    //crosshairX = new QCPItemRect(qcp);
+    //crosshairX->setPen(QPen(Qt::white));
+    //crosshairY = new QCPItemRect(qcp);
+    //crosshairY->setPen(QPen(Qt::white));
 
-    qcp->yAxis->setLabel("Pixel Magnitude [DN]");
-    qcp->yAxis->setRange(QCPRange(0, UINT16_MAX)); //From 0 to 2^16
+    //qcp->yAxis->setLabel("Pixel Magnitude [DN]");
+    //qcp->yAxis->setRange(QCPRange(0, UINT16_MAX)); //From 0 to 2^16
 
-    qcp->graph(0)->setData(x, y);
+    //qcp->graph(0)->setData(x, y);
+    
+    plotModeBox = new QComboBox();
+    plotModeBox->addItem("Raw Data");
+    plotModeBox->addItem("Dark Subtracted Data");
+    plotModeBox->addItem("Signal-to-Noise Ratio Data");
+    connect(plotModeBox, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(setPlotMode(int)));
+
+    auto bottomButtons = new QHBoxLayout;
+    //bottomButtons->addWidget(hideTracer);
+    bottomButtons->addWidget(plotModeBox);
+
+    auto qvbl = new QVBoxLayout(this);
+    qvbl->addWidget(qcp);
+    qvbl->addLayout(bottomButtons);
+    this->setLayout(qvbl);
 
     showCalloutCheck = new QCheckBox("Display Callout");
     showCalloutCheck->setChecked(false);
@@ -195,6 +219,17 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     connect(showCalloutCheck, SIGNAL(clicked()), this, SLOT(hideCallout()));
     connect(&rendertimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
     //connect(frame_handler, &FrameWorker::crosshairChanged, this, &line_widget::updatePlotTitle);
+    
+    connect(frame_handler->Camera, &CameraModel::timeout, this, [=]() {
+        QVector<double> zero_data(x.length(), 0);
+        qcp->graph(0)->setData(x, zero_data);
+        qcp->replot();
+        // renderTimer.stop();
+    });
+
+    if (frame_handler->running()) {
+        renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
+    }
 
     rendertimer.start(FRAME_DISPLAY_PERIOD_MSECS);
 }
@@ -479,6 +514,49 @@ void overlay_widget::hideCallout()
         arrow->setVisible(true);
     }
     showCalloutCheck->setChecked(callout->visible());
+}
+
+void overlay_widget::setDarkMode(bool dm)
+{
+    if (dm) {
+        qcp->graph(0)->setPen(QPen(Qt::lightGray));
+        plotTitle->setTextColor(Qt::white);
+
+        qcp->setBackground(QBrush(QColor(0x31363B)));
+        qcp->xAxis->setTickLabelColor(Qt::white);
+        qcp->xAxis->setBasePen(QPen(Qt::white));
+        qcp->xAxis->setLabelColor(Qt::white);
+        qcp->xAxis->setTickPen(QPen(Qt::white));
+        qcp->xAxis->setSubTickPen(QPen(Qt::white));
+        qcp->yAxis->setTickLabelColor(Qt::white);
+        qcp->yAxis->setBasePen(QPen(Qt::white));
+        qcp->yAxis->setLabelColor(Qt::white);
+        qcp->yAxis->setTickPen(QPen(Qt::white));
+        qcp->yAxis->setSubTickPen(QPen(Qt::white));
+        qcp->xAxis2->setTickLabelColor(Qt::white);
+        qcp->xAxis2->setBasePen(QPen(Qt::white));
+        qcp->xAxis2->setTickPen(QPen(Qt::white));
+        qcp->xAxis2->setSubTickPen(QPen(Qt::white));
+        qcp->yAxis2->setTickLabelColor(Qt::white);
+        qcp->yAxis2->setBasePen(QPen(Qt::white));
+        qcp->yAxis2->setTickPen(QPen(Qt::white));
+        qcp->yAxis2->setSubTickPen(QPen(Qt::white));
+
+        callout->setColor(Qt::white);
+        callout->setPen(QPen(Qt::white));
+        callout->setBrush(QBrush(QColor(0x31363B)));
+        callout->setSelectedBrush(QBrush(QColor(0x31363B)));
+        callout->setSelectedPen(QPen(Qt::white));
+        callout->setSelectedColor(Qt::white);
+
+        arrow->setPen(QPen(Qt::white));
+    } else {
+        callout->setPen(QPen(Qt::black));
+        callout->setBrush(Qt::white);
+        callout->setSelectedBrush(Qt::white);
+        callout->setSelectedPen(QPen(Qt::black));
+        callout->setSelectedColor(Qt::black);
+    }
 }
 
 // private slots
