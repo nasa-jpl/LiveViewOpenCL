@@ -83,6 +83,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     y_rh = QVector<double>(xAxisMax);
 
     qcp->xAxis->setRange(QCPRange(0, xAxisMax));
+
     qcp->setInteractions(QCP::iRangeZoom | QCP::iSelectItems);
 
     qcp->addLayer("Box Layer", qcp->currentLayer());
