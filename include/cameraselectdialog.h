@@ -179,6 +179,7 @@ private slots:
             s->setValue(QString("connection_status"), "Not Connected");
             s->setValue(QString("received_height"), "");
             s->setValue(QString("received_width"), "");
+            s->setValue(QString("show_cam_dialog"), true); // We actually want to reopen this each time.
             ip_dialog->exec();
         } else {
             this->accept();

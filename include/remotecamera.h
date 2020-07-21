@@ -54,13 +54,11 @@ private:
 
     bool is_receiving; // Flag that is true while requesting a frame
     bool is_connected; // Flag that is true when server is connected
-    std::mutex socket_mutex;
     std::ifstream dev_p;
-    std::string ifname;
-    std::string data_dir;
     std::streampos bufsize;
     const int nFrames;
     size_t framesize;
+    size_t frame_byte_size; // Two bytes per pixel
     const int headsize;
     int socket_descriptor;
     QDataStream data_socket;
@@ -71,6 +69,7 @@ private:
     std::vector<unsigned char> header;
     std::vector<uint16_t> dummy;
     std::vector<uint16_t> temp_frame;
+    uint16_t *temp_frame_array;
 
     QFuture<void> readLoopFuture;
     int tmoutPeriod;

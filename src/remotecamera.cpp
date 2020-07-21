@@ -14,6 +14,7 @@ RemoteCamera::RemoteCamera(int frWidth,
     data_height = dataHeight;
     socket_descriptor = Descriptor;
     pixel_size = 2;
+    frame_byte_size = framesize*pixel_size;
 }
 
 RemoteCamera::~RemoteCamera()
@@ -21,16 +22,18 @@ RemoteCamera::~RemoteCamera()
     running.store(false);
     emit timeout();
     is_connected = false;
+    free(temp_frame_array);
     readLoopFuture.waitForFinished();
 }
 
 bool RemoteCamera::start()
 {
     qDebug() << "Attempting Connection";
+    qRegisterMetaType<QAbstractSocket::SocketState>();
     socket = new QTcpSocket();
     socket->setSocketDescriptor(socket_descriptor);
-    socket->setReadBufferSize(framesize*2*4);
-    qDebug() << socket->readAll(); // I need to do this to make sure I don't miss anything (according to sources :))
+    //socket->setReadBufferSize(framesize*2*4);
+    //qDebug() << socket->readAll(); // I need to do this to make sure I don't miss anything (according to sources :))
 
     connect(socket, &QTcpSocket::stateChanged, this, &RemoteCamera::SocketStateChanged);
     if (!socket->waitForConnected(1000))
@@ -39,7 +42,7 @@ bool RemoteCamera::start()
         return false;
     }
     is_connected = true;
-    data_socket.setDevice(socket); // This is what we are reading from
+    //data_socket.setDevice(socket); // This is what we are reading from
 
     is_receiving = false;
     window_initialized = false;
@@ -61,12 +64,10 @@ bool RemoteCamera::start()
 }
 
 qint64 RemoteCamera::SafeRead(char *read_buffer, int max_bytes) {
-    const std::lock_guard<std::mutex> lock(socket_mutex);
     return socket->read(read_buffer, max_bytes);
 }
 
 qint64 RemoteCamera::SafeWrite(char *write_buffer) {
-    const std::lock_guard<std::mutex> lock(socket_mutex);
     quint64 status = socket->write(write_buffer);
     socket->waitForBytesWritten(100);
     socket->flush();
@@ -75,34 +76,45 @@ qint64 RemoteCamera::SafeWrite(char *write_buffer) {
 
 void RemoteCamera::SocketRead()
 {
-    uint32_t byte_pos = 0;
-    uint32_t frame_byte_size = framesize*2; // Two bytes per pixel
-    uint32_t min_read_size = frame_byte_size/32;
+    size_t byte_pos = 0;
+    uint32_t min_read_size = 1448; // Packet size
     qint64 bytes_read = 0;
     char *receive = (char *)calloc(frame_byte_size, sizeof (char));
     do {
         if (!socket->waitForReadyRead(500)) { // If it timed out return existing frame
             if (!(socket->bytesAvailable() > 0)) {
                 qDebug() << "Timed Out" << byte_pos;
-                is_receiving = false;
                 break;
             }
         }
-        if (socket->bytesAvailable() < 0){
+        // One packet is 1448 bytes or 724 pixels
+
+        if (socket->bytesAvailable() < 0) { // Could potentially cause frame misalignments
             qDebug() << "NEGATIVE BYTES AVAILABLE *********";
             break;
         } else if (socket->bytesAvailable() <= min_read_size && byte_pos < (frame_byte_size - min_read_size)) {
-            continue;
+            qDebug() << "Continuing..." << byte_pos << socket->bytesAvailable();
+        } else {
+            //std::memset(receive, 0, frame_byte_size);
+            qDebug() << "Bytes to Read" << socket->bytesAvailable();
+            bytes_read = socket->read((char*)temp_frame.data() + byte_pos, /*std::min(*/(frame_byte_size - byte_pos)/*, (size_t)socket->bytesAvailable())*/);
+            qDebug() << "Read" << (bytes_read >> 1) << "pixels into pos" << (byte_pos >> 1) << "to" << ((byte_pos + bytes_read)>>1);
+            byte_pos += bytes_read;
+            //std::memcpy((char*)temp_frame.data() + byte_pos, receive, bytes_read);
+            //std::memcpy(temp_frame_array + byte_pos, receive, bytes_read);
+
+            qDebug() << "Frame:" << bytes_read << byte_pos << ((byte_pos >> 1)%65536 - 1) << (temp_frame[(byte_pos >> 1) - 1])%65536 << (temp_frame[byte_pos >> 1])%65536;
+            if (((byte_pos >> 1)%65536 - 1) != (temp_frame[(byte_pos >> 1) - 1])%65536) {
+                qDebug() << "BROKEN";
+            }
         }
-
-        bytes_read = SafeRead(receive, std::min((frame_byte_size - byte_pos), (unsigned int)socket->bytesAvailable()));
-
-        std::memcpy((char*)temp_frame.data() + byte_pos, receive, bytes_read);
-
-        byte_pos += bytes_read;
     } while (byte_pos < frame_byte_size && is_connected); // While we still have more pixels
     free(receive);
     qDebug() << "Finished Receiving Frame: " << byte_pos;
+
+    if (socket->bytesAvailable() > 0) { // Just output if all the bytes weren't used.
+        qDebug() << "Bytes left over:" << socket->bytesAvailable();
+    }
 }
 
 uint16_t* RemoteCamera::getFrame()
@@ -113,7 +125,7 @@ uint16_t* RemoteCamera::getFrame()
         if(socket->isWritable() && !is_receiving) { // Validate that socket is ready
             is_receiving = true; // Forces only one request to go out at a time
             qDebug() << "Getting frame from socket..." << image_no;
-            int written = SafeWrite("ReadyFrame");
+            int written = SafeWrite((char*)"ReadyFrame");
             if (written == -1) {
                 qDebug() << "Failed to write...";
                 return temp_frame.data();
@@ -125,6 +137,7 @@ uint16_t* RemoteCamera::getFrame()
         qDebug() << image_no << "- Image Received";
         image_no ++;
         return temp_frame.data();
+//        return temp_frame_array;
     } else {
         //qDebug() << "Returning Dummy Data";
         qDebug() << image_no << "Dummy Returned";
@@ -139,9 +152,11 @@ void RemoteCamera::SocketStateChanged(QTcpSocket::SocketState state)
     case QTcpSocket::ConnectedState:
         // Do nothing, we should be in this state. But investigate we should never be going back here
         break;
+    case QTcpSocket::ClosingState:
     case QTcpSocket::UnconnectedState: // We might not want to quit once we enter this state, because we might recover.
         qDebug() << "Unconnected State";
         is_connected = false;
+        socket->disconnect();
         emit timeout();
         break;
     default:
