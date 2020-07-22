@@ -24,21 +24,32 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     qcp->addLayer("Plot Layer");
     qcp->setCurrentLayer("Plot Layer");
     qcp->setNotAntialiasedElement(QCP::aeAll);
+    
+    qcp = new QCustomPlot(this);
+    qcp->addLayer("Plot Layer");
+    qcp->setCurrentLayer("Plot Layer");
+    qcp->setNotAntialiasedElement(QCP::aeAll);
 
     qcp->plotLayout()->insertRow(0);
     plotTitle = new QCPTextElement(qcp, "No crosshair selected");
     plotTitle->setFont(QFont(font().family(), 20));
     qcp->plotLayout()->addElement(0, 0, plotTitle);
-    
+
+    // Top Overlay:
+    QCPAxisRect *topPlot = new QCPAxisRect(qcp);
+    qcp->plotLayout()->insertRow(1);
     qcp->addGraph(nullptr, nullptr);
+    //qcp->graph(1)->setPen(QPen(Qt::green));
+    qcp->plotLayout()->addElement(1, 0, topPlot);
 
-    // Vertical LH Overlay:
-    qcp->addGraph();
-    qcp->graph(1)->setPen(QPen(Qt::green));
-
-    // Vertical RH Overlay:
-    qcp->addGraph();
-    qcp->graph(2)->setPen(QPen(Qt::red));
+    // Bottom Overlay:
+    //QCPAxisRect *bottomPlot = new QCPAxisRect(qcp);
+    //qcp->plotLayout()->insertRow(2);
+    //qcp->addGraph(nullptr, nullptr);
+    //qcp->graph(2)->setPen(QPen(Qt::red));
+    //qcp->plotLayout()->addElement(2, 0, bottomPlot);
+    
+    //qcp->addGraph(nullptr, nullptr);
 
     switch (image_type) {
     case SPATIAL_PROFILE:
@@ -80,7 +91,6 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
 
     y = QVector<double>(xAxisMax);
     y_lh = QVector<double>(xAxisMax);
-    y_rh = QVector<double>(xAxisMax);
 
     qcp->xAxis->setRange(QCPRange(0, xAxisMax));
 
@@ -91,6 +101,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     setFloor(0);
 
     qcp->graph(0)->setData(x, y);
+    //qcp->graph(1)->setData(x, y);
 
     qcp->addLayer("Box Layer", qcp->currentLayer());
     qcp->setCurrentLayer("Box Layer");
@@ -566,5 +577,4 @@ void overlay_widget::updateCalloutValue()
     arrow->end->setCoords(x_coord, y_coord);
     callout->setText(QString(" x: %1 \n y: %2 ").arg(x_coord).arg(y_coord));
 }
-
 
