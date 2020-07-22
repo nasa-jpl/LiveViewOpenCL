@@ -32,7 +32,7 @@ bool RemoteCamera::start()
     qRegisterMetaType<QAbstractSocket::SocketState>();
     socket = new QTcpSocket();
     socket->setSocketDescriptor(socket_descriptor);
-    //socket->setReadBufferSize(framesize*2*4);
+    socket->setReadBufferSize(framesize*2*4);
     //qDebug() << socket->readAll(); // I need to do this to make sure I don't miss anything (according to sources :))
 
     connect(socket, &QTcpSocket::stateChanged, this, &RemoteCamera::SocketStateChanged);
@@ -79,7 +79,6 @@ void RemoteCamera::SocketRead()
     size_t byte_pos = 0;
     uint32_t min_read_size = 1448; // Packet size
     qint64 bytes_read = 0;
-    char *receive = (char *)calloc(frame_byte_size, sizeof (char));
     do {
         if (!socket->waitForReadyRead(500)) { // If it timed out return existing frame
             if (!(socket->bytesAvailable() > 0)) {
@@ -95,13 +94,15 @@ void RemoteCamera::SocketRead()
         } else if (socket->bytesAvailable() <= min_read_size && byte_pos < (frame_byte_size - min_read_size)) {
             qDebug() << "Continuing..." << byte_pos << socket->bytesAvailable();
         } else {
-            //std::memset(receive, 0, frame_byte_size);
             qDebug() << "Bytes to Read" << socket->bytesAvailable();
-            bytes_read = socket->read((char*)temp_frame.data() + byte_pos, /*std::min(*/(frame_byte_size - byte_pos)/*, (size_t)socket->bytesAvailable())*/);
+            bytes_read = socket->read((char*)temp_frame.data() + byte_pos, frame_byte_size - byte_pos);
+            //bytes_read = read(socket->socketDescriptor(), (char*)temp_frame.data() + byte_pos, (frame_byte_size - byte_pos));
+            if (bytes_read < 0) {
+                qDebug() << "Reading Failed" << bytes_read << errno;
+                break;
+            }
             qDebug() << "Read" << (bytes_read >> 1) << "pixels into pos" << (byte_pos >> 1) << "to" << ((byte_pos + bytes_read)>>1);
             byte_pos += bytes_read;
-            //std::memcpy((char*)temp_frame.data() + byte_pos, receive, bytes_read);
-            //std::memcpy(temp_frame_array + byte_pos, receive, bytes_read);
 
             qDebug() << "Frame:" << bytes_read << byte_pos << ((byte_pos >> 1)%65536 - 1) << (temp_frame[(byte_pos >> 1) - 1])%65536 << (temp_frame[byte_pos >> 1])%65536;
             if (((byte_pos >> 1)%65536 - 1) != (temp_frame[(byte_pos >> 1) - 1])%65536) {
@@ -109,7 +110,6 @@ void RemoteCamera::SocketRead()
             }
         }
     } while (byte_pos < frame_byte_size && is_connected); // While we still have more pixels
-    free(receive);
     qDebug() << "Finished Receiving Frame: " << byte_pos;
 
     if (socket->bytesAvailable() > 0) { // Just output if all the bytes weren't used.

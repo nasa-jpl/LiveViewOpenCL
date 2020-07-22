@@ -9,6 +9,9 @@
 #include <array>
 #include <algorithm>
 #include <chrono>
+#include <unistd.h>
+#include <cerrno>
+
 
 #include <QDebug>
 #include <QDir>
