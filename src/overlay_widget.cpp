@@ -2,8 +2,8 @@
 #include "constants.h"
 /* #define QDEBUG */
 
-overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
-    LVTabApplication(fw, parent), image_type(image_t)
+overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent, QSettings *settings) :
+    LVTabApplication(fw, parent), image_type(image_t), settings(settings)
 {
     /*! \brief Establishes a plot for a specified image type.
      * \param image_type Determines the type of graph that will be output by profile_widget
@@ -23,12 +23,19 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     qcp = new QCustomPlot(this);
     qcp->addLayer("Plot Layer");
     qcp->setCurrentLayer("Plot Layer");
-    qcp->setNotAntialiasedElement(QCP::aeAll);
-    
-    qcp = new QCustomPlot(this);
-    qcp->addLayer("Plot Layer");
-    qcp->setCurrentLayer("Plot Layer");
-    qcp->setNotAntialiasedElement(QCP::aeAll);
+    qcp->setAntialiasedElement(QCP::aeAll);
+
+    qcp->addGraph(nullptr, nullptr);
+
+
+    topWidget = new frameview_widget(fw, DSF, fw->settings);
+    bottomWidget = new line_widget(fw, SPATIAL_PROFILE);
+    //bottomWidget = new line_widget(fw, SPECTRAL_PROFILE);
+
+    widgetLayout = new QVBoxLayout(this);
+    widgetLayout->addWidget(topWidget);
+    widgetLayout->addWidget(bottomWidget);
+    //this->setLayout(widgetLayout);
 
     qcp->plotLayout()->insertRow(0);
     plotTitle = new QCPTextElement(qcp, "No crosshair selected");
@@ -36,11 +43,11 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     qcp->plotLayout()->addElement(0, 0, plotTitle);
 
     // Top Overlay:
-    QCPAxisRect *topPlot = new QCPAxisRect(qcp);
-    qcp->plotLayout()->insertRow(1);
-    qcp->addGraph(nullptr, nullptr);
+    //QCPAxisRect *topPlot = new QCPAxisRect(qcp);
+    //qcp->plotLayout()->insertRow(1);
+    //qcp->addGraph(nullptr, nullptr);
     //qcp->graph(1)->setPen(QPen(Qt::green));
-    qcp->plotLayout()->addElement(1, 0, topPlot);
+    //qcp->plotLayout()->addElement(1, 0, topPlot);
 
     // Bottom Overlay:
     //QCPAxisRect *bottomPlot = new QCPAxisRect(qcp);
@@ -130,18 +137,10 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
 
     setDarkMode(fw->settings->value(QString("dark"), USE_DARK_STYLE).toBool());
 
-    // Create a crosshair made of two 0-width boxes
-    // that allows users to select lines of data to
-    // view in detail in the "profile" panes
-    //crosshairX = new QCPItemRect(qcp);
-    //crosshairX->setPen(QPen(Qt::white));
-    //crosshairY = new QCPItemRect(qcp);
-    //crosshairY->setPen(QPen(Qt::white));
+    qcp->yAxis->setLabel("Pixel Magnitude [DN]");
+    qcp->yAxis->setRange(QCPRange(0, UINT16_MAX)); //From 0 to 2^16
 
-    //qcp->yAxis->setLabel("Pixel Magnitude [DN]");
-    //qcp->yAxis->setRange(QCPRange(0, UINT16_MAX)); //From 0 to 2^16
-
-    //qcp->graph(0)->setData(x, y);
+    qcp->graph(0)->setData(x, y);
     
     plotModeBox = new QComboBox();
     plotModeBox->addItem("Raw Data");
