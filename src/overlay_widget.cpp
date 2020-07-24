@@ -45,25 +45,25 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
         x[i] = double(i);
     }
 
-    y = QVector<double>(xAxisMax);
-    y_lh = QVector<double>(xAxisMax);
+    //y = QVector<double>(xAxisMax);
+    //y_lh = QVector<double>(xAxisMax);
 
-    qcp->xAxis->setRange(QCPRange(0, xAxisMax));
+    //qcp->xAxis->setRange(QCPRange(0, xAxisMax));
 
-    qcp->setInteractions(QCP::iRangeZoom | QCP::iSelectItems);
+    //qcp->setInteractions(QCP::iRangeZoom | QCP::iSelectItems);
 
-    qcp->yAxis->setLabel("Pixel Magnitude [DN]");
+    //qcp->yAxis->setLabel("Pixel Magnitude [DN]");
     setCeiling((1<<16) -1);
     setFloor(0);
 
-    qcp->graph(0)->setData(x, y);
+    //qcp->graph(0)->setData(x, y);
     //qcp->graph(1)->setData(x, y);
 
-    qcp->addLayer("Box Layer", qcp->currentLayer());
-    qcp->setCurrentLayer("Box Layer");
+    //qcp->addLayer("Box Layer", qcp->currentLayer());
+    //qcp->setCurrentLayer("Box Layer");
 
     callout = new QCPItemText(qcp);
-    callout->position->setCoords(xAxisMax / 2, ceiling - 1000);
+    /*callout->position->setCoords(xAxisMax / 2, ceiling - 1000);
     callout->setFont(QFont(font().family(), 16));
     callout->setPen(QPen(Qt::black));
     callout->setBrush(Qt::white);
@@ -72,40 +72,40 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     callout->setSelectedFont(QFont(font().family(), 16));
     callout->setSelectedPen(QPen(Qt::black));
     callout->setSelectedColor(Qt::black);
-    callout->setVisible(false);
+    callout->setVisible(false);*/
 
     qcp->addLayer("Arrow Layer", qcp->currentLayer(), QCustomPlot::limBelow);
     qcp->setCurrentLayer("Arrow Layer");
 
     arrow = new QCPItemLine(qcp);
-    arrow->start->setParentAnchor(callout->bottom);
+    /*arrow->start->setParentAnchor(callout->bottom);
     arrow->setHead(QCPLineEnding::esSpikeArrow);
     arrow->setSelectable(false);
     arrow->setVisible(false);
-    qcp->setInteractions(QCP::iRangeZoom | QCP::iSelectItems | QCP::iRangeDrag);
+    qcp->setInteractions(QCP::iRangeZoom | QCP::iSelectItems | QCP::iRangeDrag);*/
 
     setDarkMode(fw->settings->value(QString("dark"), USE_DARK_STYLE).toBool());
 
-    qcp->yAxis->setLabel("Pixel Magnitude [DN]");
-    qcp->yAxis->setRange(QCPRange(0, UINT16_MAX)); //From 0 to 2^16
+    //qcp->yAxis->setLabel("Pixel Magnitude [DN]");
+    //qcp->yAxis->setRange(QCPRange(0, UINT16_MAX)); //From 0 to 2^16
 
-    qcp->graph(0)->setData(x, y);
+    //qcp->graph(0)->setData(x, y);
 
     plotModeBox = new QComboBox();
-    plotModeBox->addItem("Raw Data");
-    plotModeBox->addItem("Dark Subtracted Data");
-    plotModeBox->addItem("Signal-to-Noise Ratio Data");
-    connect(plotModeBox, SIGNAL(currentIndexChanged(int)),
-            this, SLOT(setPlotMode(int)));
+    //plotModeBox->addItem("Raw Data");
+    //plotModeBox->addItem("Dark Subtracted Data");
+    //plotModeBox->addItem("Signal-to-Noise Ratio Data");
+    //connect(plotModeBox, SIGNAL(currentIndexChanged(int)),
+    //        this, SLOT(setPlotMode(int)));
 
     auto bottomButtons = new QHBoxLayout;
     //bottomButtons->addWidget(hideTracer);
-    bottomButtons->addWidget(plotModeBox);
+    //bottomButtons->addWidget(plotModeBox);
 
     auto qvbl = new QVBoxLayout(this);
-    qvbl->addWidget(qcp);
-    qvbl->addLayout(bottomButtons);
-    this->setLayout(qvbl);
+    //qvbl->addWidget(qcp);
+    //qvbl->addLayout(bottomButtons);
+    //this->setLayout(qvbl);
 
     showCalloutCheck = new QCheckBox("Display Callout");
     showCalloutCheck->setChecked(false);
@@ -296,8 +296,8 @@ void overlay_widget::handleNewFrame()
         //qcp->graph(0)->setData(x, y);
         qcp->replot();
 
-        if (callout->visible())
-            updateCalloutValue();
+        //if (callout->visible())
+            //updateCalloutValue();
         switch (image_type) {
         //case SPATIAL_MEAN: plotTitle->setText(QString("Horizontal Mean Profile")); break;
         //case HORIZONTAL_CROSS: plotTitle->setText(QString("Horizontal Profile centered @ y = %1").arg(fw->crosshair_y)); break;
