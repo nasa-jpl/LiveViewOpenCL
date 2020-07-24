@@ -17,6 +17,7 @@
 #include "frameview_widget.h"
 #include "line_widget.h"
 #include "meanfilter.h"
+#include "lvtabapplication.h"
 
 /*! \file
  * \brief Widget which displays a line plot of two dimensions of image data.
@@ -31,7 +32,7 @@
  * \author Noah Levy
  */
 
-class overlay_widget : public QWidget
+class overlay_widget : public LVTabApplication
 {
     Q_OBJECT
 
@@ -54,9 +55,11 @@ class overlay_widget : public QWidget
     QSpacerItem * spacer;
     QPushButton * reset_zoom_btn;
 
+    QComboBox *plotModeBox;
+
     /* Plot elements */
-    QCustomPlot *qcp;
-    QCPTextElement *plotTitle;
+    //QCustomPlot *qcp;
+    //QCPTextElement *plotTitle;
 
      /* Frame rendering elements */
     int frWidth, frHeight;
@@ -81,7 +84,7 @@ class overlay_widget : public QWidget
     bool allow_callouts = true;
 
 public:
-    explicit overlay_widget(FrameWorker *fw, image_t image_type , QWidget *parent = 0, MeanFilter *me = 0);
+    explicit overlay_widget(FrameWorker *fw, image_t image_t , QWidget *parent = 0, QSettings *settings = 0);
     virtual ~overlay_widget();
 
     /*! \addtogroup getters
@@ -93,8 +96,9 @@ public:
     const unsigned int slider_max = (1<<16) * 1.1;
     bool slider_low_inc = false;
 
-    image_t itype;
+    image_t image_type;
     frameview_widget *overlay_img; // public to aid connection through the profile to the controls box
+    void setDarkMode(bool dm);
 
 
 public slots:
@@ -118,7 +122,16 @@ public slots:
 
 private:
     void updateCalloutValue();
-
+    QVector<double> (overlay_widget::*p_getOverlay)(QPointF);
+    std::vector<float> (FrameWorker::*p_getFrame)();
+    QVector<double> getSpectralLine(QPointF coord);
+    QVector<double> getSpatialLine(QPointF coord);
+    QVector<double> getSpectralMean(QPointF coord);
+    QVector<double> getSpatialMean(QPointF coord);
+    frameview_widget *topWidget;
+    line_widget *bottomWidget;
+    QHBoxLayout *widgetLayout;
+    QSettings *settings;
 };
 
 #endif // OVERLAY_WIDGET_H

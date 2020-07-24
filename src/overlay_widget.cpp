@@ -21,71 +21,20 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     y_coord = -1;
 
     qcp = new QCustomPlot(this);
-    qcp->addLayer("Plot Layer");
-    qcp->setCurrentLayer("Plot Layer");
-    qcp->setAntialiasedElement(QCP::aeAll);
+    //qcp->addLayer("Plot Layer");
+    //qcp->setCurrentLayer("Plot Layer");
+    //qcp->setAntialiasedElement(QCP::aeAll);
 
     qcp->addGraph(nullptr, nullptr);
 
 
     topWidget = new frameview_widget(fw, DSF, fw->settings);
     bottomWidget = new line_widget(fw, SPATIAL_PROFILE);
-    //bottomWidget = new line_widget(fw, SPECTRAL_PROFILE);
 
-    widgetLayout = new QVBoxLayout(this);
+    widgetLayout = new QHBoxLayout(this);
     widgetLayout->addWidget(topWidget);
     widgetLayout->addWidget(bottomWidget);
-    //this->setLayout(widgetLayout);
-
-    qcp->plotLayout()->insertRow(0);
-    plotTitle = new QCPTextElement(qcp, "No crosshair selected");
-    plotTitle->setFont(QFont(font().family(), 20));
-    qcp->plotLayout()->addElement(0, 0, plotTitle);
-
-    // Top Overlay:
-    //QCPAxisRect *topPlot = new QCPAxisRect(qcp);
-    //qcp->plotLayout()->insertRow(1);
-    //qcp->addGraph(nullptr, nullptr);
-    //qcp->graph(1)->setPen(QPen(Qt::green));
-    //qcp->plotLayout()->addElement(1, 0, topPlot);
-
-    // Bottom Overlay:
-    //QCPAxisRect *bottomPlot = new QCPAxisRect(qcp);
-    //qcp->plotLayout()->insertRow(2);
-    //qcp->addGraph(nullptr, nullptr);
-    //qcp->graph(2)->setPen(QPen(Qt::red));
-    //qcp->plotLayout()->addElement(2, 0, bottomPlot);
-    
-    //qcp->addGraph(nullptr, nullptr);
-
-    switch (image_type) {
-    case SPATIAL_PROFILE:
-        xAxisMax = static_cast<int>(frWidth);
-        qcp->xAxis->setLabel("Spatial index");
-        p_getOverlay = &overlay_widget::getSpatialLine;
-        break;
-    case SPECTRAL_MEAN:
-        xAxisMax = static_cast<int>(frHeight);
-        qcp->xAxis->setLabel("Spectral index");
-        p_getOverlay = &overlay_widget::getSpectralMean;
-        plotTitle->setText(QString("Spectral Mean of Single Frame"));
-        break;
-    case SPATIAL_MEAN:
-        xAxisMax = static_cast<int>(frWidth);
-        qcp->xAxis->setLabel("Spatial index");
-        p_getOverlay = &overlay_widget::getSpatialMean;
-        plotTitle->setText(QString("Spatial Mean of Single Frame"));
-        break;
-    case SPECTRAL_PROFILE:
-        xAxisMax = static_cast<int>(frHeight);
-        qcp->xAxis->setLabel("Spectral index");
-        p_getOverlay = &overlay_widget::getSpectralLine;
-        break;
-    default:
-        xAxisMax = static_cast<int>(frHeight);
-        qcp->xAxis->setLabel("Spectral index");
-        p_getOverlay = &overlay_widget::getSpectralLine;
-    }
+    this->setLayout(widgetLayout);
 
     p_getFrame = &FrameWorker::getFrame;
 
@@ -141,7 +90,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     qcp->yAxis->setRange(QCPRange(0, UINT16_MAX)); //From 0 to 2^16
 
     qcp->graph(0)->setData(x, y);
-    
+
     plotModeBox = new QComboBox();
     plotModeBox->addItem("Raw Data");
     plotModeBox->addItem("Dark Subtracted Data");
@@ -172,6 +121,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
 
     reset_zoom_btn = new QPushButton("Reset Zoom");
     reset_zoom_btn->setToolTip("Reset the X-axis to full-frame, and the y-axis to full-scale.\n If displaying dark-subtracted data, the y-axis goes to +/- 200 DN.");
+
 
     /*if(itype==VERT_OVERLAY)
     {
@@ -221,7 +171,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
         this->setLayout(&qvbl);
     }*/
 
-    connect(reset_zoom_btn, SIGNAL(released()), this, SLOT(defaultZoom())); // disconnect?
+    /*connect(reset_zoom_btn, SIGNAL(released()), this, SLOT(defaultZoom())); // disconnect?
     connect(qcp, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(moveCallout(QMouseEvent*)));
     connect(qcp, SIGNAL(mouseDoubleClick(QMouseEvent*)), this, SLOT(setCallout(QMouseEvent*)));
     connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(profileScrolledX(QCPRange)));
@@ -232,7 +182,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
     
     connect(frame_handler->Camera, &CameraModel::timeout, this, [=]() {
         QVector<double> zero_data(x.length(), 0);
-        qcp->graph(0)->setData(x, zero_data);
+        //qcp->graph(0)->setData(x, zero_data);
         qcp->replot();
         // renderTimer.stop();
     });
@@ -241,7 +191,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, image_t image_t, QWidget *parent
         renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
     }
 
-    rendertimer.start(FRAME_DISPLAY_PERIOD_MSECS);
+    rendertimer.start(FRAME_DISPLAY_PERIOD_MSECS);*/
 }
 overlay_widget::~overlay_widget()
 {
@@ -318,7 +268,7 @@ void overlay_widget::handleNewFrame()
         QPointF *center = frame_handler->getCenter();
         if (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN || center->x() > -0.1) {
             y = (this->*p_getOverlay)(*center);
-            qcp->graph(0)->setData(x, y);
+            //qcp->graph(0)->setData(x, y);
             // replotting is slow when the data set is chaotic... TODO: develop an optimization here
             qcp->replot();
             /*if (!hideTracer->isChecked()) {
@@ -343,21 +293,21 @@ void overlay_widget::handleNewFrame()
             break;*/
 
 	// display x and y:
-        qcp->graph(0)->setData(x, y);
+        //qcp->graph(0)->setData(x, y);
         qcp->replot();
 
         if (callout->visible())
             updateCalloutValue();
         switch (image_type) {
-        case SPATIAL_MEAN: plotTitle->setText(QString("Horizontal Mean Profile")); break;
+        //case SPATIAL_MEAN: plotTitle->setText(QString("Horizontal Mean Profile")); break;
         //case HORIZONTAL_CROSS: plotTitle->setText(QString("Horizontal Profile centered @ y = %1").arg(fw->crosshair_y)); break;
-        case SPECTRAL_MEAN: plotTitle->setText(QString("Vertical Mean Profile")); break;
+        //case SPECTRAL_MEAN: plotTitle->setText(QString("Vertical Mean Profile")); break;
         //case VERTICAL_CROSS: plotTitle->setText(QString("Vertical Profile centered @ x = %1").arg(fw->crosshair_x)); break;
         //case VERT_OVERLAY: plotTitle->setText(QString("Vertical Overlay")); break; // TODO: Add useful things here
         default: break;
         }
     //} else {
-        plotTitle->setText("No Crosshair designated");
+        //plotTitle->setText("No Crosshair designated");
         allow_callouts = false;
         //qcp->graph(0)->clearData();
         qcp->replot();
@@ -529,8 +479,8 @@ void overlay_widget::hideCallout()
 void overlay_widget::setDarkMode(bool dm)
 {
     if (dm) {
-        qcp->graph(0)->setPen(QPen(Qt::lightGray));
-        plotTitle->setTextColor(Qt::white);
+        //qcp->graph(0)->setPen(QPen(Qt::lightGray));
+        //plotTitle->setTextColor(Qt::white);
 
         qcp->setBackground(QBrush(QColor(0x31363B)));
         qcp->xAxis->setTickLabelColor(Qt::white);
