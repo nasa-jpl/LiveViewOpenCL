@@ -59,7 +59,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     spat_display = new line_widget(fw, SPATIAL_PROFILE);
     spat_mean_display = new line_widget(fw, SPATIAL_MEAN);
     fft_display = new fft_widget(fw);
-    overlay_display = new overlay_widget(fw, SPECTRAL_PROFILE);
+    overlay_display = new overlay_widget(fw, parent);
 
     // Set these two to be in the precision slider by default
     dsf_display->setPrecision(true);
