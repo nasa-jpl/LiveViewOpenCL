@@ -36,6 +36,7 @@ bool RemoteCamera::start()
     //qDebug() << socket->readAll(); // I need to do this to make sure I don't miss anything (according to sources :))
 
     connect(socket, &QTcpSocket::stateChanged, this, &RemoteCamera::SocketStateChanged);
+    //connect(socket, &QTcpSocket::readyRead, this, &RemoteCamera::SocketRead);
     if (!socket->waitForConnected(1000))
     {
         qDebug() << "Could not complete descriptor pass-off";
@@ -86,29 +87,17 @@ void RemoteCamera::SocketRead()
                 break;
             }
         }
-        // One packet is 1448 bytes or 724 pixels
 
-        if (socket->bytesAvailable() < 0) { // Could potentially cause frame misalignments
-            qDebug() << "NEGATIVE BYTES AVAILABLE *********";
+        socket->startTransaction(); // Transaactions aren't confirmed to work.
+        bytes_read = socket->read((char*)temp_frame.data() + byte_pos, frame_byte_size - byte_pos);
+        //qDebug() << "Read" << (bytes_read >> 1) << "pixels into pos" << (byte_pos >> 1) << "to" << ((byte_pos + bytes_read)>>1);
+        if (bytes_read < 0) {
+            qDebug() << "Reading Failed" << bytes_read << errno;
             break;
-        } else if (socket->bytesAvailable() <= min_read_size && byte_pos < (frame_byte_size - min_read_size)) {
-            qDebug() << "Continuing..." << byte_pos << socket->bytesAvailable();
-        } else {
-            qDebug() << "Bytes to Read" << socket->bytesAvailable();
-            bytes_read = socket->read((char*)temp_frame.data() + byte_pos, frame_byte_size - byte_pos);
-            //bytes_read = read(socket->socketDescriptor(), (char*)temp_frame.data() + byte_pos, (frame_byte_size - byte_pos));
-            if (bytes_read < 0) {
-                qDebug() << "Reading Failed" << bytes_read << errno;
-                break;
-            }
-            qDebug() << "Read" << (bytes_read >> 1) << "pixels into pos" << (byte_pos >> 1) << "to" << ((byte_pos + bytes_read)>>1);
-            byte_pos += bytes_read;
-
-            qDebug() << "Frame:" << bytes_read << byte_pos << ((byte_pos >> 1)%65536 - 1) << (temp_frame[(byte_pos >> 1) - 1])%65536 << (temp_frame[byte_pos >> 1])%65536;
-            if (((byte_pos >> 1)%65536 - 1) != (temp_frame[(byte_pos >> 1) - 1])%65536) {
-                qDebug() << "BROKEN";
-            }
         }
+        socket->commitTransaction();
+        byte_pos += bytes_read;
+
     } while (byte_pos < frame_byte_size && is_connected); // While we still have more pixels
     qDebug() << "Finished Receiving Frame: " << byte_pos;
 
