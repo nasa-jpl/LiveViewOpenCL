@@ -16,7 +16,7 @@
 #include "image_type.h"
 #include "frameview_widget.h"
 #include "line_widget.h"
-#include "meanfilter.h"
+//#include "meanfilter.h"
 //#include "lvtabapplication.h"
 
 /*! \file
