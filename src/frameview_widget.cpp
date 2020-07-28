@@ -153,19 +153,11 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     showTipBox->setStyleSheet("QCheckBox { outline: none }");
     showTipBox->setFixedWidth(200);
 
-    overlayPlotModeBox = new QComboBox();
-    overlayPlotModeBox->addItem("Dark Subtraction");
-    overlayPlotModeBox->addItem("Spectral Profile");
-    overlayPlotModeBox->addItem("Spectral Mean");
-    overlayPlotModeBox->addItem("Spatial Profile");
-    overlayPlotModeBox->addItem("Spatial Mean");
-
     auto qvbl = new QVBoxLayout(this);
     auto bottomControls = new QHBoxLayout;
     bottomControls->addWidget(fpsLabel);
     bottomControls->addWidget(hideXbox);
     bottomControls->addWidget(showTipBox);
-    bottomControls->addWidget(overlayPlotModeBox);
 
     /* In the dark subtraction mode, add an additional checkbox
      * at the bottom of the pane that allows the user to toggle
@@ -450,4 +442,8 @@ void frameview_widget::mouse_up(QMouseEvent *event) {
    }
    frame_handler->bottomRight = QPointF(brx, bry);
    frame_handler->topLeft = QPointF(tlx, tly);
+}
+
+void frameview_widget::setOverlayPlot() {
+
 }

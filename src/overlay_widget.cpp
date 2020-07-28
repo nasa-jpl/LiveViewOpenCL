@@ -9,16 +9,6 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(paren
      * \author Jackie Ryan
      * \author Noah Levy */
 
-    //qcp = NULL;
-    //this->fw = fw;
-    //this->me = me;
-    //ceiling = UINT16_MAX;
-    //floor = 0;
-    //frHeight = fw->getFrameHeight();
-    //frWidth = fw->getFrameWidth();
-    //x_coord = -1;
-    //y_coord = -1;
-
     //qcp = new QCustomPlot(this);
     //qcp->addLayer("Plot Layer");
     //qcp->setCurrentLayer("Plot Layer");
@@ -201,6 +191,16 @@ double overlay_widget::getCeiling()
 {
     /*! \brief Return the value of the ceiling for this widget as a double */
     return ceiling;
+}
+
+void overlay_widget::leftPlotClick(QMouseEvent *e)
+{
+
+}
+
+void overlay_widget::rightPlotClick(QMouseEvent *e)
+{
+
 }
 
 // public slots

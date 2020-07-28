@@ -104,7 +104,6 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
     auto bottomButtons = new QHBoxLayout;
     bottomButtons->addWidget(hideTracer);
     bottomButtons->addWidget(plotModeBox);
-    bottomButtons->addWidget(overlayPlotModeBox);
 
     auto qvbl = new QVBoxLayout(this);
     qvbl->addWidget(qcp);
@@ -322,4 +321,9 @@ void line_widget::setDarkMode(bool dm)
         callout->setSelectedPen(QPen(Qt::black));
         callout->setSelectedColor(Qt::black);
     }
+}
+
+void line_widget::setOverlayPlot()
+{
+
 }

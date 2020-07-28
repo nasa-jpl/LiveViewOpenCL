@@ -11,13 +11,11 @@
 #include <QWidget>
 
 /* Live View includes */
-//#include "qcustomplot.h"
+#include "qcustomplot.h"
 #include "frameworker.h"
 #include "image_type.h"
 #include "frameview_widget.h"
 #include "line_widget.h"
-//#include "meanfilter.h"
-//#include "lvtabapplication.h"
 
 /*! \file
  * \brief Widget which displays a line plot of two dimensions of image data.
@@ -112,8 +110,8 @@ public slots:
     void setCallout(QMouseEvent *e);
     void moveCallout(QMouseEvent *e);
     void hideCallout();
-    //void leftPlotClick(QMouseEvent *e);
-    //void rightPlotClick(QMouseEvent *e);
+    void leftPlotClick(QMouseEvent *e);
+    void rightPlotClick(QMouseEvent *e);
 
 private:
     void updateCalloutValue();

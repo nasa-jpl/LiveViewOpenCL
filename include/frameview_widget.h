@@ -33,6 +33,7 @@ public slots:
     void reportFPS();
     void setPlotMode(bool checked);
     QCPColorMap* getColorMap();
+    void setOverlayPlot();
 
 private:
     inline void setDarkMode();
