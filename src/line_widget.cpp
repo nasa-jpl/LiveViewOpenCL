@@ -101,13 +101,6 @@ line_widget::line_widget(FrameWorker *fw, image_t image_t, QWidget *parent) :
     connect(plotModeBox, SIGNAL(currentIndexChanged(int)),
             this, SLOT(setPlotMode(int)));
 
-    overlayPlotModeBox = new QComboBox();
-    overlayPlotModeBox->addItem("Dark Subtraction");
-    overlayPlotModeBox->addItem("Spectral Profile");
-    overlayPlotModeBox->addItem("Spectral Mean");
-    overlayPlotModeBox->addItem("Spatial Profile");
-    overlayPlotModeBox->addItem("Spatial Mean");
-
     auto bottomButtons = new QHBoxLayout;
     bottomButtons->addWidget(hideTracer);
     bottomButtons->addWidget(plotModeBox);
@@ -280,6 +273,13 @@ void line_widget::setPlotMode(LV::PlotMode pm)
 
     frame_handler->setPlotMode(pm);
 }
+
+/*void line_widget::setOverlayPlot(image_t img)
+{
+    switch (img) {
+
+    }
+}*/
 
 void line_widget::setDarkMode(bool dm)
 {

@@ -24,6 +24,7 @@ public slots:
     void setPlotMode(int pm);
     void setPlotMode(LV::PlotMode pm);
     void setDarkMode(bool dm);
+    //void setOverlayPlot();
 
 private:
     QVector<double> (line_widget::*p_getLine)(QPointF);

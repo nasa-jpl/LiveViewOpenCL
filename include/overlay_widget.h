@@ -32,13 +32,12 @@
  * \author Noah Levy
  */
 
-class overlay_widget : public LVTabApplication
+class overlay_widget : public QWidget
 {
     Q_OBJECT
 
     FrameWorker *fw;
     QTimer rendertimer;
-    LVFrame *curFrame;
 
     /* GUI elements */
     //QVBoxLayout qvbl; // for others
@@ -113,15 +112,14 @@ public slots:
     void setCallout(QMouseEvent *e);
     void moveCallout(QMouseEvent *e);
     void hideCallout();
+    //void leftPlotClick(QMouseEvent *e);
+    //void rightPlotClick(QMouseEvent *e);
 
 private:
     void updateCalloutValue();
     QVector<double> (overlay_widget::*p_getOverlay)(QPointF);
-    std::vector<float> (FrameWorker::*p_getFrame)();
-    QVector<double> getSpectralLine(QPointF coord);
-    QVector<double> getSpatialLine(QPointF coord);
-    QVector<double> getSpectralMean(QPointF coord);
-    QVector<double> getSpatialMean(QPointF coord);
+    image_t leftImageType;
+    image_t rightImageType;
     frameview_widget *topWidget;
     line_widget *bottomWidget;
     QHBoxLayout *widgetLayout;

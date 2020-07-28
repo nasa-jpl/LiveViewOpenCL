@@ -2,8 +2,7 @@
 #include "constants.h"
 /* #define QDEBUG */
 
-overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) :
-    LVTabApplication(fw, parent)
+overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(parent)
 {
     /*! \brief Establishes a plot for a specified image type.
      * \param image_type Determines the type of graph that will be output by profile_widget
@@ -34,39 +33,20 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) :
 
     //QGridLayout *layout = new QGridLayout();
 
-    plotModeBox = new QComboBox();
-    plotModeBox->addItem("A");
-    plotModeBox->addItem("B");
-    plotModeBox->addItem("C");
-
-    plotModeBox2 = new QComboBox();
-    plotModeBox2->addItem("A");
-    plotModeBox2->addItem("B");
-    plotModeBox2->addItem("C");
-
     topWidget = new frameview_widget(fw, DSF, fw->settings);
     bottomWidget = new line_widget(fw, SPATIAL_PROFILE);
+
+    //QSizePolicy qsp(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    //qsp.setHeightForWidth(true);
+    //topWidget->setSizePolicy(qsp);
+    //topWidget->heightForWidth(200);
 
     widgetLayout = new QHBoxLayout(this);
     widgetLayout->addWidget(topWidget);
     widgetLayout->addWidget(bottomWidget);
     //this->setLayout(widgetLayout);
 
-    //auto bottomSelection = new QHBoxLayout;
-    //bottomSelection->addWidget(plotModeBox);
-    //bottomSelection->addWidget(plotModeBox2);
-    //this->setLayout(bottomSelection);
-
-    //auto combine = new QVBoxLayout(this);
-    //combine->addWidget(qcp);
-    //combine->addLayout(bottomSelection);
-    //this->setLayout(combine);
-
-    //layout->addWidget(widgetLayout, 0, 0, -1, 1);
-    //layout->addWidget(bottomSelection, 0, 0, -1, 1);
-    //this->setLayout(layout);
-
-    //p_getFrame = &FrameWorker::getFrame;
+    //connect(qcp, SIGNAL(mouseDoubleClick(mousePressEvent*)), this, SLOT(setCallout(mousePressEvent*)));
 
     //upperRangeBoundX = xAxisMax;
 
@@ -233,7 +213,7 @@ void overlay_widget::handleNewFrame()
      * \author Jackie Ryan
      */
 
-    if (!this->isHidden() && frame_handler->running()) {
+    //if (!this->isHidden() && frame_handler->running()) {
         //QPointF *center = frame_handler->getCenter();
         //if (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN || center->x() > -0.1) {
             //y = (this->*p_getOverlay)(*center);
@@ -245,7 +225,7 @@ void overlay_widget::handleNewFrame()
                              .arg(y[static_cast<int>(tracer->graphKey())]));
             }*/
         //}
-    }
+    //}
 
         /*case VERT_OVERLAY:
             local_image_ptr = fw->curFrame->vertical_mean_profile; // vertical profiles
