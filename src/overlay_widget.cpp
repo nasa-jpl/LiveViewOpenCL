@@ -9,22 +9,8 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(paren
      * \author Jackie Ryan
      * \author Noah Levy */
 
-    //qcp = new QCustomPlot(this);
-    //qcp->addLayer("Plot Layer");
-    //qcp->setCurrentLayer("Plot Layer");
-    //qcp->setAntialiasedElement(QCP::aeAll);
-
-    //qcp->addGraph(nullptr, nullptr);
-
-    //qcp->plotLayout()->insertRow(0);
-    //plotTitle = new QCPTextElement(qcp, "No crosshair selec");
-    //plotTitle->setFont(QFont(font().family(), 20));
-    //qcp->plotLayout()->addElement(0, 0, plotTitle);
-
-    //QGridLayout *layout = new QGridLayout();
-
-    topWidget = new frameview_widget(fw, DSF, fw->settings);
-    bottomWidget = new line_widget(fw, SPATIAL_PROFILE);
+    leftWidget = new frameview_widget(fw, DSF, fw->settings);
+    rightWidget = new line_widget(fw, SPATIAL_PROFILE);
 
     //QSizePolicy qsp(QSizePolicy::Preferred, QSizePolicy::Preferred);
     //qsp.setHeightForWidth(true);
@@ -32,8 +18,8 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(paren
     //topWidget->heightForWidth(200);
 
     widgetLayout = new QHBoxLayout(this);
-    widgetLayout->addWidget(topWidget);
-    widgetLayout->addWidget(bottomWidget);
+    widgetLayout->addWidget(leftWidget);
+    widgetLayout->addWidget(rightWidget);
     //this->setLayout(widgetLayout);
 
     //connect(qcp, SIGNAL(mouseDoubleClick(mousePressEvent*)), this, SLOT(setCallout(mousePressEvent*)));

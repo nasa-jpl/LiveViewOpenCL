@@ -118,8 +118,8 @@ private:
     QVector<double> (overlay_widget::*p_getOverlay)(QPointF);
     image_t leftImageType;
     image_t rightImageType;
-    frameview_widget *topWidget;
-    line_widget *bottomWidget;
+    frameview_widget *leftWidget;
+    line_widget *rightWidget;
     QHBoxLayout *widgetLayout;
     QComboBox *plotModeBox;
     QComboBox *plotModeBox2;
