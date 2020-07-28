@@ -24,88 +24,8 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(paren
 
     //connect(qcp, SIGNAL(mouseDoubleClick(mousePressEvent*)), this, SLOT(setCallout(mousePressEvent*)));
 
-    //upperRangeBoundX = xAxisMax;
-
-    //x = QVector<double>(xAxisMax);
-    //for (int i = 0; i < xAxisMax; i++) {
-    //    x[i] = double(i);
-    //}
-
-    //y = QVector<double>(xAxisMax);
-    //y_lh = QVector<double>(xAxisMax);
-
-    //qcp->xAxis->setRange(QCPRange(0, xAxisMax));
-
-    //qcp->setInteractions(QCP::iRangeZoom | QCP::iSelectItems);
-
-    //qcp->yAxis->setLabel("Pixel Magnitude [DN]");
     //setCeiling((1<<16) -1);
     //setFloor(0);
-
-    //qcp->graph(0)->setData(x, y);
-    //qcp->graph(1)->setData(x, y);
-
-    //qcp->addLayer("Box Layer", qcp->currentLayer());
-    //qcp->setCurrentLayer("Box Layer");
-
-    //callout = new QCPItemText(qcp);
-    /*callout->position->setCoords(xAxisMax / 2, ceiling - 1000);
-    callout->setFont(QFont(font().family(), 16));
-    callout->setPen(QPen(Qt::black));
-    callout->setBrush(Qt::white);
-    qcp->setSelectionTolerance(100);
-    callout->setSelectedBrush(Qt::white);
-    callout->setSelectedFont(QFont(font().family(), 16));
-    callout->setSelectedPen(QPen(Qt::black));
-    callout->setSelectedColor(Qt::black);
-    callout->setVisible(false);*/
-
-    //qcp->addLayer("Arrow Layer", qcp->currentLayer(), QCustomPlot::limBelow);
-    //qcp->setCurrentLayer("Arrow Layer");
-
-    //arrow = new QCPItemLine(qcp);
-    /*arrow->start->setParentAnchor(callout->bottom);
-    arrow->setHead(QCPLineEnding::esSpikeArrow);
-    arrow->setSelectable(false);
-    arrow->setVisible(false);
-    qcp->setInteractions(QCP::iRangeZoom | QCP::iSelectItems | QCP::iRangeDrag);*/
-
-    //qcp->yAxis->setLabel("Pixel Magnitude [DN]");
-    //qcp->yAxis->setRange(QCPRange(0, UINT16_MAX)); //From 0 to 2^16
-
-    //qcp->graph(0)->setData(x, y);
-
-    //plotModeBox = new QComboBox();
-    //plotModeBox->addItem("Raw Data");
-    //plotModeBox->addItem("Dark Subtracted Data");
-    //plotModeBox->addItem("Signal-to-Noise Ratio Data");
-    //connect(plotModeBox, SIGNAL(currentIndexChanged(int)),
-    //        this, SLOT(setPlotMode(int)));
-
-    //auto bottomButtons = new QHBoxLayout;
-    //bottomButtons->addWidget(hideTracer);
-    //bottomButtons->addWidget(plotModeBox);
-
-    //auto qvbl = new QVBoxLayout(this);
-    //qvbl->addWidget(qcp);
-    //qvbl->addLayout(bottomButtons);
-    //this->setLayout(qvbl);
-
-    //showCalloutCheck = new QCheckBox("Display Callout");
-    //showCalloutCheck->setChecked(false);
-
-    //zoomX_enable_Check = new QCheckBox("Enable X-Zoom");
-    //zoomX_enable_Check->setChecked(true);
-
-    //zoomY_enable_Check = new QCheckBox("Enable Y-Zoom");
-    //zoomY_enable_Check->setChecked(true);
-
-    //spacer = new QSpacerItem(50,1,QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    //spacer->setAlignment(Qt::AlignRight);
-
-    //reset_zoom_btn = new QPushButton("Reset Zoom");
-    //reset_zoom_btn->setToolTip("Reset the X-axis to full-frame, and the y-axis to full-scale.\n If displaying dark-subtracted data, the y-axis goes to +/- 200 DN.");
-
 
     /*if(itype==VERT_OVERLAY)
     {
