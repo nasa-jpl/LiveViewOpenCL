@@ -51,6 +51,8 @@ private:
     QCPItemRect *blBox;
     QCPItemRect *brBox;
 
+    QComboBox *overlayPlotModeBox;
+
     QLabel* fpsLabel;
     QTimer fpsclock;
     volatile unsigned int count;

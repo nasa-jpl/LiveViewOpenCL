@@ -34,8 +34,6 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) :
 
     //QGridLayout *layout = new QGridLayout();
 
-    QWidget widget;
-
     plotModeBox = new QComboBox();
     plotModeBox->addItem("A");
     plotModeBox->addItem("B");
@@ -50,22 +48,19 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) :
     bottomWidget = new line_widget(fw, SPATIAL_PROFILE);
 
     widgetLayout = new QHBoxLayout(this);
-    widgetLayout->addWidget(qcp);
     widgetLayout->addWidget(topWidget);
     widgetLayout->addWidget(bottomWidget);
     //this->setLayout(widgetLayout);
 
-    bottomSelection = new QHBoxLayout(this);
-    bottomSelection->addWidget(plotModeBox);
-    bottomSelection->addWidget(plotModeBox2);
+    //auto bottomSelection = new QHBoxLayout;
+    //bottomSelection->addWidget(plotModeBox);
+    //bottomSelection->addWidget(plotModeBox2);
     //this->setLayout(bottomSelection);
 
-    combine = new QVBoxLayout(&widget);
-    combine->addLayout(widgetLayout);
-    combine->addLayout(bottomSelection);
-    this->setLayout(combine);
-
-    widget.show();
+    //auto combine = new QVBoxLayout(this);
+    //combine->addWidget(qcp);
+    //combine->addLayout(bottomSelection);
+    //this->setLayout(combine);
 
     //layout->addWidget(widgetLayout, 0, 0, -1, 1);
     //layout->addWidget(bottomSelection, 0, 0, -1, 1);

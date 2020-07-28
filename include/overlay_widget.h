@@ -125,8 +125,6 @@ private:
     frameview_widget *topWidget;
     line_widget *bottomWidget;
     QHBoxLayout *widgetLayout;
-    QHBoxLayout *bottomSelection;
-    QVBoxLayout *combine;
     QComboBox *plotModeBox;
     QComboBox *plotModeBox2;
 };

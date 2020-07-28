@@ -37,6 +37,7 @@ private:
     QCPTextElement *plotTitle;
 
     QComboBox *plotModeBox;
+    QComboBox *overlayPlotModeBox;
     QCheckBox *hideTracer;
 
     QCPItemTracer *tracer;
