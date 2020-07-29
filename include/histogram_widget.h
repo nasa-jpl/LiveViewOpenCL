@@ -19,6 +19,7 @@ public slots:
     void histogramScrolledY(const QCPRange &newRange);
     void rescaleRange();
     void resetRange();
+    void setOverlayPlot(image_t img);
 
 private:
     QCPBars *histogram;

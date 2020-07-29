@@ -103,18 +103,10 @@ public slots:
     void updateCeiling(int c);
     void updateFloor(int f);
     void rescaleRange();
-    void profileScrolledX(const QCPRange &newRange);
-    void profileScrolledY(const QCPRange &newRange);
-    /*! @} */
-    void defaultZoom();
-    void setCallout(QMouseEvent *e);
-    void moveCallout(QMouseEvent *e);
-    void hideCallout();
     void leftPlotClick(QMouseEvent *e);
     void rightPlotClick(QMouseEvent *e);
 
 private:
-    void updateCalloutValue();
     QVector<double> (overlay_widget::*p_getOverlay)(QPointF);
     image_t leftImageType;
     image_t rightImageType;

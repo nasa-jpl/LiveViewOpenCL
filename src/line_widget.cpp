@@ -273,12 +273,12 @@ void line_widget::setPlotMode(LV::PlotMode pm)
     frame_handler->setPlotMode(pm);
 }
 
-//void line_widget::setOverlayPlot(image_t img)
-//{
+void line_widget::setOverlayPlot(image_t img)
+{
   //  switch (img) {
 
     //}
-//}
+}
 
 void line_widget::setDarkMode(bool dm)
 {
@@ -321,9 +321,4 @@ void line_widget::setDarkMode(bool dm)
         callout->setSelectedPen(QPen(Qt::black));
         callout->setSelectedColor(Qt::black);
     }
-}
-
-void line_widget::setOverlayPlot()
-{
-
 }
