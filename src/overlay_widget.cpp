@@ -166,8 +166,6 @@ void overlay_widget::handleNewFrame()
         //qcp->graph(0)->clearData();
         //qcp->replot();
     //}
-    //boundedRange_y = qcp->yAxis->range();
-    //boundedRange_x = qcp->xAxis->range();
 }
 //}
 
