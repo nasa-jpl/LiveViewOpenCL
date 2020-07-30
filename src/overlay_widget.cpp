@@ -29,41 +29,6 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(paren
     //setCeiling((1<<16) -1);
     //setFloor(0);
 
-    /*if(itype==VERT_OVERLAY)
-    {
-        overlay_img = new frameview_widget(fw, DSF, this);
-        // Grid layout
-        // Right side plot and check box:
-        op_vert.addWidget(qcp,1);
-        // op_vert.addWidget(showCalloutCheck, 2);
-        // Assemble Left and Right together:
-        // qgl.addWidget(qcp, 1,2,1,1); // profile plot
-        // qgl.addWidget(showCalloutCheck, 2,2,1,1); //  "Show Callout"
-        horiz_layout.addSpacerItem(spacer);
-        horiz_layout.addWidget(showCalloutCheck,0);
-        horiz_layout.addWidget(zoomX_enable_Check,0);
-        horiz_layout.addWidget(zoomY_enable_Check,0);
-        horiz_layout.addWidget(reset_zoom_btn,0);
-        op_vert.addLayout(&horiz_layout,1);
-        // Place vertical layout on right side:
-        qgl.addLayout(&op_vert, 0,2, Qt::AlignBaseline);
-        // Left side frame view image:
-        qgl.addWidget(overlay_img, 0,1,1,1); // frame view, dark subtracted
-        //TODO: Zoom-X, Zoom-Y toggles for plot
-        this->setLayout(&qgl);
-    } else {
-        // VBox layout
-        qvbl.addWidget(qcp);
-        horiz_layout.addWidget(showCalloutCheck,0);
-        horiz_layout.addWidget(zoomX_enable_Check,0);
-        horiz_layout.addWidget(zoomY_enable_Check,0);
-        horiz_layout.addWidget(reset_zoom_btn,0);
-        horiz_layout.addSpacerItem(spacer);
-        qvbl.addLayout(&horiz_layout, 1);
-        qvbl.addWidget(showCalloutCheck);
-        this->setLayout(&qvbl);
-    }*/
-
     /*connect(reset_zoom_btn, SIGNAL(released()), this, SLOT(defaultZoom())); // disconnect?
     connect(qcp, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(moveCallout(QMouseEvent*)));
     connect(qcp, SIGNAL(mouseDoubleClick(QMouseEvent*)), this, SLOT(setCallout(QMouseEvent*)));
@@ -106,7 +71,7 @@ void overlay_widget::leftPlotClick(QMouseEvent *e)
     if(e->button() == Qt::RightButton) {
         qDebug() << "Only left-right button";
         leftWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(leftWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(leftPopupDialog(QPoint)));
+        connect(leftWidget, SIGNAL(customContextMenuRequested(QPoint&)), this, SLOT(leftPopupDialog(QPoint&)));
     }
 }
 
@@ -115,7 +80,7 @@ void overlay_widget::rightPlotClick(QMouseEvent *e)
     if(e->button() == Qt::RightButton) {
         qDebug() << "Only right-right button";
         rightWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(rightWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(rightPopupDialog(QPoint)));
+        connect(rightWidget, SIGNAL(customContextMenuRequested(QPoint&)), this, SLOT(rightPopupDialog(QPoint&)));
     }
 }
 
@@ -131,6 +96,17 @@ void overlay_widget::leftPopupDialog(const QPoint &pos)
 
     // Show context menu at handling position
     myMenu->exec(globalPos);
+
+    QAction *selectedItem = myMenu->exec(globalPos);
+
+    if (selectedItem)
+    {
+        // something was chosen, do stuff
+    }
+    else
+    {
+        // nothing was chosen
+    }
 }
 
 void overlay_widget::rightPopupDialog(const QPoint &pos)
@@ -145,6 +121,17 @@ void overlay_widget::rightPopupDialog(const QPoint &pos)
 
     // Show context menu at handling position
     myMenu->exec(globalPos);
+
+    QAction *selectedItem = myMenu->exec(globalPos);
+
+    if (selectedItem)
+    {
+        // something was chosen, do stuff
+    }
+    else
+    {
+        // nothing was chosen
+    }
 }
 
 // public slots
