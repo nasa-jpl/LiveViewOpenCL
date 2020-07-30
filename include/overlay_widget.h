@@ -105,6 +105,9 @@ public slots:
     void rescaleRange();
     void leftPlotClick(QMouseEvent *e);
     void rightPlotClick(QMouseEvent *e);
+    //void rightPopupDialog(QWidget *parent = 0, QString txt="");
+    //void leftPopupDialog(QWidget *parent = 0, QString txt="");
+    //~PopupDialog();
 
 private:
     QVector<double> (overlay_widget::*p_getOverlay)(QPointF);
@@ -113,8 +116,6 @@ private:
     frameview_widget *leftWidget;
     line_widget *rightWidget;
     QHBoxLayout *widgetLayout;
-    QComboBox *plotModeBox;
-    QComboBox *plotModeBox2;
 };
 
 #endif // OVERLAY_WIDGET_H

@@ -22,7 +22,9 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(paren
     widgetLayout->addWidget(rightWidget);
     //this->setLayout(widgetLayout);
 
-    //connect(qcp, SIGNAL(mouseDoubleClick(mousePressEvent*)), this, SLOT(setCallout(mousePressEvent*)));
+    connect(leftWidget, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(leftPlotClick(QMouseEvent*)));
+    connect(rightWidget, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(rightPlotClick(QMouseEvent*)));
+    //connect(rightWidget, SIGNAL(mousePress(mousePressEvent*)), this, SLOT(rightPlotClick(mousePressEvent*)));
 
     //setCeiling((1<<16) -1);
     //setFloor(0);
@@ -101,12 +103,16 @@ double overlay_widget::getCeiling()
 
 void overlay_widget::leftPlotClick(QMouseEvent *e)
 {
+    if(e->button() == Qt::RightButton) {
 
+    }
 }
 
 void overlay_widget::rightPlotClick(QMouseEvent *e)
 {
+    if(e->button() == Qt::RightButton) {
 
+    }
 }
 
 // public slots
