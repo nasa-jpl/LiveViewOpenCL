@@ -119,12 +119,30 @@ void overlay_widget::rightPlotClick(QMouseEvent *e)
 
 void overlay_widget::leftPopupDialog(const QPoint &pos)
 {
+    // Handle global position
+    QPoint globalPos = leftWidget->mapToGlobal(pos);
 
+    // Create menu and insert some actions
+    QMenu myMenu;
+    myMenu.addAction("Insert", this, SLOT(addItem()));
+    myMenu.addAction("Erase",  this, SLOT(eraseItem()));
+
+    // Show context menu at handling position
+    myMenu.exec(globalPos);
 }
 
 void overlay_widget::rightPopupDialog(const QPoint &pos)
 {
+    // Handle global position
+    QPoint globalPos = rightWidget->mapToGlobal(pos);
 
+    // Create menu and insert some actions
+    QMenu myMenu;
+    myMenu.addAction("Insert", this, SLOT(addItem()));
+    myMenu.addAction("Erase",  this, SLOT(eraseItem()));
+
+    // Show context menu at handling position
+    myMenu.exec(globalPos);
 }
 
 // public slots
