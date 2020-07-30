@@ -20,7 +20,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(paren
     widgetLayout = new QHBoxLayout(this);
     widgetLayout->addWidget(leftWidget);
     widgetLayout->addWidget(rightWidget);
-    //this->setLayout(widgetLayout);
+    this->setLayout(widgetLayout);
 
     connect(leftWidget, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(leftPlotClick(QMouseEvent*)));
     connect(rightWidget, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(rightPlotClick(QMouseEvent*)));
@@ -104,6 +104,7 @@ double overlay_widget::getCeiling()
 void overlay_widget::leftPlotClick(QMouseEvent *e)
 {
     if(e->button() == Qt::RightButton) {
+        qDebug() << "Only left-right button";
         leftWidget->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(leftWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(leftPopupDialog(QPoint)));
     }
@@ -112,6 +113,7 @@ void overlay_widget::leftPlotClick(QMouseEvent *e)
 void overlay_widget::rightPlotClick(QMouseEvent *e)
 {
     if(e->button() == Qt::RightButton) {
+        qDebug() << "Only right-right button";
         rightWidget->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(rightWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(rightPopupDialog(QPoint)));
     }
@@ -123,12 +125,12 @@ void overlay_widget::leftPopupDialog(const QPoint &pos)
     QPoint globalPos = leftWidget->mapToGlobal(pos);
 
     // Create menu and insert some actions
-    QMenu myMenu;
-    myMenu.addAction("Insert", this, SLOT(addItem()));
-    myMenu.addAction("Erase",  this, SLOT(eraseItem()));
+    QMenu *myMenu = new QMenu(this);
+    myMenu->addAction("Insert", this, SLOT(addItem()));
+    myMenu->addAction("Erase",  this, SLOT(eraseItem()));
 
     // Show context menu at handling position
-    myMenu.exec(globalPos);
+    myMenu->exec(globalPos);
 }
 
 void overlay_widget::rightPopupDialog(const QPoint &pos)
@@ -137,12 +139,12 @@ void overlay_widget::rightPopupDialog(const QPoint &pos)
     QPoint globalPos = rightWidget->mapToGlobal(pos);
 
     // Create menu and insert some actions
-    QMenu myMenu;
-    myMenu.addAction("Insert", this, SLOT(addItem()));
-    myMenu.addAction("Erase",  this, SLOT(eraseItem()));
+    QMenu *myMenu = new QMenu(this);
+    myMenu->addAction("Insert", this, SLOT(addItem()));
+    myMenu->addAction("Erase",  this, SLOT(eraseItem()));
 
     // Show context menu at handling position
-    myMenu.exec(globalPos);
+    myMenu->exec(globalPos);
 }
 
 // public slots
