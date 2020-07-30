@@ -66,8 +66,6 @@ public:
         }
     }
 
-    QCustomPlot *qcp;
-
 public slots:
     virtual void setFloorPos(double minPos) {
         double f = dataMax * (minPos / 99.0);
@@ -131,6 +129,8 @@ protected:
 
     FrameWorker *frame_handler;
     QTimer renderTimer;
+
+    QCustomPlot *qcp;
 
     int frWidth;
     int frHeight;
