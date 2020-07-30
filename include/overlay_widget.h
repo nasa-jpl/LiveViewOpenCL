@@ -43,15 +43,7 @@ class overlay_widget : public QWidget
     //QVBoxLayout op_vert; // overlay plot vertical layout option
     //QHBoxLayout horiz_layout; // bottom of profile plot check boxes
 
-    //QCheckBox *showCalloutCheck;
-    //QCheckBox * zoomX_enable_Check;
-    //QCheckBox * zoomY_enable_Check;
     //QCPItemText *callout;
-    //QCPItemLine *arrow;
-    //QSpacerItem * spacer;
-    //QPushButton * reset_zoom_btn;
-
-    //QComboBox *plotModeBox;
 
     /* Plot elements */
     //QCustomPlot *qcp;
@@ -105,8 +97,8 @@ public slots:
     void rescaleRange();
     void leftPlotClick(QMouseEvent *e);
     void rightPlotClick(QMouseEvent *e);
-    //void rightPopupDialog(QWidget *parent = 0, QString txt="");
-    //void leftPopupDialog(QWidget *parent = 0, QString txt="");
+    void rightPopupDialog(const QPoint &pos);
+    void leftPopupDialog(const QPoint &pos);
     //~PopupDialog();
 
 private:

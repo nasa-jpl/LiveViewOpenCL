@@ -104,15 +104,27 @@ double overlay_widget::getCeiling()
 void overlay_widget::leftPlotClick(QMouseEvent *e)
 {
     if(e->button() == Qt::RightButton) {
-
+        leftWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(leftWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(leftPopupDialog(QPoint)));
     }
 }
 
 void overlay_widget::rightPlotClick(QMouseEvent *e)
 {
     if(e->button() == Qt::RightButton) {
-
+        rightWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(rightWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(rightPopupDialog(QPoint)));
     }
+}
+
+void overlay_widget::leftPopupDialog(const QPoint &pos)
+{
+
+}
+
+void overlay_widget::rightPopupDialog(const QPoint &pos)
+{
+
 }
 
 // public slots
