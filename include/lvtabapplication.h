@@ -32,6 +32,8 @@ public:
 
     virtual ~LVTabApplication() {}
 
+    QCustomPlot *qcp;
+
     double getCeiling() { return ceiling; }
     double getFloor() { return floor; }
     double getDataMax() { return dataMax; }
@@ -129,8 +131,6 @@ protected:
 
     FrameWorker *frame_handler;
     QTimer renderTimer;
-
-    QCustomPlot *qcp;
 
     int frWidth;
     int frHeight;

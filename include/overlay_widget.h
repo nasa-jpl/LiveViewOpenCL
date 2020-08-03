@@ -9,6 +9,12 @@
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QGroupBox>
+#include <QRadioButton>
+#include <QSettings>
+
+#include <stdint.h>
+#include <functional>
 
 /* Live View includes */
 #include "qcustomplot.h"
@@ -16,6 +22,8 @@
 #include "image_type.h"
 #include "frameview_widget.h"
 #include "line_widget.h"
+#include "lvtabapplication.h"
+#include "constants.h"
 
 /*! \file
  * \brief Widget which displays a line plot of two dimensions of image data.
@@ -36,18 +44,6 @@ class overlay_widget : public QWidget
 
     FrameWorker *fw;
     QTimer rendertimer;
-
-    /* GUI elements */
-    //QVBoxLayout qvbl; // for others
-    //QGridLayout qgl; // for overlay
-    //QVBoxLayout op_vert; // overlay plot vertical layout option
-    //QHBoxLayout horiz_layout; // bottom of profile plot check boxes
-
-    //QCPItemText *callout;
-
-    /* Plot elements */
-    //QCustomPlot *qcp;
-    //QCPTextElement *plotTitle;
 
      /* Frame rendering elements */
     int frWidth, frHeight;
