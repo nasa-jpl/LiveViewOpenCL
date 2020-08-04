@@ -91,8 +91,9 @@ void overlay_widget::leftPopupDialog(const QPoint &pos)
 
     // Create menu and insert some actions
     QMenu *myMenu = new QMenu(this);
-    myMenu->addAction("Insert", this, SLOT(addItem()));
-    myMenu->addAction("Erase",  this, SLOT(eraseItem()));
+    myMenu->addAction("Live View", this, SLOT(leftWidgetSelection()));
+    myMenu->addAction("Dark Subtraction",  this, SLOT(leftWidgetSelection()));
+    myMenu->addAction("Standard Deviation",  this, SLOT(leftWidgetSelection()));
 
     // Show context menu at handling position
     myMenu->exec(globalPos);
@@ -116,8 +117,10 @@ void overlay_widget::rightPopupDialog(const QPoint &pos)
 
     // Create menu and insert some actions
     QMenu *myMenu = new QMenu(this);
-    myMenu->addAction("Insert", this, SLOT(addItem()));
-    myMenu->addAction("Erase",  this, SLOT(eraseItem()));
+    myMenu->addAction("Spectral Profile", this, SLOT(rightWidgetSelection()));
+    myMenu->addAction("Spectral Mean",  this, SLOT(rightWidgetSelection()));
+    myMenu->addAction("Spatial Profile",  this, SLOT(rightWidgetSelection()));
+    myMenu->addAction("Spatial Mean",  this, SLOT(rightWidgetSelection()));
 
     // Show context menu at handling position
     myMenu->exec(globalPos);
