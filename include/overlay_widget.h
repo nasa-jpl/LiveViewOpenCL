@@ -45,24 +45,8 @@ class overlay_widget : public QWidget
     FrameWorker *fw;
     QTimer rendertimer;
 
-     /* Frame rendering elements */
-    int frWidth, frHeight;
-    //int xAxisMax = 0;
-
     volatile double ceiling;
     volatile double floor;
-
-    QVector<double> x;
-    QVector<double> y;
-    QVector<double> y_lh;
-    QVector<double> y_rh;
-
-    QCPRange boundedRange_x;
-    QCPRange boundedRange_y;
-
-    int x_coord;
-    volatile int y_coord;
-    //bool allow_callouts = true;
 
 public:
     explicit overlay_widget(FrameWorker *fw, QWidget *parent);
@@ -81,13 +65,6 @@ public:
     frameview_widget *overlay_img; // public to aid connection through the profile to the controls box
 
 public slots:
-    /*! \addtogroup renderfunc
-     * @{ */
-    void handleNewFrame();
-    /*! @} */
-
-    /*! \addtogroup plotfunc
-     * @{ */
     void updateCeiling(int c);
     void updateFloor(int f);
     void rescaleRange();
@@ -95,6 +72,13 @@ public slots:
     void rightPlotClick(QMouseEvent *e);
     void rightPopupDialog(const QPoint &pos);
     void leftPopupDialog(const QPoint &pos);
+    void liveView();
+    void darkSubtraction();
+    void standardDeviation();
+    void spectralProfile();
+    void spectralMean();
+    void spatialProfile();
+    void spatialMean();
     //~PopupDialog();
 
 private:

@@ -25,30 +25,8 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(paren
 
     connect(leftWidget->qcp, &QCustomPlot::mousePress, this, &overlay_widget::leftPlotClick);
     connect(rightWidget->qcp, &QCustomPlot::mousePress, this, &overlay_widget::rightPlotClick);
-
-    //setCeiling((1<<16) -1);
-    //setFloor(0);
-
-    /*connect(reset_zoom_btn, SIGNAL(released()), this, SLOT(defaultZoom())); // disconnect?
-    connect(qcp, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(moveCallout(QMouseEvent*)));
-    connect(qcp, SIGNAL(mouseDoubleClick(QMouseEvent*)), this, SLOT(setCallout(QMouseEvent*)));
-    connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(profileScrolledX(QCPRange)));
-    connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(profileScrolledY(QCPRange)));
-    connect(showCalloutCheck, SIGNAL(clicked()), this, SLOT(hideCallout()));
-    connect(&rendertimer, SIGNAL(timeout()), this, SLOT(handleNewFrame()));
-    //connect(frame_handler, &FrameWorker::crosshairChanged, this, &line_widget::updatePlotTitle);
-
-    connect(frame_handler->Camera, &CameraModel::timeout, this, [=]() {
-        QVector<double> zero_data(x.length(), 0);
-        //qcp->graph(0)->setData(x, zero_data);
-        qcp->replot();
-        // renderTimer.stop();
-    });
-    if (frame_handler->running()) {
-        renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
-    }
-    rendertimer.start(FRAME_DISPLAY_PERIOD_MSECS);*/
 }
+
 overlay_widget::~overlay_widget()
 {
     delete overlay_img;
@@ -71,7 +49,7 @@ void overlay_widget::leftPlotClick(QMouseEvent *e)
     if(e->button() == Qt::RightButton) {
         qDebug() << "Only left-right button";
         leftWidget->qcp->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(leftWidget->qcp, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(leftPopupDialog(const QPoint&)));
+        connect(leftWidget->qcp, &QCustomPlot::customContextMenuRequested, this, &overlay_widget::leftPopupDialog);
     }
 }
 
@@ -80,7 +58,7 @@ void overlay_widget::rightPlotClick(QMouseEvent *e)
     if(e->button() == Qt::RightButton) {
         qDebug() << "Only right-right button";
         rightWidget->qcp->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(rightWidget->qcp, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(rightPopupDialog(const QPoint&)));
+        connect(rightWidget->qcp, &QCustomPlot::customContextMenuRequested, this, &overlay_widget::rightPopupDialog);
     }
 }
 
@@ -91,23 +69,12 @@ void overlay_widget::leftPopupDialog(const QPoint &pos)
 
     // Create menu and insert some actions
     QMenu *myMenu = new QMenu(this);
-    myMenu->addAction("Live View", this, SLOT(leftWidgetSelection()));
-    myMenu->addAction("Dark Subtraction",  this, SLOT(leftWidgetSelection()));
-    myMenu->addAction("Standard Deviation",  this, SLOT(leftWidgetSelection()));
+    myMenu->addAction("Live View", this, &overlay_widget::liveView);
+    myMenu->addAction("Dark Subtraction",  this, &overlay_widget::darkSubtraction);
+    myMenu->addAction("Standard Deviation",  this, &overlay_widget::standardDeviation);
 
     // Show context menu at handling position
     myMenu->exec(globalPos);
-
-    QAction *selectedItem = myMenu->exec(globalPos);
-
-    if (selectedItem)
-    {
-        // something was chosen, do stuff
-    }
-    else
-    {
-        // nothing was chosen
-    }
 }
 
 void overlay_widget::rightPopupDialog(const QPoint &pos)
@@ -117,85 +84,50 @@ void overlay_widget::rightPopupDialog(const QPoint &pos)
 
     // Create menu and insert some actions
     QMenu *myMenu = new QMenu(this);
-    myMenu->addAction("Spectral Profile", this, SLOT(rightWidgetSelection()));
-    myMenu->addAction("Spectral Mean",  this, SLOT(rightWidgetSelection()));
-    myMenu->addAction("Spatial Profile",  this, SLOT(rightWidgetSelection()));
-    myMenu->addAction("Spatial Mean",  this, SLOT(rightWidgetSelection()));
+    myMenu->addAction("Spectral Profile", this, &overlay_widget::spectralProfile);
+    myMenu->addAction("Spectral Mean",  this, &overlay_widget::spectralMean);
+    myMenu->addAction("Spatial Profile",  this, &overlay_widget::spatialProfile);
+    myMenu->addAction("Spatial Mean",  this, &overlay_widget::spatialMean);
 
     // Show context menu at handling position
     myMenu->exec(globalPos);
-
-    QAction *selectedItem = myMenu->exec(globalPos);
-
-    if (selectedItem)
-    {
-        // something was chosen, do stuff
-    }
-    else
-    {
-        // nothing was chosen
-    }
 }
 
-// public slots
-void overlay_widget::handleNewFrame()
+void overlay_widget::liveView()
 {
-    /*! \brief Plots a specific dimension profile.
-     * \paragraph
-     * The switch statement is a bit silly here, I only use it to differentiate the plot title and the type of profile array to use.
-     * The y-axis data is reversed in these images.
-     * \author Jackie Ryan
-     */
 
-    //if (!this->isHidden() && frame_handler->running()) {
-        //QPointF *center = frame_handler->getCenter();
-        //if (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN || center->x() > -0.1) {
-            //y = (this->*p_getOverlay)(*center);
-            //qcp->graph(0)->setData(x, y);
-            // replotting is slow when the data set is chaotic... TODO: develop an optimization here
-            //qcp->replot();
-            /*if (!hideTracer->isChecked()) {
-                callout->setText(QString(" x: %1 \n y: %2 ").arg(static_cast<int>(tracer->graphKey()))
-                             .arg(y[static_cast<int>(tracer->graphKey())]));
-            }*/
-        //}
-    //}
-
-        /*case VERT_OVERLAY:
-            local_image_ptr = fw->curFrame->vertical_mean_profile; // vertical profiles
-            for (int r = 0; r < frHeight; r++)
-            {
-                y[r] = double(local_image_ptr[r]);
-                y_lh[r] = double(fw->curFrame->vertical_mean_profile_lh[r]);
-                y_rh[r] = double(fw->curFrame->vertical_mean_profile_rh[r]);
-            }
-            // display overlay
-            qcp->graph(1)->setData(x, y_lh);
-            qcp->graph(2)->setData(x, y_rh);
-            break;*/
-
-    // display x and y:
-        //qcp->graph(0)->setData(x, y);
-        //qcp->replot();
-
-        //if (callout->visible())
-            //updateCalloutValue();
-        switch (image_type) {
-        //case SPATIAL_MEAN: plotTitle->setText(QString("Horizontal Mean Profile")); break;
-        //case HORIZONTAL_CROSS: plotTitle->setText(QString("Horizontal Profile centered @ y = %1").arg(fw->crosshair_y)); break;
-        //case SPECTRAL_MEAN: plotTitle->setText(QString("Vertical Mean Profile")); break;
-        //case VERTICAL_CROSS: plotTitle->setText(QString("Vertical Profile centered @ x = %1").arg(fw->crosshair_x)); break;
-        //case VERT_OVERLAY: plotTitle->setText(QString("Vertical Overlay")); break; // TODO: Add useful things here
-        default: break;
-        }
-    //} else {
-        //plotTitle->setText("No Crosshair designated");
-        //allow_callouts = false;
-        //qcp->graph(0)->clearData();
-        //qcp->replot();
-    //}
 }
-//}
+
+void overlay_widget::darkSubtraction()
+{
+
+}
+
+void overlay_widget::standardDeviation()
+{
+
+}
+
+void overlay_widget::spectralProfile()
+{
+
+}
+
+void overlay_widget::spectralMean()
+{
+    image_type = SPECTRAL_MEAN;
+
+}
+
+void overlay_widget::spatialProfile()
+{
+
+}
+
+void overlay_widget::spatialMean()
+{
+
+}
 
 void overlay_widget::updateCeiling(int c)
 {
