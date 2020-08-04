@@ -70,8 +70,8 @@ void overlay_widget::leftPlotClick(QMouseEvent *e)
 {
     if(e->button() == Qt::RightButton) {
         qDebug() << "Only left-right button";
-        leftWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(leftWidget, SIGNAL(customContextMenuRequested(QPoint&)), this, SLOT(leftPopupDialog(QPoint&)));
+        leftWidget->qcp->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(leftWidget->qcp, SIGNAL(customContextMenuRequested(QPoint&)), this, SLOT(leftPopupDialog(QPoint&)));
     }
 }
 
@@ -79,8 +79,8 @@ void overlay_widget::rightPlotClick(QMouseEvent *e)
 {
     if(e->button() == Qt::RightButton) {
         qDebug() << "Only right-right button";
-        rightWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(rightWidget, SIGNAL(customContextMenuRequested(QPoint&)), this, SLOT(rightPopupDialog(QPoint&)));
+        rightWidget->qcp->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(rightWidget->qcp, SIGNAL(customContextMenuRequested(QPoint&)), this, SLOT(rightPopupDialog(QPoint&)));
     }
 }
 
