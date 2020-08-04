@@ -25,6 +25,9 @@
 #include "cameramodel.h"
 #include "constants.h"
 #include "lvframe.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 #define TIMEOUT_DURATION 100
 

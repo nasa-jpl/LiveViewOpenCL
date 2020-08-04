@@ -33,6 +33,13 @@ bool RemoteCamera::start()
     socket = new QTcpSocket();
     socket->setSocketDescriptor(socket_descriptor);
     socket->setReadBufferSize(framesize*2*4);
+    int optval = 100000000;
+    if(setsockopt(socket_descriptor, SOL_SOCKET, SO_RCVBUF, &optval, sizeof(int)) == -1) {
+        qDebug() << "Buffer size Error" << errno;
+    } else {
+        qDebug() << "Buffer Size Sys" << optval;
+    }
+    socket->setReadBufferSize(framesize*2*4);
     //qDebug() << socket->readAll(); // I need to do this to make sure I don't miss anything (according to sources :))
 
     connect(socket, &QTcpSocket::stateChanged, this, &RemoteCamera::SocketStateChanged);
@@ -64,10 +71,6 @@ bool RemoteCamera::start()
     return true;
 }
 
-qint64 RemoteCamera::SafeRead(char *read_buffer, int max_bytes) {
-    return socket->read(read_buffer, max_bytes);
-}
-
 qint64 RemoteCamera::SafeWrite(char *write_buffer) {
     quint64 status = socket->write(write_buffer);
     socket->waitForBytesWritten(100);
@@ -82,12 +85,13 @@ void RemoteCamera::SocketRead()
     qint64 bytes_read = 0;
     do {
         if (!socket->waitForReadyRead(500)) { // If it timed out return existing frame
-            if (!(socket->bytesAvailable() > 0)) {
+            int bytes_avai = socket->bytesAvailable();
+            if (!(bytes_avai > 0)) {
                 qDebug() << "Timed Out" << byte_pos;
                 break;
             }
         }
-
+    
         socket->startTransaction(); // Transaactions aren't confirmed to work.
         bytes_read = socket->read((char*)temp_frame.data() + byte_pos, frame_byte_size - byte_pos);
         //qDebug() << "Read" << (bytes_read >> 1) << "pixels into pos" << (byte_pos >> 1) << "to" << ((byte_pos + bytes_read)>>1);
@@ -97,10 +101,9 @@ void RemoteCamera::SocketRead()
         }
         socket->commitTransaction();
         byte_pos += bytes_read;
-
     } while (byte_pos < frame_byte_size && is_connected); // While we still have more pixels
     qDebug() << "Finished Receiving Frame: " << byte_pos;
-
+    
     if (socket->bytesAvailable() > 0) { // Just output if all the bytes weren't used.
         qDebug() << "Bytes left over:" << socket->bytesAvailable();
     }
