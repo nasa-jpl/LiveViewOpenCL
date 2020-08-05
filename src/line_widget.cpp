@@ -273,11 +273,36 @@ void line_widget::setPlotMode(LV::PlotMode pm)
     frame_handler->setPlotMode(pm);
 }
 
-void line_widget::setOverlayPlot(image_t img)
+void line_widget::setOverlayPlot(image_t image_type)
 {
-  //  switch (img) {
-
-    //}
+    switch (image_type) {
+    case SPATIAL_PROFILE:
+        xAxisMax = static_cast<int>(frWidth);
+        qcp->xAxis->setLabel("Spatial index");
+        p_getLine = &line_widget::getSpatialLine;
+        break;
+    case SPECTRAL_MEAN:
+        xAxisMax = static_cast<int>(frHeight);
+        qcp->xAxis->setLabel("Spectral index");
+        p_getLine = &line_widget::getSpectralMean;
+        plotTitle->setText(QString("Spectral Mean of Single Frame"));
+        break;
+    case SPATIAL_MEAN:
+        xAxisMax = static_cast<int>(frWidth);
+        qcp->xAxis->setLabel("Spatial index");
+        p_getLine = &line_widget::getSpatialMean;
+        plotTitle->setText(QString("Spatial Mean of Single Frame"));
+        break;
+    case SPECTRAL_PROFILE:
+        xAxisMax = static_cast<int>(frHeight);
+        qcp->xAxis->setLabel("Spectral index");
+        p_getLine = &line_widget::getSpectralLine;
+        break;
+    default:
+        xAxisMax = static_cast<int>(frHeight);
+        qcp->xAxis->setLabel("Spectral index");
+        p_getLine = &line_widget::getSpectralLine;
+    }
 }
 
 void line_widget::setDarkMode(bool dm)

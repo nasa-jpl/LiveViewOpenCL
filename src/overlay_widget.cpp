@@ -110,23 +110,27 @@ void overlay_widget::standardDeviation()
 
 void overlay_widget::spectralProfile()
 {
-
+    image_type = SPECTRAL_PROFILE;
+    rightWidget->setOverlayPlot(image_type);
 }
 
 void overlay_widget::spectralMean()
 {
     image_type = SPECTRAL_MEAN;
+    rightWidget->setOverlayPlot(image_type);
 
 }
 
 void overlay_widget::spatialProfile()
 {
-
+    image_type = SPATIAL_PROFILE;
+    rightWidget->setOverlayPlot(image_type);
 }
 
 void overlay_widget::spatialMean()
 {
-
+    image_type = SPATIAL_MEAN;
+    rightWidget->setOverlayPlot(image_type);
 }
 
 void overlay_widget::updateCeiling(int c)
