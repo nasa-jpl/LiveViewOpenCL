@@ -118,7 +118,6 @@ void overlay_widget::spectralMean()
 {
     image_type = SPECTRAL_MEAN;
     rightWidget->setOverlayPlot(image_type);
-
 }
 
 void overlay_widget::spatialProfile()
