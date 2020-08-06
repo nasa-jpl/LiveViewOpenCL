@@ -11,7 +11,7 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(paren
      * \author Noah Levy */
 
     leftWidget = new frameview_widget(fw, DSF, fw->settings);
-    rightWidget = new line_widget(fw, SPATIAL_PROFILE);
+    rightWidget = new line_widget(fw, SPATIAL_MEAN);
 
     //QSizePolicy qsp(QSizePolicy::Preferred, QSizePolicy::Preferred);
     //qsp.setHeightForWidth(true);
