@@ -33,7 +33,7 @@ public slots:
     void reportFPS();
     void setPlotMode(bool checked);
     QCPColorMap* getColorMap();
-    void setOverlayPlot();
+    void setOverlayPlot(image_t image_type_overlay);
 
 private:
     inline void setDarkMode();
@@ -53,6 +53,8 @@ private:
     QCPItemRect *brBox;
 
     QComboBox *overlayPlotModeBox;
+
+    QCheckBox *plotModeCheckbox;
 
     QLabel* fpsLabel;
     QTimer fpsclock;

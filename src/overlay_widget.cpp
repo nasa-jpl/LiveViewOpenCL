@@ -95,17 +95,20 @@ void overlay_widget::rightPopupDialog(const QPoint &pos)
 
 void overlay_widget::liveView()
 {
-
+    image_type = BASE;
+    leftWidget->setOverlayPlot(image_type);
 }
 
 void overlay_widget::darkSubtraction()
 {
-
+    image_type = DSF;
+    leftWidget->setOverlayPlot(image_type);
 }
 
 void overlay_widget::standardDeviation()
 {
-
+    image_type = STD_DEV;
+    leftWidget->setOverlayPlot(image_type);
 }
 
 void overlay_widget::spectralProfile()

@@ -166,7 +166,7 @@ frameview_widget::frameview_widget(FrameWorker *fw,
      * FrameWorker::captureSDFrames loop function.
      */
     if (image_type == DSF) { //Dark Sub Widget Only
-        QCheckBox *plotModeCheckbox =
+        plotModeCheckbox =
                 new QCheckBox("Plot Signal-to-Noise Ratio", this);
         connect(plotModeCheckbox, &QCheckBox::toggled,
                 this, &frameview_widget::setPlotMode);
@@ -444,6 +444,28 @@ void frameview_widget::mouse_up(QMouseEvent *event) {
    frame_handler->topLeft = QPointF(tlx, tly);
 }
 
-void frameview_widget::setOverlayPlot() {
-
+void frameview_widget::setOverlayPlot(image_t image_type_overlay)
+{
+    //switch(image_type_overlay) {
+    //case BASE:
+        //ceiling = UINT16_MAX;
+        p_getFrame = &FrameWorker::getFrame;
+        delete plotModeCheckbox;
+        image_type = image_type_overlay;
+        //break;
+    /*case DSF:
+        ceiling = 100.0;
+        p_getFrame = &FrameWorker::getDSFrame;
+        image_type = image_type_overlay;
+        break;
+    case STD_DEV:
+        ceiling = 100.0;
+        p_getFrame = &FrameWorker::getSDFrame;
+        image_type = image_type_overlay;
+        break;
+    default:
+        ceiling = UINT16_MAX;
+        p_getFrame = &FrameWorker::getFrame;
+        image_type = image_type_overlay;*/
+    //}
 }

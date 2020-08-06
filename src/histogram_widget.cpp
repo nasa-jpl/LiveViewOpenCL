@@ -103,10 +103,3 @@ void histogram_widget::resetRange()
 {
     qcp->xAxis->setRange(QCPRange(1, hist_bins[hist_bins.size() - 1]));
 }
-
-void histogram_widget::setOverlayPlot(image_t img)
-{
-  //  switch (img) {
-
-    //}
-}
