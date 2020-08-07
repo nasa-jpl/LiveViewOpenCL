@@ -26,6 +26,7 @@ public:
 
 public slots:
     void handleNewFrame();
+    void handleNewFrameOverlay();
     void drawCrosshair(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
     void hideCrosshair(bool hide);
     void showTooltip(bool show);

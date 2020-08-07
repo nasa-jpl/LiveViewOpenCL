@@ -451,24 +451,58 @@ void frameview_widget::setOverlayPlot(image_t image_type_overlay)
         ceiling = UINT16_MAX;
         image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getFrame;
-        colorMap->setData(colorMapData);
         plotModeCheckbox->setVisible(false);
+        qDebug() << image_type;
+        qDebug() << image_type_overlay;
+        delete colorMapData;
+        //handleNewFrameOverlay();
+        //colorMap->setData(colorMapData);
         break;
     case DSF:
         ceiling = 100.0;
         image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getDSFrame;
         plotModeCheckbox->setVisible(true);
+        qDebug() << image_type;
+        qDebug() << image_type_overlay;
         break;
     case STD_DEV:
         ceiling = 100.0;
         image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getSDFrame;
         plotModeCheckbox->setVisible(false);
+        qDebug() << image_type;
+        qDebug() << image_type_overlay;
         break;
     default:
         ceiling = UINT16_MAX;
-        p_getFrame = &FrameWorker::getFrame;
         image_type = image_type_overlay;
+        p_getFrame = &FrameWorker::getFrame;
+        plotModeCheckbox->setVisible(false);
+        qDebug() << image_type;
+        qDebug() << image_type_overlay;
     }
+}
+
+void frameview_widget::handleNewFrameOverlay()
+{
+    timeout_display = true;
+        std::vector<float>image_data{(frame_handler->*p_getFrame)()};
+        qDebug() << p_getFrame;
+        for (int col = 0; col < frWidth; col++) {
+            for (int row = 0; row < frHeight; row++ ) {
+                colorMap->data()->setCell(col, row,
+                                          double(image_data[size_t(row * frWidth + col)])); // y-axis NOT reversed
+            }
+        }
+        qcp->replot();
+        count++;
+
+    // count-based FPS counter, gets slower to update the lower the fps,
+    // but can provide fractional fps values.
+    /* if (count % 50 == 0 && count != 0) {
+        fps = 50.0 / fpsclock.restart() * 1000.0;
+        fps_string = QString::number(fps, 'f', 1);
+        fpsLabel->setText(QString("Display: %1 fps").arg(fps_string));
+    } */
 }
