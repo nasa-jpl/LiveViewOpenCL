@@ -446,26 +446,29 @@ void frameview_widget::mouse_up(QMouseEvent *event) {
 
 void frameview_widget::setOverlayPlot(image_t image_type_overlay)
 {
-    //switch(image_type_overlay) {
-    //case BASE:
-        //ceiling = UINT16_MAX;
+    switch(image_type_overlay) {
+    case BASE:
+        ceiling = UINT16_MAX;
+        image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getFrame;
-        delete plotModeCheckbox;
-        image_type = image_type_overlay;
-        //break;
-    /*case DSF:
+        colorMap->setData(colorMapData);
+        plotModeCheckbox->setVisible(false);
+        break;
+    case DSF:
         ceiling = 100.0;
-        p_getFrame = &FrameWorker::getDSFrame;
         image_type = image_type_overlay;
+        p_getFrame = &FrameWorker::getDSFrame;
+        plotModeCheckbox->setVisible(true);
         break;
     case STD_DEV:
         ceiling = 100.0;
-        p_getFrame = &FrameWorker::getSDFrame;
         image_type = image_type_overlay;
+        p_getFrame = &FrameWorker::getSDFrame;
+        plotModeCheckbox->setVisible(false);
         break;
     default:
         ceiling = UINT16_MAX;
         p_getFrame = &FrameWorker::getFrame;
-        image_type = image_type_overlay;*/
-    //}
+        image_type = image_type_overlay;
+    }
 }

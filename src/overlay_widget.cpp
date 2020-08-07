@@ -96,7 +96,7 @@ void overlay_widget::rightPopupDialog(const QPoint &pos)
 void overlay_widget::liveView()
 {
     image_type = BASE;
-    leftWidget->setOverlayPlot(image_type);
+    leftWidget->setOverlayPlot(BASE);
 }
 
 void overlay_widget::darkSubtraction()

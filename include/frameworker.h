@@ -37,16 +37,6 @@ class LVFrameBuffer;
 
 using namespace std::chrono;
 
-/* regular slider range */
-const static int BIG_MAX = (1<<16) - 1;
-const static int BIG_MIN = -1 * BIG_MAX / 4;
-const static int BIG_TICK = 400;
-
-/* slider low increment range */
-const static int LIL_MAX = 2000;
-const static int LIL_MIN = -2000;
-const static int LIL_TICK = 1;
-
 class FrameWorker : public QObject
 {
     Q_OBJECT
