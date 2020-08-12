@@ -47,7 +47,6 @@ double overlay_widget::getCeiling()
 void overlay_widget::leftPlotClick(QMouseEvent *e)
 {
     if(e->button() == Qt::RightButton) {
-        qDebug() << "Only left-right button";
         leftWidget->qcp->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(leftWidget->qcp, &QCustomPlot::customContextMenuRequested, this, &overlay_widget::leftPopupDialog);
     }
@@ -56,7 +55,6 @@ void overlay_widget::leftPlotClick(QMouseEvent *e)
 void overlay_widget::rightPlotClick(QMouseEvent *e)
 {
     if(e->button() == Qt::RightButton) {
-        qDebug() << "Only right-right button";
         rightWidget->qcp->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(rightWidget->qcp, &QCustomPlot::customContextMenuRequested, this, &overlay_widget::rightPopupDialog);
     }
@@ -96,7 +94,7 @@ void overlay_widget::rightPopupDialog(const QPoint &pos)
 void overlay_widget::liveView()
 {
     image_type = BASE;
-    leftWidget->setOverlayPlot(BASE);
+    leftWidget->setOverlayPlot(image_type);
 }
 
 void overlay_widget::darkSubtraction()

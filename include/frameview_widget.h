@@ -26,7 +26,6 @@ public:
 
 public slots:
     void handleNewFrame();
-    void handleNewFrameOverlay();
     void drawCrosshair(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
     void hideCrosshair(bool hide);
     void showTooltip(bool show);
@@ -39,6 +38,7 @@ public slots:
 private:
     inline void setDarkMode();
     std::vector<float> (FrameWorker::*p_getFrame)();
+    
     image_t image_type;
 
     QCPColorMap *colorMap;

@@ -13,18 +13,26 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     case BASE:
         ceiling = UINT16_MAX;
         p_getFrame = &FrameWorker::getFrame;
+        qDebug() << "initial image_type BASE" << image_type;
+        qDebug()<< "initial p_getFrame BASE" << p_getFrame;
         break;
     case DSF:
         ceiling = 100.0;
         p_getFrame = &FrameWorker::getDSFrame;
+        qDebug() << "initial image_type DSF" << image_type;
+        qDebug()<< "initial p_getFrame DSF" << p_getFrame;
         break;
     case STD_DEV:
         ceiling = 100.0;
         p_getFrame = &FrameWorker::getSDFrame;
+        qDebug() << "initial image_type STD_DEV" << image_type;
+        qDebug()<< "initial p_getFrame STD_DEV" << p_getFrame;
         break;
     default:
         ceiling = UINT16_MAX;
         p_getFrame = &FrameWorker::getFrame;
+        qDebug() << "initial image_type default" << image_type;
+        qDebug()<< "initial p_getFrame default" << p_getFrame;
     }
 
     floor = 0.0;
@@ -214,11 +222,14 @@ frameview_widget::frameview_widget(FrameWorker *fw,
 
 void frameview_widget::handleNewFrame()
 {
+    //qDebug() << "handleNewFrame()";
     if (!this->isHidden() && frame_handler->Camera->isRunning()) {
         timeout_display = true;
         std::vector<float>image_data{(frame_handler->*p_getFrame)()};
+        printf("p_getFrame = %p\n", p_getFrame);
         for (int col = 0; col < frWidth; col++) {
             for (int row = 0; row < frHeight; row++ ) {
+
                 colorMap->data()->setCell(col, row,
                                           double(image_data[size_t(row * frWidth + col)])); // y-axis NOT reversed
             }
@@ -452,9 +463,9 @@ void frameview_widget::setOverlayPlot(image_t image_type_overlay)
         image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getFrame;
         plotModeCheckbox->setVisible(false);
-        qDebug() << image_type;
-        qDebug() << image_type_overlay;
-        delete colorMapData;
+        printf("p_getFrame = %p\n", p_getFrame);
+        qDebug() << "overlay image_type BASE" << image_type;
+        qDebug() << "overlay image_type_overlay BASE" << image_type_overlay;
         //handleNewFrameOverlay();
         //colorMap->setData(colorMapData);
         break;
@@ -463,46 +474,27 @@ void frameview_widget::setOverlayPlot(image_t image_type_overlay)
         image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getDSFrame;
         plotModeCheckbox->setVisible(true);
-        qDebug() << image_type;
-        qDebug() << image_type_overlay;
+        printf("p_getFrame = %p\n", p_getFrame);
+        qDebug() << "overlay image_type DSF" << image_type;
+        qDebug() << "overlay image_type_overlay DSF" << image_type_overlay;
         break;
     case STD_DEV:
         ceiling = 100.0;
         image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getSDFrame;
         plotModeCheckbox->setVisible(false);
-        qDebug() << image_type;
-        qDebug() << image_type_overlay;
+        printf("p_getFrame = %p\n", p_getFrame);
+        qDebug() << "overlay image_type STD_DEV" << image_type;
+        qDebug() << "overlay image_type_overlay STD_DEV" << image_type_overlay;
         break;
     default:
         ceiling = UINT16_MAX;
         image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getFrame;
         plotModeCheckbox->setVisible(false);
-        qDebug() << image_type;
-        qDebug() << image_type_overlay;
+        printf("p_getFrame = %p\n", p_getFrame);
+        qDebug() << "overlay image_type default" << image_type;
+        qDebug() << "overlay image_type_overlay default" << image_type_overlay;
     }
-}
 
-void frameview_widget::handleNewFrameOverlay()
-{
-    timeout_display = true;
-        std::vector<float>image_data{(frame_handler->*p_getFrame)()};
-        qDebug() << p_getFrame;
-        for (int col = 0; col < frWidth; col++) {
-            for (int row = 0; row < frHeight; row++ ) {
-                colorMap->data()->setCell(col, row,
-                                          double(image_data[size_t(row * frWidth + col)])); // y-axis NOT reversed
-            }
-        }
-        qcp->replot();
-        count++;
-
-    // count-based FPS counter, gets slower to update the lower the fps,
-    // but can provide fractional fps values.
-    /* if (count % 50 == 0 && count != 0) {
-        fps = 50.0 / fpsclock.restart() * 1000.0;
-        fps_string = QString::number(fps, 'f', 1);
-        fpsLabel->setText(QString("Display: %1 fps").arg(fps_string));
-    } */
 }
