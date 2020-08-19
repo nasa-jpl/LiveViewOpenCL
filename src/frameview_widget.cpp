@@ -218,9 +218,6 @@ void frameview_widget::handleNewFrame()
     if (!this->isHidden() && frame_handler->Camera->isRunning()) {
         timeout_display = true;
         std::vector<float>image_data{(frame_handler->*p_getFrame)()};
-
-        qDebug() << image_data[20];
-
         printf("p_getFrame = %p\n", p_getFrame);
         for (int col = 0; col < frWidth; col++) {
             for (int row = 0; row < frHeight; row++ ) {
@@ -230,8 +227,6 @@ void frameview_widget::handleNewFrame()
 
             }
         }
-
-        colorMap->setData(colorMapData);
 
         qcp->replot();
         count++;
@@ -458,8 +453,6 @@ void frameview_widget::mouse_up(QMouseEvent *event) {
 void frameview_widget::setOverlayPlot(image_t image_type_overlay)
 {
 
-    image_type = image_type_overlay;
-
     switch(image_type_overlay) {
     case BASE:
         ceiling = UINT16_MAX;
@@ -474,22 +467,24 @@ void frameview_widget::setOverlayPlot(image_t image_type_overlay)
         ceiling = 100.0;
         image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getDSFrame;
-        plotModeCheckbox->setVisible(true);
+        reportFPS();
         printf("p_getFrame = %p\n", p_getFrame);
+        plotModeCheckbox->setVisible(true);
         break;
     case STD_DEV:
         ceiling = 100.0;
         image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getSDFrame;
-        plotModeCheckbox->setVisible(false);
+        reportFPS();
         printf("p_getFrame = %p\n", p_getFrame);
+        plotModeCheckbox->setVisible(false);
         break;
     default:
         ceiling = UINT16_MAX;
         image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getFrame;
+        reportFPS();
         plotModeCheckbox->setVisible(false);
-        printf("p_getFrame = %p\n", p_getFrame);
     }
 
 }
