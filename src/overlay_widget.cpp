@@ -23,6 +23,8 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(paren
     widgetLayout->addWidget(rightWidget);
     this->setLayout(widgetLayout);
 
+    //qcp->cbox->setVisible(false);
+
     connect(leftWidget->qcp, &QCustomPlot::mousePress, this, &overlay_widget::leftPlotClick);
     connect(rightWidget->qcp, &QCustomPlot::mousePress, this, &overlay_widget::rightPlotClick);
 }

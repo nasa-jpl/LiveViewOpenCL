@@ -22,8 +22,9 @@
 #include "image_type.h"
 #include "frameview_widget.h"
 #include "line_widget.h"
-#include "lvtabapplication.h"
+#include "lvmainwindow.h"
 #include "constants.h"
+#include "controlsbox.h"
 
 /*! \file
  * \brief Widget which displays a line plot of two dimensions of image data.
