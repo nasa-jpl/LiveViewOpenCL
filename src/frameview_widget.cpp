@@ -459,11 +459,8 @@ void frameview_widget::setOverlayPlot(image_t image_type_overlay)
         image_type = image_type_overlay;
         p_getFrame = &FrameWorker::getFrame;
         rescaleRange();
-        plotModeCheckbox->setVisible(false);
         reportFPS();
-        printf("p_getFrame = %p\n", p_getFrame);
-        //handleNewFrameOverlay();
-        //colorMap->setData(colorMapData);
+        plotModeCheckbox->setVisible(false);
         break;
     case DSF:
         ceiling = 100.0;
@@ -471,7 +468,6 @@ void frameview_widget::setOverlayPlot(image_t image_type_overlay)
         p_getFrame = &FrameWorker::getDSFrame;
         rescaleRange();
         reportFPS();
-        printf("p_getFrame = %p\n", p_getFrame);
         plotModeCheckbox->setVisible(true);
         break;
     case STD_DEV:
@@ -480,7 +476,6 @@ void frameview_widget::setOverlayPlot(image_t image_type_overlay)
         p_getFrame = &FrameWorker::getSDFrame;
         rescaleRange();
         reportFPS();
-        printf("p_getFrame = %p\n", p_getFrame);
         plotModeCheckbox->setVisible(false);
         break;
     default:
@@ -491,5 +486,4 @@ void frameview_widget::setOverlayPlot(image_t image_type_overlay)
         reportFPS();
         plotModeCheckbox->setVisible(false);
     }
-
 }

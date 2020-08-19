@@ -283,6 +283,7 @@ void line_widget::setOverlayPlot(image_t image_type_overlay)
         p_getFrame = &FrameWorker::getFrame;
         p_getLine = &line_widget::getSpatialLine;
         plotTitle->setText(QString("No crosshair selected"));
+        qcp->xAxis->setRange(QCPRange(0, xAxisMax));
         break;
     case SPECTRAL_MEAN:
         xAxisMax = static_cast<int>(frHeight);
@@ -291,6 +292,7 @@ void line_widget::setOverlayPlot(image_t image_type_overlay)
         p_getFrame = &FrameWorker::getFrame;
         p_getLine = &line_widget::getSpectralMean;
         plotTitle->setText(QString("Spectral Mean of Single Frame"));
+        qcp->xAxis->setRange(QCPRange(0, xAxisMax));
         break;
     case SPATIAL_MEAN:
         xAxisMax = static_cast<int>(frWidth);
@@ -299,6 +301,7 @@ void line_widget::setOverlayPlot(image_t image_type_overlay)
         p_getFrame = &FrameWorker::getFrame;
         p_getLine = &line_widget::getSpatialMean;
         plotTitle->setText(QString("Spatial Mean of Single Frame"));
+        qcp->xAxis->setRange(QCPRange(0, xAxisMax));
         break;
     case SPECTRAL_PROFILE:
         xAxisMax = static_cast<int>(frHeight);
@@ -307,6 +310,7 @@ void line_widget::setOverlayPlot(image_t image_type_overlay)
         p_getFrame = &FrameWorker::getFrame;
         p_getLine = &line_widget::getSpectralLine;
         plotTitle->setText(QString("No crosshair selected"));
+        qcp->xAxis->setRange(QCPRange(0, xAxisMax));
         break;
     default:
         xAxisMax = static_cast<int>(frHeight);
@@ -314,6 +318,7 @@ void line_widget::setOverlayPlot(image_t image_type_overlay)
         qcp->xAxis->setLabel("Spectral index");
         p_getLine = &line_widget::getSpectralLine;
         plotTitle->setText(QString("No crosshair selected"));
+        qcp->xAxis->setRange(QCPRange(0, xAxisMax));
     }
 }
 
