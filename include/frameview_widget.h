@@ -53,8 +53,6 @@ private:
     QCPItemRect *blBox;
     QCPItemRect *brBox;
 
-    QComboBox *overlayPlotModeBox;
-
     QCheckBox *plotModeCheckbox;
 
     QLabel* fpsLabel;
