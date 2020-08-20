@@ -59,6 +59,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     spat_display = new line_widget(fw, SPATIAL_PROFILE);
     spat_mean_display = new line_widget(fw, SPATIAL_MEAN);
     fft_display = new fft_widget(fw);
+    overlay_display = new overlay_widget(fw, parent);
 
     // Set these two to be in the precision slider by default
     dsf_display->setPrecision(true);
@@ -73,6 +74,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     tab_widget->addTab(spat_display, QString("Spatial Profile"));
     tab_widget->addTab(spat_mean_display, QString("Spatial Mean"));
     tab_widget->addTab(fft_display, QString("FFT of Plane Mean"));
+    tab_widget->addTab(overlay_display, QString("Overlay Widget"));
 
     server = new SaveServer(this);
     connect(server, &SaveServer::startSavingRemote,
@@ -134,6 +136,7 @@ LVMainWindow::~LVMainWindow()
     delete spec_mean_display;
     delete spat_display;
     delete spat_mean_display;
+    delete overlay_display;
     delete fft_display;
     delete camDialog;
     delete compDialog;

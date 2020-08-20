@@ -145,10 +145,12 @@ frameview_widget::frameview_widget(FrameWorker *fw,
 
     QCheckBox *hideXbox = new QCheckBox("Hide Crosshair", this);
     connect(hideXbox, SIGNAL(toggled(bool)), this, SLOT(hideCrosshair(bool)));
+    hideXbox->setStyleSheet("QCheckBox { outline: none }");
     hideXbox->setFixedWidth(150);
 
     QCheckBox *showTipBox = new QCheckBox("Show Value at Cursor", this);
     connect(showTipBox, SIGNAL(toggled(bool)), this, SLOT(showTooltip(bool)));
+    showTipBox->setStyleSheet("QCheckBox { outline: none }");
     showTipBox->setFixedWidth(200);
 
     auto qvbl = new QVBoxLayout(this);
@@ -164,10 +166,11 @@ frameview_widget::frameview_widget(FrameWorker *fw,
      * FrameWorker::captureSDFrames loop function.
      */
     if (image_type == DSF) { //Dark Sub Widget Only
-        QCheckBox *plotModeCheckbox =
+        plotModeCheckbox =
                 new QCheckBox("Plot Signal-to-Noise Ratio", this);
         connect(plotModeCheckbox, &QCheckBox::toggled,
                 this, &frameview_widget::setPlotMode);
+        plotModeCheckbox->setStyleSheet("QCheckBox { outline: none }");
         plotModeCheckbox->setFixedWidth(150);
         bottomControls->addWidget(plotModeCheckbox);
     }
@@ -216,10 +219,13 @@ void frameview_widget::handleNewFrame()
         std::vector<float>image_data{(frame_handler->*p_getFrame)()};
         for (int col = 0; col < frWidth; col++) {
             for (int row = 0; row < frHeight; row++ ) {
+
                 colorMap->data()->setCell(col, row,
                                           double(image_data[size_t(row * frWidth + col)])); // y-axis NOT reversed
+
             }
         }
+
         qcp->replot();
         count++;
     } else {
@@ -227,6 +233,7 @@ void frameview_widget::handleNewFrame()
 
             timeout_display = false;
         }
+
     }
 
     // count-based FPS counter, gets slower to update the lower the fps,
@@ -439,4 +446,42 @@ void frameview_widget::mouse_up(QMouseEvent *event) {
    }
    frame_handler->bottomRight = QPointF(brx, bry);
    frame_handler->topLeft = QPointF(tlx, tly);
+}
+
+void frameview_widget::setOverlayPlot(image_t image_type_overlay)
+{
+
+    switch(image_type_overlay) {
+    case BASE:
+        ceiling = UINT16_MAX;
+        image_type = image_type_overlay;
+        p_getFrame = &FrameWorker::getFrame;
+        rescaleRange();
+        reportFPS();
+        plotModeCheckbox->setVisible(false);
+        break;
+    case DSF:
+        ceiling = 100.0;
+        image_type = image_type_overlay;
+        p_getFrame = &FrameWorker::getDSFrame;
+        rescaleRange();
+        reportFPS();
+        plotModeCheckbox->setVisible(true);
+        break;
+    case STD_DEV:
+        ceiling = 100.0;
+        image_type = image_type_overlay;
+        p_getFrame = &FrameWorker::getSDFrame;
+        rescaleRange();
+        reportFPS();
+        plotModeCheckbox->setVisible(false);
+        break;
+    default:
+        ceiling = UINT16_MAX;
+        image_type = image_type_overlay;
+        p_getFrame = &FrameWorker::getFrame;
+        rescaleRange();
+        reportFPS();
+        plotModeCheckbox->setVisible(false);
+    }
 }

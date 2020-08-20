@@ -62,6 +62,7 @@ SOURCES += \
         darksubfilter.cpp \
         ctkrangeslider.cpp \
         osutils.cpp \
+	overlay_widget.cpp \
         stddevfilter.cpp \
         histogram_widget.cpp \
         line_widget.cpp \
@@ -84,6 +85,7 @@ HEADERS += \
         constants.h \
         xiocamera.h \
         osutils.h \
+	overlay_widget.h \
         controlsbox.h \
         alphanum.hpp \
         darksubfilter.h \
