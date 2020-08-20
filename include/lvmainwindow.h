@@ -33,8 +33,6 @@ public:
     ~LVMainWindow() override;
     bool notInitialized;
 
-    ControlsBox *cbox;
-
 signals:
     void saveRequest();
 
@@ -98,6 +96,7 @@ private:
     line_widget *spat_mean_display;
     overlay_widget *overlay_display;
     fft_widget *fft_display;
+    ControlsBox *cbox;
 
     SaveServer *server;
 

@@ -130,7 +130,7 @@ void ControlsBox::tabChanged(int index)
 {
     Q_UNUSED( index );
     // associate the GUI items with the pointer to the new tab
-    if (index == 9) { // find out if it's the overlaywidget
+    if (index == 9) { // find out if it's the overlay_widget
         rangeSlider->setEnabled(false);
         min_box->setEnabled(false);
         max_box->setEnabled(false);

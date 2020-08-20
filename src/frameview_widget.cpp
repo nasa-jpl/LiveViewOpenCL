@@ -214,11 +214,9 @@ frameview_widget::frameview_widget(FrameWorker *fw,
 
 void frameview_widget::handleNewFrame()
 {
-    //qDebug() << "handleNewFrame()";
     if (!this->isHidden() && frame_handler->Camera->isRunning()) {
         timeout_display = true;
         std::vector<float>image_data{(frame_handler->*p_getFrame)()};
-        printf("p_getFrame = %p\n", p_getFrame);
         for (int col = 0; col < frWidth; col++) {
             for (int row = 0; row < frHeight; row++ ) {
 

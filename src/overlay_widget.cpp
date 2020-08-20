@@ -13,17 +13,10 @@ overlay_widget::overlay_widget(FrameWorker *fw, QWidget *parent) : QWidget(paren
     leftWidget = new frameview_widget(fw, DSF, fw->settings);
     rightWidget = new line_widget(fw, SPATIAL_MEAN);
 
-    //QSizePolicy qsp(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    //qsp.setHeightForWidth(true);
-    //topWidget->setSizePolicy(qsp);
-    //topWidget->heightForWidth(200);
-
     widgetLayout = new QHBoxLayout(this);
     widgetLayout->addWidget(leftWidget);
     widgetLayout->addWidget(rightWidget);
     this->setLayout(widgetLayout);
-
-    //qcp->cbox->setVisible(false);
 
     connect(leftWidget->qcp, &QCustomPlot::mousePress, this, &overlay_widget::leftPlotClick);
     connect(rightWidget->qcp, &QCustomPlot::mousePress, this, &overlay_widget::rightPlotClick);
