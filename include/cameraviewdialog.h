@@ -34,6 +34,9 @@ public:
         case ENVI:
             infoList = "ENVI file reader";
             break;
+        case RC:
+            infoList = "Remote camera";
+            break;
         default:
             qDebug("警報：無法辨認照相機型號，請選擇別的照相機型號。");
         }

@@ -20,6 +20,8 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     // Load the worker thread
     workerThread = new QThread;
     fw = new FrameWorker(settings, workerThread);
+    CameraModel *cam = fw->Camera;
+       connect(this, &LVMainWindow::initialized, cam, &CameraModel::windowInitialized);
     fw->moveToThread(workerThread);
     QFutureWatcher<void> fwWatcher;
     connect(workerThread, &QThread::started, fw, &FrameWorker::captureFrames);

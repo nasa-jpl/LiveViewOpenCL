@@ -2,7 +2,9 @@
 #define CAMERASELECTDIALOG_H
 
 #include "lvmainwindow.h"
+#include "string.h"
 
+#include <QDebug>
 #include <QDialog>
 #include <QStringList>
 #include <QLabel>
@@ -14,6 +16,9 @@
 #include <QSettings>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QTcpSocket>
+#include <QHostAddress>
+#include <QByteArray>
 
 class CameraSelectDialog : public QDialog
 {
@@ -23,12 +28,13 @@ public:
     CameraSelectDialog(QSettings *set) : s(set)
     {
         this->setWindowTitle("Select Camera Model");
-        this->cameraList = (QStringList()
+        this->cameraList = ((QStringList()
 #ifdef USE_EDT
                             << QString("CL")
 #endif
                             << QString("SSD (ENVI)"))
-                            << QString("SSD (XIO)");
+                            << QString("SSD (XIO)"))
+                            << QString("RC (Remote Camera)"); // Remote Camera
 
         cameraListModel = new QStringListModel(this);
         cameraListModel->setStringList(cameraList);
@@ -58,6 +64,7 @@ public:
         dialogLayout->addWidget(doNotShowBox);
         dialogLayout->addLayout(buttonLayout);
 
+        // Dialog for getting image dimensions
         dim_dialog = new QDialog;
         dim_dialog->setWindowTitle("Set Input Dimensions");
 
@@ -90,6 +97,71 @@ public:
         QVBoxLayout *dimDamDimmaDialogLayout = new QVBoxLayout(dim_dialog);
         dimDamDimmaDialogLayout->addLayout(dimmaDialogLayout);
         dimDamDimmaDialogLayout->addLayout(dimButtonLayout);
+
+
+        // Dialog for getting desired server IP
+        ip_dialog = new QDialog;
+        ip_dialog->setWindowTitle("Configure IP Connection");
+
+        //QString IpRange = "(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])";
+//        QRegularExpression IpRegex ("^" + IpRange
+//                                    + "(\\." + IpRange + ")"
+//                                    + "(\\." + IpRange + ")"
+//                                    + "(\\." + IpRange + ")$");
+        QRegularExpression Ipv6Regex ("((^\s*((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))\s*$)|(^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$))");
+
+        QRegularExpressionValidator *ipValidator = new QRegularExpressionValidator(Ipv6Regex, this);
+
+        ip_addr = new QLineEdit;
+        ip_addr->setPlaceholderText("127.0.0.1");
+        ip_addr->setValidator(ipValidator);
+        ip_addr->setText(s->value(QString("ip_address"), "").toString());
+
+        QIntValidator *portValidator = new QIntValidator(0, 99999, this);
+        ip_port = new QLineEdit;
+        ip_port->setPlaceholderText("69696");
+        ip_port->setValidator(portValidator);
+        ip_port->setText(s->value(QString("ip_port"), "").toString());
+
+        okIpButton = new QPushButton("&Done", ip_dialog);
+        okIpButton->setEnabled(false); // Default state should be disabled
+        connect(okIpButton, &QPushButton::clicked,
+                ip_dialog, &QDialog::accept);
+        connect(okIpButton, &QPushButton::clicked,
+                this, &CameraSelectDialog::connection_accept);
+
+        QPushButton *connectIpButton = new QPushButton("&Connect", ip_dialog);
+        connect(connectIpButton, &QPushButton::clicked,
+                this, &CameraSelectDialog::ip_connect);
+
+        QPushButton *cancelIpButton = new QPushButton("&Cancel", ip_dialog);
+        connect(cancelIpButton, &QPushButton::clicked, ip_dialog, &QDialog::reject);
+
+        QHBoxLayout *ipButtonLayout = new QHBoxLayout;
+        ipButtonLayout->addWidget(okIpButton);
+        ipButtonLayout->addWidget(cancelIpButton);
+
+        QGridLayout *ipmaDialogLayout = new QGridLayout;
+        ipmaDialogLayout->addWidget(new QLabel("Ip Address:"), 1, 1, 1, 1);
+        ipmaDialogLayout->addWidget(new QLabel("Port:"), 1, 2, 1, 1);
+        ipmaDialogLayout->addWidget(ip_addr, 2, 1, 1, 1);
+        ipmaDialogLayout->addWidget(ip_port, 2, 2, 1, 1);
+        ipmaDialogLayout->addWidget(connectIpButton, 3, 1, 1, 1);
+
+        statusLabel = new QLabel(s->value(QString("connection_status"), "").toString());
+        heightLabel = new QLabel(s->value(QString("received_height"), "").toString());
+        widthLabel = new QLabel(s->value(QString("received_width"), "").toString());
+        ipmaDialogLayout->addWidget(new QLabel("Status:"), 4, 1, 1, 1);
+        ipmaDialogLayout->addWidget(statusLabel, 4, 2, 1, 1);
+        ipmaDialogLayout->addWidget(new QLabel("Height (px):"), 5, 1, 1, 1);
+        ipmaDialogLayout->addWidget(heightLabel, 5, 2, 1, 1);
+        ipmaDialogLayout->addWidget(new QLabel("Width (px):"), 6, 1, 1, 1);
+        ipmaDialogLayout->addWidget(widthLabel, 6, 2, 1, 1);
+
+        QVBoxLayout *ipDamDimmaDialogLayout = new QVBoxLayout(ip_dialog);
+        ipDamDimmaDialogLayout->addLayout(ipmaDialogLayout);
+        ipDamDimmaDialogLayout->addLayout(ipButtonLayout);
+
     }
 
 private slots:
@@ -103,6 +175,12 @@ private slots:
         if (s->value(QString("cam_model"), "XIO").toInt() == 0 ||
             s->value(QString("cam_model"), "ENVI").toInt() == 1) {
             dim_dialog->exec();
+        } else if (s->value(QString("cam_model"), "RC").toInt() == 3) {
+            s->setValue(QString("connection_status"), "Not Connected");
+            s->setValue(QString("received_height"), "");
+            s->setValue(QString("received_width"), "");
+            s->setValue(QString("show_cam_dialog"), true); // We actually want to reopen this each time.
+            ip_dialog->exec();
         } else {
             this->accept();
         }
@@ -115,8 +193,67 @@ private slots:
         this->accept();
     }
 
+    void ip_connect() // This establishes a connection to the server and gets the information like size as the handshake.
+    {
+        // All of this will be turned into an object
+        s->setValue(QString("ip_address"), ip_addr->text());
+        s->setValue(QString("ip_port"), ip_port->text());
+        qDebug() << "Connecting to " << ip_addr->text() << ":" << ip_port->text();
+
+        QTcpSocket *connection = new QTcpSocket();
+        connection->connectToHost(QHostAddress(ip_addr->text()),ip_port->text().toUShort());
+
+        if(connection->waitForConnected(1000)) { // Wait for connection
+            qDebug() << "Connected!";
+            connection->write("ClientConnect");
+            connection->waitForBytesWritten();
+        } else {
+            connection->close();
+            statusLabel->setText("Connection Failed");
+            return;
+        }
+
+        if(connection->waitForReadyRead(10000)) { // Wait for reading to be ready
+            // qDebug() << connection->readAll();
+            const QByteArray connectionMessage = qUncompress(connection->readAll());
+            const QJsonObject messageObj = QJsonDocument::fromJson(connectionMessage).object();
+            if (messageObj.contains("requestType") && messageObj["requestType"].isString()) {
+                const QString &requestType = messageObj["requestType"].toString();
+                const double &requestHeight = messageObj["height"].toDouble();
+                const double &requestWidth = messageObj["width"].toDouble();
+                if (QString::compare(requestType, QString("\"Handshake\""), Qt::CaseInsensitive)) {
+                    // Connection confirmed, set handshake to true
+                    statusLabel->setText("Connected");
+                    heightLabel->setText(QString::number(requestHeight));
+                    widthLabel->setText(QString::number(requestWidth));
+                    s->setValue(QString("socket_descriptor"), connection->socketDescriptor()); // Should this be done during connection_accept()
+                    okIpButton->setEnabled(true);
+                    return;
+                }
+            } else {
+                // If there is no requestType, return an error to the client.
+                connection->close();
+                statusLabel->setText("Handshake Failed");
+                qDebug() << "Got invalid handshake.";
+                return;
+            }
+        } else {
+            connection->close();
+            statusLabel->setText("Handshake Failed");
+            qDebug() << "Did not get handshake response from server.";
+            return;
+        }
+    }
+
+    void connection_accept()
+    {
+        s->setValue(QString("ssd_width"), widthLabel->text());
+        s->setValue(QString("ssd_height"), heightLabel->text());
+        this->accept();
+    }
+
 private:
-    std::unordered_map<std::string, source_t> source_t_name{{"SSD (ENVI)", ENVI}, {"SSD (XIO)",XIO}, {"CL", CAMERA_LINK}, {"CAMERA_LINK", CAMERA_LINK}};
+    std::unordered_map<std::string, source_t> source_t_name{{"SSD (ENVI)", ENVI}, {"SSD (XIO)",XIO}, {"CL", CAMERA_LINK}, {"CAMERA_LINK", CAMERA_LINK}, {"RC (Remote Camera)", RC}};
     QSettings *s;
     QStringList cameraList;
     QStringList formatList;
@@ -124,8 +261,15 @@ private:
     QStringListModel *cameraListModel;
     QCheckBox *doNotShowBox;
     QDialog *dim_dialog;
+    QDialog *ip_dialog;
     QLineEdit *horizontal;
     QLineEdit *vertical;
+    QLineEdit *ip_addr;
+    QLineEdit *ip_port;
+    QLabel *statusLabel;
+    QLabel *heightLabel;
+    QLabel *widthLabel;
+    QPushButton *okIpButton;
 };
 
 #endif // CAMERASELECTDIALOG_H

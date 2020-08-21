@@ -57,6 +57,7 @@ SOURCES += \
         frameworker.cpp \
         qcustomplot.cpp \
         envicamera.cpp \
+        src/remotecamera.cpp \
         xiocamera.cpp \
         controlsbox.cpp \
         darksubfilter.cpp \
@@ -73,6 +74,7 @@ SOURCES += \
 exists(EDT_include/edtinc.h):SOURCES += clcamera.cpp
 
 HEADERS += \
+    include/remotecamera.h \
         lvmainwindow.h \
         frameview_widget.h \
         image_type.h \

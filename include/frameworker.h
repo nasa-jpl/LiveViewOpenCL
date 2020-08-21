@@ -18,6 +18,7 @@
 #include "cameramodel.h"
 #include "envicamera.h"
 #include "xiocamera.h"
+#include "remotecamera.h"
 
 #ifdef USE_EDT
 #include "clcamera.h"

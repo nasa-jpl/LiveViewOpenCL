@@ -74,8 +74,16 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     is16bit = settings->value(QString("remap16"), false).toBool();
     interlace = settings->value(QString("interlace"), false).toBool();
     Camera = nullptr;
-
+    qDebug() << "Socket Des" << settings->value(QString("socket_descriptor")).toInt();
+    bool bypass_start = false;
     switch(static_cast<source_t>(settings->value(QString("cam_model")).toInt())) {
+    case RC:
+        Camera = new RemoteCamera(settings->value(QString("ssd_width"), 640).toInt(),
+                               settings->value(QString("ssd_height"), 480).toInt(),
+                               settings->value(QString("ssd_height"), 480).toInt(),
+                               settings->value(QString("socket_descriptor")).toInt()); // This may not account for some failure cases
+        bypass_start = true;
+        break;
     case XIO:
         Camera = new XIOCamera(settings->value(QString("ssd_width"), 640).toInt(),
                                settings->value(QString("ssd_height"), 480).toInt(),
@@ -95,7 +103,10 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
 #endif
     }
 
-    bool cam_started = Camera->start();
+    bool cam_started = true;
+    if (!bypass_start) {
+        cam_started = Camera->start();
+    }
 
     if (!cam_started) {
         // In general, software camera models will always start, but some hardware camera models can fail
@@ -203,6 +214,10 @@ void FrameWorker::captureFrames()
     double this_frame_duration;
     ticklist.fill(0);
 
+    if (Camera->getSourceType() == RC) {
+        Camera->start();
+    }
+
     auto fpsclock = new QTimer();
     connect(fpsclock, &QTimer::timeout, this, &FrameWorker::reportFPS);
     fpsclock->start(1000);
@@ -231,7 +246,7 @@ void FrameWorker::captureFrames()
         }
 
         count++;
-        if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI)) {
+        if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI || cam_type == ETH_RC)) {
             delay(int64_t(frame_period_ms) - duration);
         } else {
             QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
