@@ -12,6 +12,7 @@ XIOCamera::XIOCamera(int frWidth,
     frame_width = frWidth;
     frame_height = frHeight;
     data_height = dataHeight;
+    is_reading = false;
 
     header.resize(size_t(headsize));
     std::fill(header.begin(), header.end(), 0);
@@ -34,7 +35,6 @@ XIOCamera::~XIOCamera()
 void XIOCamera::setDir(const char *dirname)
 {
     is_reading = false;
-
     while (!frame_buf.empty()) {
         frame_buf.pop_back();
     }
@@ -72,6 +72,7 @@ void XIOCamera::setDir(const char *dirname)
     running.store(true);
     emit started();
 
+    is_reading = true;
     readLoopFuture = QtConcurrent::run(this, &XIOCamera::readLoop);
 }
 
@@ -119,7 +120,6 @@ std::string XIOCamera::getFname()
 
 void XIOCamera::readFile()
 {
-    is_reading = true;
     bool validFile = false;
     while(!validFile) {
         ifname = getFname();
@@ -211,6 +211,7 @@ uint16_t* XIOCamera::getFrame()
 {
     if (!frame_buf.empty() && is_reading) {
         temp_frame = frame_buf.back();
+        // prev_frame = &temp_frame;
         frame_buf.pop_back();
         return temp_frame.data();
     } else {
