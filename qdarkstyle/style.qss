@@ -57,10 +57,10 @@ QCheckBox::indicator:unchecked:focus,
 QCheckBox::indicator:unchecked:pressed,
 QGroupBox::indicator:unchecked:hover,
 QGroupBox::indicator:unchecked:focus,
-QGroupBox::indicator:unchecked:pressed {
+/* QGroupBox::indicator:unchecked:pressed {
     border: none;
     image: url(:/qss_icons/rc/checkbox_unchecked_focus.png);
-}
+} */
 
 QCheckBox::indicator:checked,
 QGroupBox::indicator:checked {
