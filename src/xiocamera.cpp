@@ -4,7 +4,8 @@ XIOCamera::XIOCamera(int frWidth,
         int frHeight, int dataHeight,
         QObject *parent
 ) : CameraModel(parent), nFrames(32), framesize(0),
-    headsize(frWidth * int(sizeof(uint16_t))), image_no(0),
+    //headsize(frWidth * int(sizeof(uint16_t))), image_no(0),
+	headsize(1280),
     tmoutPeriod(100) // milliseconds
 {
     source_type = XIO;
@@ -13,6 +14,7 @@ XIOCamera::XIOCamera(int frWidth,
     frame_height = frHeight;
     data_height = dataHeight;
     is_reading = false;
+    qDebug() << "rsv - headsize:" << headsize << " frWidth:" << frWidth << int(sizeof(uint16_t)) ;
 
     header.resize(size_t(headsize));
     std::fill(header.begin(), header.end(), 0);
@@ -166,6 +168,7 @@ void XIOCamera::readFile()
             qDebug().nospace() << "Skipped file \"" << ifname.data() << "\" due to invalid data.";
         } else { //otherwise we load it
             validFile = true;
+            qDebug() << "rsv - dev_p.seekg()" << headsize  ;
             dev_p.seekg(headsize, std::ios::beg);
 
             // qDebug() << "File size is" << filesize << "bytes, which corresponds to a framesize of" << framesize << "bytes.";
