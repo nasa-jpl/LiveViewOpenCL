@@ -158,7 +158,14 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
             saving = false;
         }
     });
-}
+
+    //
+    // EMITFPIED-331_v2
+    //
+    // Initialize frame control variables:
+    setFrameControlStatus( false );  // set frameControlIsOn to Off
+
+} // end of Constructor - FrameWorker::FrameWorker()
 
 FrameWorker::~FrameWorker()
 {
@@ -182,6 +189,22 @@ bool FrameWorker::running()
 {
     return isRunning;
 }
+
+// EMITFPIED-331
+// PK new mouse feature 11-16-20
+void FrameWorker::suspendFrameAcquistion()
+{
+    qDebug() << "PK Debug - FrameWorker::suspendFrameAcquistion() Supspends frame acquistion.";
+    Camera->suspendFrameAcquistion( true );
+}
+
+void FrameWorker::resumeFrameAcquistion()
+{
+    qDebug() << "PK Debug - FrameWorker::resumeFrameAcquistion() Resumes frame acquistion.";
+    Camera->suspendFrameAcquistion( false );
+}
+// EMITFPIED-331
+
 
 void FrameWorker::setPlotMode(LV::PlotMode pm)
 {
@@ -439,10 +462,11 @@ void FrameWorker::reportFPS()
     }
 }
 
+
 void FrameWorker::resetDir(const char *dirname)
 {
     if (cam_type == SSD_XIO || cam_type == SSD_ENVI) {
-        Camera->setDir(dirname);
+	Camera->setDir(dirname);
     }
 }
 

@@ -47,6 +47,16 @@ public:
     void stop();
     bool running();
 
+    // EMITFPIED-331_v2
+    //
+    // PK new mouse feature 11-16-20
+    bool isFrameControlOn( void ) { return frameControlIsOn; };
+    void setFrameControlStatus( int status )  { frameControlIsOn = status; };
+    void suspendFrameAcquistion();
+    void resumeFrameAcquistion();
+    // EMITFPIED-331_v2
+    
+
     CameraModel *Camera;
 
     void resetDir(const char *dirname);
@@ -92,6 +102,7 @@ public:
     QPointF bottomRight;
     QPointF topLeft;
     double fps = 0;
+
 
 signals:
     void finished();
@@ -148,6 +159,14 @@ private:
     int ticksum = 0;
     std::array<int, MAXSAMPLES> ticklist;
     double frame_period_ms = 0;
+
+
+    //
+    // EMITFPIED-331_v2
+    // PK frame control flag
+    bool frameControlIsOn = false;
+
+
     // std::mutex time_index_lock;
     // size_t time_index{0};
     // std::mutex time_mutex;

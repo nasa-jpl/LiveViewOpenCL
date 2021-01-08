@@ -9,8 +9,11 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     setAcceptDrops(true);
 
     // Hardcoded default window size
-    this->resize(1560, 1000);
+    // this->resize(1560, 1000); original
 
+    // PK 10-22-20 new default window size
+    this->resize(1280, 840);
+    
     QPixmap icon_pixmap(":images/icon.png");
     this->setWindowIcon(QIcon(icon_pixmap));
     this->setWindowTitle("LiveView 4.0");
@@ -18,23 +21,59 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     source_type = static_cast<source_t>(settings->value(QString("cam_model")).toInt());
 
     // Load the worker thread
+    //
+    // The following block is to hook a QObject, 'FrameWorker' with a QThread instance.
+    // The intent is to initialize a QObject with a QThread instance from which the
+    // QThread provides the signals, slots, and methods.
+    //
+    // Note: A slot in Qt Framework is a function that is called in response to a
+    //       particular signal.  In reality, a 'slot' is a signal handler.
+    //       
     workerThread = new QThread;
     fw = new FrameWorker(settings, workerThread);
     fw->moveToThread(workerThread);
+
+
     QFutureWatcher<void> fwWatcher;
+
+    //
+    // The following sets up the signal handlers (slots) to process all interested signals.
+    //
+    // Connect workerThread's signal 'started' to FrameWorker instance (fw) slot captureFrames()
     connect(workerThread, &QThread::started, fw, &FrameWorker::captureFrames);
+
+    // Connect FrameWorker Instance (fw) signal 'finished' to workerThread's slot quit()
     connect(fw, &FrameWorker::finished, workerThread, &QThread::quit);
+
+    // Connect workerThread's signal 'finished' to workerThread's slot deleteLater()
+    // By connecting the signal 'finished' to slot deleteLater(), this slot would deallocate 
+    // objects that live in a thread that has just ended.
     connect(workerThread, &QThread::finished, workerThread, &QThread::deleteLater);
 
+
+    // Connect FrameWorker signal 'startSaving' to QActions: Save & SaveAs
     connect(fw, &FrameWorker::startSaving, this, [&](){
         saveAct->setEnabled(false);
         saveAsAct->setEnabled(false);
     });
+    // Connect FrameWorker signal 'doneSaving' to QActions: Save & SaveAs
     connect(fw, &FrameWorker::doneSaving, this, [&](){
         saveAct->setEnabled(true);
         saveAsAct->setEnabled(true);
     });
 
+    //
+    // QtConcurrent namespace provides high-level APIs that make it possible to 
+    // write multi-threaded programs without using low-level threading primitives 
+    // such as mutexes, read-write locks, wait conditions, or semaphores.
+    //
+    // The QtConcurrent::run() function runs a function in a separate thread.
+    // The return value of the function is made available through the QFuture API.
+    //
+    // The following code block is to start 2 separate Threads: DSLoop and SDLoop
+    // with functions: captureDSFrames(), and captureSDFrames() for capturing 
+    // different frame types: DS and SD frames.
+    //
     if (fw->running()) {
         workerThread->start();
         DSLoop = QtConcurrent::run(fw, &FrameWorker::captureDSFrames);
@@ -118,7 +157,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
                 fw->setFramePeriod(double(1000.0 / frame_period));
     });
     notInitialized = false;
-}
+} // End of LVMainWindow::LVMainWindow()
 
 LVMainWindow::~LVMainWindow()
 {
@@ -394,7 +433,7 @@ void LVMainWindow::open()
             fw->resetDir(source_dir.toLatin1().data());
         }
     }
-}
+}  // end of LVMainWindow::open()
 
 void LVMainWindow::save()
 {

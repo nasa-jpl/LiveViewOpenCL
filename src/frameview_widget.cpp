@@ -27,6 +27,13 @@ frameview_widget::frameview_widget(FrameWorker *fw,
         p_getFrame = &FrameWorker::getFrame;
     }
 
+
+    //
+    // EMITFPIED-331
+    // PK add frame control feature 11-16-20
+    // need to coummnicate with FrameWorker thread
+    frameWorkerParent = fw;
+
     floor = 0.0;
 
     upperRangeBoundX = frWidth - 1;
@@ -210,10 +217,30 @@ frameview_widget::frameview_widget(FrameWorker *fw,
         renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
         fpsclock.start(1000); // 1 sec
     }
-}
+
+} // end of frameview_widget::frameview_widget()
 
 void frameview_widget::handleNewFrame()
 {
+    //
+    // EMITFPIED-331
+    // This is where to insert a check for frame display suspension status
+    static bool logged = false;
+
+    if( frameWorkerParent->isFrameControlOn() == true )
+    {
+        //
+        // if frameControlIsOn, stops grabbing new frames for display.
+        if( !logged )
+        {
+            qDebug() << "frameControlIsOn is true, frameview_widget::handleNewFrame() returns and do NOTHING";
+            logged = true;
+        }
+        // sleep for 1 msec
+        QThread::usleep( 1000 );
+        return;
+    }
+
     if (!this->isHidden() && frame_handler->Camera->isRunning()) {
         timeout_display = true;
         std::vector<float>image_data{(frame_handler->*p_getFrame)()};
@@ -338,13 +365,16 @@ void frameview_widget::setDarkMode()
     }
 }
 
+
 void frameview_widget::mouse_down(QMouseEvent *event) {
     if(event->button()== Qt::RightButton) {
+
         bool just_enabled = false;
         if(crosshairX->visible() && !boxes_enabled) {
             boxes_enabled = true;
             just_enabled = true;
         }
+
         if(boxes_enabled) {
             if((abs(event->pos().x() - qcp->xAxis->coordToPixel(frame_handler->getCenter()->x())) < 50 && just_enabled) ||
                (abs(event->pos().x() - qcp->xAxis->coordToPixel(tlBox->bottomRight->coords().x())) < 50 && event->pos().y() < qcp->yAxis->coordToPixel(tlBox->bottomRight->coords().y()) + 50) ||
@@ -368,8 +398,10 @@ void frameview_widget::mouse_down(QMouseEvent *event) {
                 dragging_vertical_box = true;
             }
         }
-    }
-}
+	  
+    }  // bottom of Qt::RightButton
+
+} // end of frameview_widget::mouse_down(QMouseEvent *event)
 
 void frameview_widget::mouse_move(QMouseEvent *event) {
     if (show_tooltip) {

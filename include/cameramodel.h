@@ -24,6 +24,10 @@ public:
 
     virtual void setDir(const char *filename) { Q_UNUSED(filename); }
 
+    // EMITFPIED-331
+    virtual void suspendFrameAcquistion(bool status) { Q_UNUSED(status); }
+
+
     virtual bool isRunning() { return running.load(); }
 
     int getFrameWidth() const { return frame_width; }

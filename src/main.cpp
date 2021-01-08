@@ -29,7 +29,11 @@ int main(int argc, char* argv[])
 {
     int sfd;
     struct sockaddr_un lv_addr = {};
-    QApplication a(argc, argv);
+
+    // The QApplication class manages the GUI application's control flow
+    // and main settings
+    QApplication Qt_App(argc, argv);
+
     std::string socket_path = "/tmp/LiveViewOpenSource";
 
     if ( (sfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
@@ -60,10 +64,18 @@ int main(int argc, char* argv[])
         handle_error("listen");
     }
 
+    /*
+     * Initialize LiveView application ... with its settings 
+     * defined in ~/.config/lvconfig.ini
+     */
     QSettings settings(QStandardPaths::writableLocation(
                            QStandardPaths::ConfigLocation)
                        + "/lvconfig.ini", QSettings::IniFormat);
 
+    /*
+     * Load LiveView configuration and settings from its configuration 
+     * file ~/.config/lvconfig.ini
+     */
     if (settings.value(QString("dark"), USE_DARK_STYLE).toBool()) {
         QFile f(":qdarkstyle/style.qss");
 
@@ -85,9 +97,10 @@ int main(int argc, char* argv[])
         }
     }
 
+
     QPixmap logo_pixmap(":images/aviris-logo-transparent.png");
-    QSplashScreen splash(logo_pixmap);
-    splash.show();
+    QSplashScreen splash(logo_pixmap); 
+    /* splash.show(); PK 11-11-20 temp. disabled for debug */
     splash.showMessage(QObject::tr("Loading LiveView... Compiled on " __DATE__ ", " __TIME__ " PDT by " UNAME "@" HOST),
                        Qt::AlignCenter | Qt::AlignBottom, Qt::gray);
 
@@ -95,6 +108,11 @@ int main(int argc, char* argv[])
              << __DATE__ << "at" << __TIME__ << "using gcc" << __GNUC__;
     qDebug() << "The compilation was performed by" << UNAME << "@" << HOST;
 
+
+    //
+    // Initializes LiveView Main Window, set up slots (event handlers),
+    // create Actions, set up QFuture watchers, starting threads for
+    // processing SD frames.
     LVMainWindow w(&settings);
     if (w.notInitialized) {
         splash.finish(&w);
@@ -106,12 +124,29 @@ int main(int argc, char* argv[])
                       Qt::LeftToRight,
                       Qt::AlignCenter,
                       w.size(),
-                      a.desktop()->availableGeometry()));
+                      Qt_App.desktop()->availableGeometry()));
     w.show();
     splash.finish(&w);
 
-    auto ret_val = a.exec();
+
+    // For any GUI application using Qt, there is precisely one
+    // QApplication object, no matter whether the application
+    // has 0, 1, 2 or more windows at any given time.
+    //
+    // Enters the main event loop and waits until exit() is called,
+    // then returns the value that was set to exit() (which is 0
+    // if exit() is called via quit()).
+    //
+    // It is necessary to call this function 'exec()' to start event
+    // handling. The main event loop receives events from the window
+    // system and dispatches these to the application widgets.
+    auto ret_val = Qt_App.exec();
+
+    //
+    // LiveView application exits, cleans up and remove the data from
+    // the file system.
     unlink(socket_path.data());
 
     return ret_val;
-}
+
+} // end of main()

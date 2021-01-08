@@ -84,14 +84,58 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
         stdDevNBox->setValue((stdDevNSlider->value() / 2) + 1);
     });
 
+
+    //
+    // PK EMITFPIED-331_v2 Frame Control enhancement
+    // 
+    // add Frame Control buttons: Rewind, Play/Stop, Forward
+    frameWorkerParent = fw;
+    frameControl_prevButton = new QToolButton( this );
+    frameControl_prevButton->setIcon( style()->standardIcon(QStyle::SP_MediaSkipBackward) );
+    connect(frameControl_prevButton, &QAbstractButton::clicked, this, &ControlsBox::frameControlPrevButtonClicked);
+
+
+    frameControl_nextButton = new QToolButton( this );
+    frameControl_nextButton->setIcon( style()->standardIcon(QStyle::SP_MediaSkipForward) );
+    connect(frameControl_nextButton, &QAbstractButton::clicked, this, &ControlsBox::frameControlNextButtonClicked);
+
+    
+    //
+    // Note, initially, there is only a STOP button as the
+    // image frames are being played/displayed.  When the
+    // STOP is pressed, it becomes a PLAY button !!
+    frameControl_stopButton = new QToolButton( this );
+    frameControl_stopButton->setIcon( style()->standardIcon(QStyle::SP_MediaStop) );
+    connect(frameControl_stopButton, &QAbstractButton::clicked, this, &ControlsBox::frameControlStopButtonClicked);
+
+    frameControlBar = new QToolBar( this );
+    frameControlBar->addWidget( frameControl_prevButton );
+    frameControlBar->addWidget( frameControl_stopButton );
+    frameControlBar->addWidget( frameControl_nextButton );
+
+
+    //
+    // action items:
+    //
+    // 1. need to connect slots (event handlers) to all frame control
+    //    buttons
+    // 
+    // 2. Done - need to add frame control buttons to cboxLayout 
+    // 
     auto cboxLayout = new QGridLayout(this);
     cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Range:", this), 0, 1, 1, 1);
     cboxLayout->addWidget(min_box, 0, 2, 1, 1);
     cboxLayout->addWidget(rangeSlider, 0, 3, 1, 5);
     cboxLayout->addWidget(max_box, 0, 8, 1, 1);
-    cboxLayout->addWidget(precisionBox, 0, 9, 1, 1);
-    cboxLayout->addWidget(maskButton, 0, 10, 1, 1);
+
+    //
+    // add Frame control buttons
+    cboxLayout->addWidget(frameControlBar, 0, 9, 1, 1);
+
+    cboxLayout->addWidget(precisionBox, 0, 10, 1, 1);
+    cboxLayout->addWidget(maskButton, 0, 11, 1, 1);
+
     cboxLayout->addWidget(ipLabel, 1, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Save File to:", this), 1, 1, 1, 1);
     cboxLayout->addWidget(saveFileNameEdit, 1, 2, 1, 5);
@@ -284,3 +328,68 @@ LVTabApplication* ControlsBox::getCurrentTab()
     return qobject_cast<LVTabApplication*>(tab_handler->widget(
                                                tab_handler->currentIndex()));
 }
+
+//
+// PK EMITFPIED-331_V2 Frame Control button enhancement
+// 
+// add Frame Control buttons: Rewind, Play/Stop, Forward
+void ControlsBox::frameControlPrevButtonClicked()
+{
+    qDebug() << "\nPK Debug - frameControlStopButtonClicked() - PREV button Clicked ...\n";
+} // end of ControlsBox::frameControlPrevButtonClicked()
+
+void ControlsBox::frameControlNextButtonClicked()
+{
+    qDebug() << "\nPK Debug - frameControlStopButtonClicked() - NEXT button Clicked ...\n";
+} // end of ControlsBox::frameControlNextButtonClicked()
+
+
+enum frameControlButton{
+    STOP_button = 1,
+    PLAY_button = 2
+};
+
+void ControlsBox::frameControlStopButtonClicked()
+{
+    static int currDisplayButton = STOP_button;
+
+    //
+    // Note, it always starts with a STOP button as frames are being
+    // displayed (played) by LiveView when LiveView starts.
+    switch( currDisplayButton )
+    {
+    case STOP_button:
+        qDebug() << "\nPK Debug - frameControlStopButtonClicked() - STOP button Clicked, switch to PLAY button. \n";
+
+        //
+        // while frames are being 'played', a 'STOP' button is always displayed.
+        // Swith to a PLAY button when the 'PLAY' button is clicked.
+        frameControl_stopButton->setIcon( style()->standardIcon(QStyle::SP_MediaPlay) );
+        currDisplayButton = PLAY_button;
+
+        if( frameWorkerParent->isFrameControlOn() == false )
+        {
+            //
+            // turn On frameControl, and suspend frame display
+            frameWorkerParent->setFrameControlStatus( true );
+            frameWorkerParent->suspendFrameAcquistion();
+        }
+        break;
+
+    case PLAY_button:
+        //
+        // while frames playing are being suspended, a 'PLAY' button is shown !!
+        // Swith to a STOP button when the 'PLAY' button is clicked.
+        qDebug() << "\nPK Debug - frameControlStopButtonClicked() - PLAY button Clicked, switch to STOP button.\n";
+        frameControl_stopButton->setIcon( style()->standardIcon(QStyle::SP_MediaStop) );
+        currDisplayButton = STOP_button;
+
+        frameWorkerParent->setFrameControlStatus( false );  
+        frameWorkerParent->resumeFrameAcquistion();
+        break;
+    }
+
+} // end of ControlsBox::frameControlStopButtonClicked()
+
+// PK EMITFPIED-331_V2 Frame Control button enhancement
+

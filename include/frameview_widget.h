@@ -35,8 +35,14 @@ public slots:
     QCPColorMap* getColorMap();
 
 private:
+    //
+    // EMITFPIED-331
+    // PK new mouse feature 11-16-20
+    FrameWorker *frameWorkerParent;
+    
     inline void setDarkMode();
     std::vector<float> (FrameWorker::*p_getFrame)();
+    // std::vector<float> (FrameWorker::*CameraFrameControlMgr();
     image_t image_type;
 
     QCPColorMap *colorMap;
@@ -70,10 +76,12 @@ private:
     double loBoundY;
     double hiBoundY;
 
+
 private slots:
     void mouse_down(QMouseEvent *event);
     void mouse_move(QMouseEvent *event);
     void mouse_up(QMouseEvent *event);
+
 };
 
 #endif // FRAMEVIEW_WIDGET_H

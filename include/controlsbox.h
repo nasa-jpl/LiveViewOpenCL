@@ -4,6 +4,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QPushButton>
+#include <QToolButton>
 #include <QCheckBox>
 #include <QGridLayout>
 #include <QByteArray>
@@ -42,6 +43,14 @@ private slots:
     void setRangeSliderMin(int new_min);
     void setRangeSliderMax(int new_max);
 
+    // 
+    // PK EMITFPIED-331_v2 Frame Control enhancement
+    //
+    // add Frame Control buttons: Rewind, Play/Stop, Forward
+    void frameControlPrevButtonClicked();
+    void frameControlNextButtonClicked();
+    void frameControlStopButtonClicked();
+
 private:
     int fileNumber = 0;
     QString prevFileName;
@@ -66,6 +75,21 @@ private:
 
     QPushButton *maskButton;
     bool collecting_mask;
+
+    //
+    // EMITFPIED-331
+    // need to coummnicate with FrameWorker thread
+    FrameWorker *frameWorkerParent;
+
+    //
+    // PK EMITFPIED-331_v2 Frame Control enhancement
+    // 
+    // add Frame Control buttons: Rewind, Play/Stop, Forward
+    QToolBar    *frameControlBar;
+    QToolButton *frameControl_prevButton;
+    QToolButton *frameControl_nextButton;
+    QToolButton *frameControl_stopButton;
+    
 };
 
 #endif // CONTROLSBOX_H

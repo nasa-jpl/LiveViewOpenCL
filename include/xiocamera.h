@@ -39,6 +39,9 @@ public:
 
     virtual void setDir(const char *dirname);
 
+    // EMITFPIED-331
+    virtual void suspendFrameAcquistion( bool status );
+
     virtual uint16_t* getFrame();
 
 private:
@@ -47,6 +50,10 @@ private:
     void readLoop();
 
     bool is_reading; // Flag that is true while reading from a directory
+
+    // EMITFPIED-331
+    bool frameAcquistionSupended; 
+
     std::ifstream dev_p;
     std::string ifname;
     std::string data_dir;
@@ -64,6 +71,7 @@ private:
 
     QFuture<void> readLoopFuture;
     int tmoutPeriod;
+
 };
 
 #endif // XIOCAMERA_H
