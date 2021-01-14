@@ -52,10 +52,14 @@ public:
     // PK new mouse feature 11-16-20
     bool isFrameControlOn( void ) { return frameControlIsOn; };
     void setFrameControlStatus( int status )  { frameControlIsOn = status; };
-    void suspendFrameAcquistion();
-    void resumeFrameAcquistion();
+    void suspendFrameAcquisition();
+    void resumeFrameAcquisition();
     // EMITFPIED-331_v2
-    
+
+    // PK 1-13-21 added ... Forward button support
+    void setFrameControlFrameCount( int frameCount );
+    int  getFrameControlFrameCount( void );
+    void setFrameAcquisitionFrameCount( int count );
 
     CameraModel *Camera;
 
@@ -165,7 +169,7 @@ private:
     // EMITFPIED-331_v2
     // PK frame control flag
     bool frameControlIsOn = false;
-
+    int  frameControlFrameCount = 0;
 
     // std::mutex time_index_lock;
     // size_t time_index{0};

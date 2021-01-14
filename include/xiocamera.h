@@ -40,7 +40,7 @@ public:
     virtual void setDir(const char *dirname);
 
     // EMITFPIED-331
-    virtual void suspendFrameAcquistion( bool status );
+    virtual void suspendFrameAcquisition( bool status );
 
     virtual uint16_t* getFrame();
 
@@ -52,7 +52,13 @@ private:
     bool is_reading; // Flag that is true while reading from a directory
 
     // EMITFPIED-331
-    bool frameAcquistionSupended; 
+    bool frameAcquisitionSuspended;
+    int  frameAcquisitionCount;
+    
+    // PK 1-13-21 added ... Foward button support 
+    int  getFrameAcquisitionCount( void );
+    void setFrameAcquisitionCount( int count );
+
 
     std::ifstream dev_p;
     std::string ifname;

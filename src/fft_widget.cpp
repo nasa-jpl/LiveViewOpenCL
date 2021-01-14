@@ -61,7 +61,8 @@ fft_widget::fft_widget(FrameWorker *fw, QWidget *parent) :
     if (frame_handler->running()) {
         renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
     }
-}
+
+}  // end of fft_widget::fft_widget()
 
 void fft_widget::handleNewFrame()
 {

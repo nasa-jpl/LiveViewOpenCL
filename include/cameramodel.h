@@ -25,8 +25,10 @@ public:
     virtual void setDir(const char *filename) { Q_UNUSED(filename); }
 
     // EMITFPIED-331
-    virtual void suspendFrameAcquistion(bool status) { Q_UNUSED(status); }
-
+    virtual void suspendFrameAcquisition( bool status ) { Q_UNUSED(status); }
+    virtual int getFrameAcquisitionCount( void ) { int i = 0; return i; }
+    virtual void setFrameAcquisitionCount( int count ) { Q_UNUSED(count); }
+        
 
     virtual bool isRunning() { return running.load(); }
 

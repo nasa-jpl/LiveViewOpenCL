@@ -340,7 +340,19 @@ void ControlsBox::frameControlPrevButtonClicked()
 
 void ControlsBox::frameControlNextButtonClicked()
 {
-    qDebug() << "\nPK Debug - frameControlStopButtonClicked() - NEXT button Clicked ...\n";
+    qDebug() << "\nPK Debug - frameControlNextButtonClicked() - NEXT button Clicked ...\n";
+
+    //
+    // Ignore the Next button press event if Frame Control is OFF
+    if( frameWorkerParent->isFrameControlOn() == false )
+        return;
+
+    // PK 1-13-21 added ...
+    frameWorkerParent->setFrameAcquisitionFrameCount( 1 ); 
+    frameWorkerParent->setFrameControlFrameCount( 1 );
+    qDebug() << "\nPK Debug - ControlsBox::frameControlNextButtonClicked() - frameControlFrameCount is set to " << frameWorkerParent->getFrameControlFrameCount();
+    // PK 1-13-21 added ...
+    
 } // end of ControlsBox::frameControlNextButtonClicked()
 
 
@@ -363,7 +375,7 @@ void ControlsBox::frameControlStopButtonClicked()
 
         //
         // while frames are being 'played', a 'STOP' button is always displayed.
-        // Swith to a PLAY button when the 'PLAY' button is clicked.
+        // Swith to a PLAY button when the 'STOP' button is clicked.
         frameControl_stopButton->setIcon( style()->standardIcon(QStyle::SP_MediaPlay) );
         currDisplayButton = PLAY_button;
 
@@ -372,7 +384,7 @@ void ControlsBox::frameControlStopButtonClicked()
             //
             // turn On frameControl, and suspend frame display
             frameWorkerParent->setFrameControlStatus( true );
-            frameWorkerParent->suspendFrameAcquistion();
+            frameWorkerParent->suspendFrameAcquisition();
         }
         break;
 
@@ -385,7 +397,7 @@ void ControlsBox::frameControlStopButtonClicked()
         currDisplayButton = STOP_button;
 
         frameWorkerParent->setFrameControlStatus( false );  
-        frameWorkerParent->resumeFrameAcquistion();
+        frameWorkerParent->resumeFrameAcquisition();
         break;
     }
 

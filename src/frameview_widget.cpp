@@ -220,14 +220,23 @@ frameview_widget::frameview_widget(FrameWorker *fw,
 
 } // end of frameview_widget::frameview_widget()
 
-void frameview_widget::handleNewFrame()
+
+
+//
+// PK 1-12-21
+//
+// frameview_widget::handleNewFrame() is a slot, signal handler.  It process
+// signal 'timeout' 
+//
+void frameview_widget::handleNewFrame() 
 {
     //
     // EMITFPIED-331
     // This is where to insert a check for frame display suspension status
     static bool logged = false;
 
-    if( frameWorkerParent->isFrameControlOn() == true )
+    if( frameWorkerParent->isFrameControlOn() == true &&
+        frameWorkerParent->getFrameControlFrameCount() == 0 )
     {
         //
         // if frameControlIsOn, stops grabbing new frames for display.
@@ -236,9 +245,21 @@ void frameview_widget::handleNewFrame()
             qDebug() << "frameControlIsOn is true, frameview_widget::handleNewFrame() returns and do NOTHING";
             logged = true;
         }
+
         // sleep for 1 msec
         QThread::usleep( 1000 );
         return;
+    }
+
+    //
+    // PK 1-13-21 added ... Forward button support
+    //
+    if( frameWorkerParent->getFrameControlFrameCount() > 0 )
+    {
+        // gives the thread a chance to fill the lvframe_buf
+        // sleep for 500 msec
+        qDebug() << "frameview_widget::handleNewFrame() - frameControlIsOn with NEXT button clicked, sleeps for 500 ms. \n";
+        QThread::usleep( 500000 );
     }
 
     if (!this->isHidden() && frame_handler->Camera->isRunning()) {
@@ -252,6 +273,8 @@ void frameview_widget::handleNewFrame()
         }
         qcp->replot();
         count++;
+
+
     } else {
         if (timeout_display) {
 
@@ -266,7 +289,19 @@ void frameview_widget::handleNewFrame()
         fps_string = QString::number(fps, 'f', 1);
         fpsLabel->setText(QString("Display: %1 fps").arg(fps_string));
     } */
-}
+
+
+    // PK 1-13-21 added ... Forward button support
+    //
+    // reset frameControlFrameCount to 0 after displayed ONE frame 
+    if( frameWorkerParent->getFrameControlFrameCount() != 0 )
+    {
+        qDebug() << "frameview_widget::handleNewFrame() - frameControlIsOn with NEXT button clicked, reset FrameCount to 0\n";
+        frameWorkerParent->setFrameControlFrameCount( 0 );
+    }
+
+
+} // end of frameview_widget::handleNewFrame() 
 
 void frameview_widget::reportFPS()
 {

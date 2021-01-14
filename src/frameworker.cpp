@@ -165,6 +165,9 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     // Initialize frame control variables:
     setFrameControlStatus( false );  // set frameControlIsOn to Off
 
+    // PK 1-13-21 added ... for Forward button support 
+    setFrameControlFrameCount( 0 );  // initialize frameCount to 0 ... 
+
 } // end of Constructor - FrameWorker::FrameWorker()
 
 FrameWorker::~FrameWorker()
@@ -192,18 +195,38 @@ bool FrameWorker::running()
 
 // EMITFPIED-331
 // PK new mouse feature 11-16-20
-void FrameWorker::suspendFrameAcquistion()
+void FrameWorker::suspendFrameAcquisition()
 {
-    qDebug() << "PK Debug - FrameWorker::suspendFrameAcquistion() Supspends frame acquistion.";
-    Camera->suspendFrameAcquistion( true );
+    qDebug() << "PK Debug - FrameWorker::suspendFrameAcquisition() Supspends frame acquistion.";
+    Camera->suspendFrameAcquisition( true );
 }
 
-void FrameWorker::resumeFrameAcquistion()
+void FrameWorker::resumeFrameAcquisition()
 {
-    qDebug() << "PK Debug - FrameWorker::resumeFrameAcquistion() Resumes frame acquistion.";
-    Camera->suspendFrameAcquistion( false );
+    qDebug() << "PK Debug - FrameWorker::resumeFrameAcquisition() Resumes frame acquistion.";
+    Camera->suspendFrameAcquisition( false );
 }
 // EMITFPIED-331
+
+// PK 1-13-21 added ... Forward button support
+void FrameWorker::setFrameAcquisitionFrameCount( int count )
+{
+    qDebug() << "PK Debug - FrameWorker::setFrameAcquisitionFrameCount() count = " << count;
+    Camera->setFrameAcquisitionCount( count );
+}
+
+
+void FrameWorker::setFrameControlFrameCount( int frameCount )
+{
+    frameControlFrameCount = frameCount;
+}
+
+
+int FrameWorker::getFrameControlFrameCount( void )
+{
+    return frameControlFrameCount;
+}
+
 
 
 void FrameWorker::setPlotMode(LV::PlotMode pm)
@@ -217,6 +240,11 @@ void FrameWorker::reportTimeout()
     isTimeout = true;
 }
 
+//
+//  PK 1-12-21
+//  
+//  This is a slot (signal handler) to handle signal 'started'
+// 
 void FrameWorker::captureFrames()
 {
     qDebug("About to start capturing frames");
@@ -231,11 +259,13 @@ void FrameWorker::captureFrames()
     fpsclock->start(1000);
 
     while (isRunning) {
+        
         beg = high_resolution_clock::now();
         uint16_t* temp_frame = Camera->getFrame();
         for (int pix = 0; pix < int(frSize); pix++) {
             lvframe_buffer->current()->raw_data[pix] = temp_frame[pix];
         }
+        // qDebug() << "PK Debug 1-13-21 FrameWorker::captureFrames() image pixel data loaded"; 
 
         //lvframe_buffer->current()->raw_data = Camera->getFrame();
 
@@ -260,13 +290,14 @@ void FrameWorker::captureFrames()
         }
 
         count++;
+
         if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI)) {
             delay(int64_t(frame_period_ms) - duration);
         } else {
             QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
         }
     }
-}
+} // end of FrameWorker::captureFrames() 
 
 void FrameWorker::captureDSFrames()
 {
@@ -484,7 +515,8 @@ std::vector<float> FrameWorker::getFrame()
         raw_data[i] = float(lvframe_buffer->frame(last_ndx)->raw_data[i]);
     }
     return raw_data;
-}
+
+} // end of FrameWorker::getFrame()
 
 std::vector<float> FrameWorker::getDSFrame()
 {

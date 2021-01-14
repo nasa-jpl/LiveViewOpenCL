@@ -15,7 +15,10 @@ XIOCamera::XIOCamera(int frWidth,
     is_reading = false;
 
     // EMITFPIED-331
-    frameAcquistionSupended = false;
+    frameAcquisitionSuspended = false;
+
+    // PK 1-13-21 added ... Forward button support
+    frameAcquisitionCount = 0;
 
     header.resize(size_t(headsize));
     std::fill(header.begin(), header.end(), 0);
@@ -33,7 +36,7 @@ XIOCamera::~XIOCamera()
     emit timeout();
     is_reading = false;
     readLoopFuture.waitForFinished();
-}
+} // end of XIOCamera::~XIOCamera()
 
 void XIOCamera::setDir(const char *dirname)
 {
@@ -80,20 +83,33 @@ void XIOCamera::setDir(const char *dirname)
 } // end of XIOCamera::setDir() 
 
 // EMITFPIED-331
-void XIOCamera::suspendFrameAcquistion( bool status )
+void XIOCamera::suspendFrameAcquisition( bool status )
 {
-  frameAcquistionSupended = status;
-  qDebug() << "PK Debug - XIOCamera::suspendFrameAcquistion()";
-  qDebug() << "PK Debug - XIOCamera::frameAcquistionSupended = " << frameAcquistionSupended; 
+  frameAcquisitionSuspended = status;
+  qDebug() << "PK Debug - XIOCamera::suspendFrameAcquisition()";
+  qDebug() << "PK Debug - XIOCamera::frameAcquisitionSuspended = " << frameAcquisitionSuspended; 
   
-} // end of void XIOCamera::suspendFrameAcquistion()
+} // end of void XIOCamera::suspendFrameAcquisition()
 // EMITFPIED-331
 
 
+//
+// PK 1-13-21 added ... Forward button support
+int XIOCamera::getFrameAcquisitionCount( void )
+{
+    return frameAcquisitionCount;
+} // end of XIOCamera::getFrameAcquisitionCount()
 
-//
-// PK Debug - need to document this function's purpose !!
-//
+void XIOCamera::setFrameAcquisitionCount( int count )
+{
+    frameAcquisitionCount = count;
+    qDebug() << "PK Debug - XIOCamera::setFrameAcquisitionCount() frameAcquisitionCount is set to " << count;
+} // end of XIOCamera::setFrameAcquisitionCount()
+// PK 1-13-21 added ... Forward button support
+
+
+
+
 //
 // getFname() - returns a xio file !!
 //
@@ -207,13 +223,15 @@ void XIOCamera::readFile()
 
     while(!validFile) {
 
-        if( frameAcquistionSupended == true )
+        //
+        // PK 1-13-21 added ... Forward button support
+        if( frameAcquisitionSuspended == true && frameAcquisitionCount == 0 )
         {
             //
             // if frameAcquisitionSuspended is ON, stop reading new frames.
             if( !logged )
             {
-                qDebug() << "frameAcquistionSupended is ON, XIOCamera::readFile() do NOTHING";
+                qDebug() << "frameAcquisitionSuspended is ON, XIOCamera::readFile() do NOTHING";
                 logged = true;
             }
             // qDebug() << "XIOCamera::readLoop() sleep 1 msec"
@@ -227,7 +245,8 @@ void XIOCamera::readFile()
         // qDebug() << "PK Debug XIOCamera::readFile() image_no: " << image_no << ", xio_files size: " << xio_files.size();
 
         ifname = getFname();
-        if (ifname.empty()) {
+        if (ifname.empty())
+        {
             if (dev_p.is_open()) {
                 dev_p.close();
             }
@@ -238,6 +257,7 @@ void XIOCamera::readFile()
             }
             return; //If we're out of files, give up
         }
+
         // otherwise check if data is valid
         dev_p.open(ifname, std::ios::in | std::ios::binary);
         if (!dev_p.is_open()) {
@@ -296,6 +316,13 @@ void XIOCamera::readFile()
             emit started();
             dev_p.close();
         }
+
+        //
+        // PK 1-13-21 ... added Forward button support
+        //
+        // After ONE frame was loaded, reset frameAcquisition count to 0
+        if( getFrameAcquisitionCount() != 0 )
+            setFrameAcquisitionCount( 0 );
     }
 
 } // end of XIOCamera::readFile()
