@@ -4,7 +4,7 @@ XIOCamera::XIOCamera(int frWidth,
         int frHeight, int dataHeight,
         QObject *parent
 ) : CameraModel(parent), nFrames(32), framesize(0),
-    headsize(frWidth * int(sizeof(uint16_t))), image_no(0),
+    headsize(EMIT_FRAME_HEADER_SIZE), image_no(0),
     tmoutPeriod(100) // milliseconds
 {
     source_type = XIO;

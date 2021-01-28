@@ -29,4 +29,7 @@ namespace LV {
     enum PlotMode { pmRAW, pmDSF, pmSNR };
 }
 
+static const int EMIT_FRAME_HEADER_SIZE = 1280;
+
+
 #endif // CONSTANTS_H
