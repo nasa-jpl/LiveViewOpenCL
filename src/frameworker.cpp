@@ -364,7 +364,7 @@ void FrameWorker::saveFrames(save_req_t req)
     }
 
     std::string hdr_text = "ENVI\ndescription = {LIVEVIEW raw export file, " +
-            std::to_string(req.nFrames) + " frame mean per acquisition}\n";
+            std::to_string(req.nAvgs) + " frame mean per acquisition}\n";
     hdr_text += "samples = " + std::to_string(frWidth) + "\n";
     hdr_text += "lines   = " + std::to_string(req.nFrames / req.nAvgs) + "\n";
     hdr_text += "bands   = " + std::to_string(dataHeight) + "\n";
