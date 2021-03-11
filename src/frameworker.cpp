@@ -1,5 +1,11 @@
+#include <QMutex>     // PK 2-17-21 image-line-debug
+
 #include "frameworker.h"
 #include "unistd.h"
+
+
+extern bool frameLineDebugLog;   // PK 2-5-21 image-line-debug
+extern QMutex LVDataMutex;  // PK 2-18-21 image-line-debug
 
 class LVFrameBuffer
 {
@@ -7,10 +13,19 @@ public:
     LVFrameBuffer(const int num_frames, const int frame_width, const int frame_height)
         : lastIndex(0), fbIndex(0),  dsfIndex(0), stdIndex(0)
     {
+        //
+        // PK Debug 2-3-21
+        qDebug() << "PK Debug LVFrameBuffer Constructor: numframe:" << num_frames << ", frame_width:" << frame_width << ", frame_height:" << frame_height ;
+
         for (int f = 0; f < num_frames; ++f) {
             auto pFrame = new LVFrame(frame_width, frame_height);
+            if( f == 0 )
+                qDebug() << "PK Debug LVFrameBuffer Constructor: frSize:" << pFrame->frSize;
             frame_vec.push_back(pFrame);
         }
+
+
+
     }
     ~LVFrameBuffer()
     {
@@ -240,6 +255,24 @@ void FrameWorker::reportTimeout()
     isTimeout = true;
 }
 
+void FrameWorker::dumpFrameFileData( frameDataFile *f )
+{
+    std::vector <frameLineData> line = f->lineData;
+    qDebug() << "PK Debug - FrameWorker dumpFrameFileData starts ...\n";
+    qDebug() << "\tfilename:" << f->filename.data() << "\n";
+    int lineId = 1;
+    for( frameLineData l : line )
+    {
+        qDebug() << "\tLine #:" << lineId++;
+        qDebug() << "\ttimeStamp:" << l.timeStamp;
+        qDebug() << "\tlineCount:" << l.lineCount;
+        qDebug() << "\tdataId:"    << l.dataId;
+    }
+
+    qDebug() << "PK Debug - FrameWorker dumpFrameFileData ends ...\n";
+} // end of dumpFrameFileData()
+
+
 //
 //  PK 1-12-21
 //  
@@ -258,45 +291,138 @@ void FrameWorker::captureFrames()
     connect(fpsclock, &QTimer::timeout, this, &FrameWorker::reportFPS);
     fpsclock->start(1000);
 
-    while (isRunning) {
-        
-        beg = high_resolution_clock::now();
+    static int frame_read_count = 0; // PK Debug 2-3-21 image-line-debug
+    frameDataFile *fData;
+
+    //
+    // Existing design - 
+    //
+    // The while loop here is to process each frame line retrieved
+    // from Camera->getFrame()
+    // 
+    // New design -
+    // The while loop is to process the frameDataFile in which it contains
+    // all 32 frame lines from Camera->getFrame()
+    std::vector <frameLineData> frameLines;
+    while (isRunning)
+    {
         uint16_t* temp_frame = Camera->getFrame();
-        for (int pix = 0; pix < int(frSize); pix++) {
-            lvframe_buffer->current()->raw_data[pix] = temp_frame[pix];
+
+        // qDebug() << "PK Debug - FrameWorker::captureFrames() after Camera->getFrame()";
+        
+        if( temp_frame != NULL )       // PK 2-3-21 image-line-debug
+        {                              // PK 2-3-21 image-line-debug
+ 
+            // Action item:
+            //
+            //  - needs to add code to handle data from 'Camera->getFrame()
+            //
+            fData = (frameDataFile *) reinterpret_cast <uint16_t *> (temp_frame);
+            if( frameLineDebugLog )
+                dumpFrameFileData( fData );
+
+            //
+            // add the newly acquired frame line data record to the list,
+            // LVDataFileList
+            LVDataMutex.lock();
+            LVDataFileList.emplace_back( *fData );
+
+
+            //
+            // 2-25-21 data size mistmatch ??
+            //
+            // XIOCamera::readFile() read 'framesize' number of bytes from
+            // the image frame file.
+            //
+            // But pixels are 2-byte unit.  Thus, temp_frame obtained
+            // a unit16_t* data stream that is in pixel unit.
+            //
+            // Therefore, the line below using counter 'frSize' is correct
+            //
+            //  for (int pix = 0; pix < int(frSize); pix++) {
+            //     lvframe_buffer->current()->raw_data[pix] = temp_frame[pix];
+            //  }
+            //
+            // because frSize = size_t(frWidth * dataHeight) is in pixel unit
+            // and temp_frame is a pointer that points to uint16_t data
+            // stream.
+            //
+            // Therefore, NO data size mismatch issue.
+
+
+#ifdef ORIGINAL_CODE            
+            
+            for (int pix = 0; pix < int(frSize); pix++) {
+                lvframe_buffer->current()->raw_data[pix] = temp_frame[pix];
+            }
+
+            //lvframe_buffer->current()->raw_data = Camera->getFrame();
+
+#else // NEW_CODE
+
+            //
+            // It's no longer a SINGLE write to the lvframe_buffer because 
+            // now we have a full collection of 32 frame lines of an image
+            // frame to process !!
+            frameLines = fData->lineData;
+            for( frameLineData l : frameLines )
+            {
+                beg = high_resolution_clock::now();
+                for (int pix = 0; pix < int(frSize); pix++) {
+                    lvframe_buffer->current()->raw_data[pix] = l.data[pix];
+                }
+
+                if (pixRemap) {// if (Camera->isRunning() && pixRemap) {
+                    TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
+                }
+                if (interlace) {
+                    IlaceFilter->apply_filter(lvframe_buffer->current()->raw_data);
+                }
+                end = high_resolution_clock::now();
+
+
+                // PK Debug 2-3-21 image-line-debug
+                if( frameLineDebugLog )
+                    qDebug() << "PK Debug FrameWorker::captureFrames() image frame #" << ++frame_read_count << "stored @<" << lvframe_buffer->current() << "> ";
+
+                lvframe_buffer->incIndex();
+
+                duration = duration_cast<milliseconds>(end - beg).count();
+                this_frame_duration = duration_cast<microseconds>(end - last_frame).count();
+                last_frame = end;
+                ticksum -= ticklist.at(size_t(tickindex));
+                ticksum += int(this_frame_duration);
+                ticklist[size_t(tickindex)] = int(this_frame_duration);
+                if (++tickindex == MAXSAMPLES) {
+                    tickindex = 0;
+                }
+                count++;
+
+            } // bottom of for loop to load frame lines into LV buffer.
+
+            //
+            // Release the mutex so that the other thread can access
+            // the LVDataFileList 
+            LVDataMutex.unlock();
+
+#endif // NEW_CODE
+
+        }  // PK 2-3-21 image-line-debug ...
+        else
+        {
+            // 
+            // PK 2-3-21 image-line-debug ...
+            // the following line is for debugging purposes.
+            frame_read_count = 0;
         }
-        // qDebug() << "PK Debug 1-13-21 FrameWorker::captureFrames() image pixel data loaded"; 
-
-        //lvframe_buffer->current()->raw_data = Camera->getFrame();
-
-        if (pixRemap) {// if (Camera->isRunning() && pixRemap) {
-            TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
-        }
-        if (interlace) {
-            IlaceFilter->apply_filter(lvframe_buffer->current()->raw_data);
-        }
-        end = high_resolution_clock::now();
-
-        lvframe_buffer->incIndex();
-
-        duration = duration_cast<milliseconds>(end - beg).count();
-        this_frame_duration = duration_cast<microseconds>(end - last_frame).count();
-        last_frame = end;
-        ticksum -= ticklist.at(size_t(tickindex));
-        ticksum += int(this_frame_duration);
-        ticklist[size_t(tickindex)] = int(this_frame_duration);
-        if (++tickindex == MAXSAMPLES) {
-            tickindex = 0;
-        }
-
-        count++;
-
+        
         if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI)) {
             delay(int64_t(frame_period_ms) - duration);
         } else {
             QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
         }
-    }
+    } // bottom of while (isRunning) loop
+    
 } // end of FrameWorker::captureFrames() 
 
 void FrameWorker::captureDSFrames()
@@ -501,22 +627,67 @@ void FrameWorker::resetDir(const char *dirname)
     }
 }
 
+
+//
+// This is called by handleNewFrames() to retrieve frame data
+// for LiveView display.
 std::vector<float> FrameWorker::getFrame()
 {
     //Maintains reference to data by using vector for memory management
 
+    //
+    // PK Debug 2-3-21
+    // This is a mystery why the original code uses dsfIndex
+    // because dsfIndex never gets updated.
+    //
     uint16_t last_ndx = lvframe_buffer->dsfIndex.load();
+
+
     // int prev_ndx = (lvframe_buffer->lastIndex.load() - 1) % 200;
     std::vector<float> raw_data(frSize);
-    // if (lvframe_buffer->frame(last_ndx)->raw_data[1000] > 35000) {
-    //     qDebug() << lvframe_buffer->fbIndex << lvframe_buffer->lastSTD()->raw_data[1000] << last_ndx << lvframe_buffer->frame(last_ndx)->raw_data[1000];
-    // }
+
+
+    // PK Debug 2-4-21 image-line-debug ...
+    qDebug() << "PK Debug - FrameWorker::getFrame() frame data is from <" << lvframe_buffer->frame(last_ndx) << "> "; 
+
+    //
+    // 2-25-21 the following is converting the uint16_t elements
+    // into a vector of float values.
     for (unsigned int i = 0; i < frSize; i++) {
         raw_data[i] = float(lvframe_buffer->frame(last_ndx)->raw_data[i]);
     }
     return raw_data;
 
 } // end of FrameWorker::getFrame()
+
+
+// PK 2-19-21 image-line-control ...
+
+frameDataFile * FrameWorker::getFrameDataFile()
+{
+    //
+    // Retrieve a frame data file from the list
+    if( LVDataFileList.size() > 0 )
+    {
+        LVDataMutex.lock();
+        LVFrameData = LVDataFileList.back();
+
+        //
+        // remove the record from the list and release the list
+        LVDataFileList.pop_back();
+        LVDataMutex.unlock();
+        return( &LVFrameData );
+    }
+    else
+    {
+        // The list is empty ...
+        return NULL;
+    }
+
+} // end of FrameWorker::getFrameDataFile()
+
+// ... PK 2-19-21 image-line-control 
+
 
 std::vector<float> FrameWorker::getDSFrame()
 {

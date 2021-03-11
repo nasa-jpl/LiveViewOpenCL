@@ -7,10 +7,14 @@
 #include <QFileInfo>
 #include <cameraselectdialog.h>
 
+#include <QMutex>     // PK 2-17-21 image-line-debug
+
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <csignal>
+
+#include <string.h>
 
 #include "lvmainwindow.h"
 
@@ -25,10 +29,28 @@
 #define handle_error(msg) \
     do { perror(msg); exit(EXIT_FAILURE); } while(0)
 
+
+bool frameLineDebugLog = false;
+
+// this mutex is for loading and retrieving image frame line
+// data from the shared frame data list
+QMutex frameDataMutex;  // PK 2-17-21 image-line-debug
+
+// this mutex is for storing and retrieving image frame line
+// data for LiveView display
+QMutex LVDataMutex;  // PK 2-18-21 image-line-debug
+
+QMutex frameLineDataMutex;  // PK 3-8-21 image-line-debug
+
+
+
 int main(int argc, char* argv[])
 {
     int sfd;
     struct sockaddr_un lv_addr = {};
+
+    if( argc > 1 )
+        frameLineDebugLog = strcmp(argv[1], "-lineDebug") ? false : true;
 
     // The QApplication class manages the GUI application's control flow
     // and main settings

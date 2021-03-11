@@ -66,6 +66,8 @@ public:
     void resetDir(const char *dirname);
 
     std::vector<float> getFrame();
+    frameDataFile * getFrameDataFile();   // PK 2-19-21 image-line-control
+    
 
     TwosComplimentFilter* TwosFilter;
     InterlaceFilter* IlaceFilter;
@@ -93,6 +95,8 @@ public:
     int getFrameHeight() const { return frHeight; }
     int getDataHeight() const { return dataHeight; }
     camera_t getCameraType() const { return cam_type; }
+
+    void dumpFrameFileData( frameDataFile *f );
 
     uint32_t getStdDevN();
     double getFramePeriod();
@@ -170,6 +174,10 @@ private:
     // PK frame control flag
     bool frameControlIsOn = false;
     int  frameControlFrameCount = 0;
+
+    // PK 2-18-21 image-line-control
+    std::vector<frameDataFile> LVDataFileList;
+    frameDataFile LVFrameData;
 
     // std::mutex time_index_lock;
     // size_t time_index{0};

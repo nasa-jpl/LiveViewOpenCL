@@ -11,6 +11,7 @@
 #include <QTabWidget>
 
 #include "frameworker.h"
+#include "frameview_widget.h"   // PK 3-4-21 image-line-control
 #include "lvtabapplication.h"
 #include "ctkrangeslider.h"
 
@@ -51,6 +52,12 @@ private slots:
     void frameControlNextButtonClicked();
     void frameControlStopButtonClicked();
 
+    // 3/3/21 line-control-debug ...
+    void frameLineControlChecked( bool enabled );
+    void updateFrameFilename( const std::string filename );
+    void updateFrameLineInfo();     // 3-10-21 image-line-control
+
+
 private:
     int fileNumber = 0;
     QString prevFileName;
@@ -89,7 +96,21 @@ private:
     QToolButton *frameControl_prevButton;
     QToolButton *frameControl_nextButton;
     QToolButton *frameControl_stopButton;
-    
+
+    //
+    // 3-3-21 Frame line control 
+    frameview_widget *frameDisplay;
+
+    QLabel    *frameFilename;
+
+    //
+    // 3-10-21 attempt to fix widget update latency issue 
+    QLabel    *frameLineNo;
+    QLabel    *frameLineCount;
+    QLabel    *frameCollectionID;
+
+    QCheckBox   *frameLineControl;   // 3-3-21 line-control-debug
+
 };
 
 #endif // CONTROLSBOX_H

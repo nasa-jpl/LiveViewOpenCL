@@ -76,4 +76,38 @@ struct LVFrame
     }
 };
 
+
+// PK 2-11-21 image-line-control ...
+
+typedef struct frameLineData
+{
+    //
+    // This header contains the following frame
+    // line data items:
+    uint32_t     timeStamp;
+    uint32_t     lineCount;
+    uint16_t     dataId;
+    //
+    // frame line data itself
+    std::vector<uint16_t> data;
+
+} frameLineData;
+
+typedef struct frameDataFile
+{
+    std::string filename;
+    size_t      frameSize;
+    std::vector <frameLineData> lineData;
+} frameDataFile;
+
+
+typedef struct frameLineInfo
+{
+    int         line_no;
+    uint32_t    lineCount;
+    uint16_t    dataId;
+} frameLineControlData;
+
+// ... PK 2-11-21 image-line-control 
+
 #endif // LVFRAME_H

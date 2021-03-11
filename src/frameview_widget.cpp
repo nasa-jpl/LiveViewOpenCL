@@ -1,4 +1,30 @@
+#include <QMutex>         // 3-8-21 frame-line-control
 #include "frameview_widget.h"
+#include "lvframe.h"      // 3-8-21 frame-line-control
+
+
+extern bool frameLineDebugLog;   // PK 3-2-21 image-line-debug
+
+// PK 3-5-21 image-line-control ...
+extern bool frameLineControlEnabled;
+extern bool displayNextFrameLine;
+extern bool frameLineDisplayReset;    
+
+frameDataFile *currentFrameDataFile;
+// ... PK 3-5-21 image-line-control
+
+extern frameLineControlData   frameLineDisplayInfo;
+extern QMutex frameLineDisplayInfoMutex;
+
+#define FRAME_LINE_TOTAL (32)
+
+enum frameLineSteppingStatus {
+    Status_noCurrentFrameDataFile    = 0,
+    Status_allFrameLinesDisplayed    = 1,
+    Status_resetFrameLineDisplay     = 2,
+    Status_frameLineControlDisabled  = 3
+};
+
 
 frameview_widget::frameview_widget(FrameWorker *fw,
                                    image_t image_type,
@@ -235,6 +261,68 @@ void frameview_widget::handleNewFrame()
     // This is where to insert a check for frame display suspension status
     static bool logged = false;
 
+    // 3-10-21 frame-line-contol ...
+    //
+    // Issue - 
+    // handleNewFrame() test code 
+    static int frameLineIndex = 0;
+
+    if( frameLineDisplayReset )
+    {
+        frameLineIndex = 0;
+        frameLineDisplayReset = false;
+    }
+
+    if( !frameLineControlEnabled ) 
+    {
+        // Reset line index 
+        if( frameLineIndex > 0 ) frameLineIndex = 0;
+    }
+    else
+    {
+        //
+        // Always display the 1st line when frame line control is ENABLED.
+        if( frameLineIndex == 0 )
+        {
+            frameLineData sLine = getFrameLine( frameLineIndex, *currentFrameDataFile );
+            frameLineDisplayInfoMutex.lock();
+            {
+                frameLineDisplayInfo.line_no = frameLineIndex+1;
+                frameLineDisplayInfo.lineCount = sLine.lineCount;
+                frameLineDisplayInfo.dataId = sLine.dataId;
+            }
+            frameLineDisplayInfoMutex.unlock();
+            
+            displaySingleFrameLine( frameLineIndex, currentFrameDataFile->frameSize, sLine );
+            emit updateFrameLineInfo();
+            frameLineIndex++;
+        }
+    }
+
+    if( displayNextFrameLine )
+    {
+        if( frameLineIndex < FRAME_LINE_TOTAL )
+        {
+            frameLineData sLine = getFrameLine( frameLineIndex, *currentFrameDataFile );
+            frameLineDisplayInfoMutex.lock();
+            {
+                frameLineDisplayInfo.line_no = frameLineIndex+1;
+                frameLineDisplayInfo.lineCount = sLine.lineCount;
+                frameLineDisplayInfo.dataId = sLine.dataId;
+            }
+            frameLineDisplayInfoMutex.unlock();
+        
+
+            displaySingleFrameLine( frameLineIndex, currentFrameDataFile->frameSize, sLine );
+            emit updateFrameLineInfo();
+            frameLineIndex++;
+        }
+
+        if( displayNextFrameLine )
+            displayNextFrameLine = false;
+    }
+    // ... 3-10-21 frame-line-contol 
+
     if( frameWorkerParent->isFrameControlOn() == true &&
         frameWorkerParent->getFrameControlFrameCount() == 0 )
     {
@@ -242,7 +330,7 @@ void frameview_widget::handleNewFrame()
         // if frameControlIsOn, stops grabbing new frames for display.
         if( !logged )
         {
-            qDebug() << "frameControlIsOn is true, frameview_widget::handleNewFrame() returns and do NOTHING";
+            qDebug() << "PK Debug frameControlIsOn is true, frameview_widget::handleNewFrame() returns and do NOTHING";
             logged = true;
         }
 
@@ -258,38 +346,62 @@ void frameview_widget::handleNewFrame()
     {
         // gives the thread a chance to fill the lvframe_buf
         // sleep for 500 msec
-        qDebug() << "frameview_widget::handleNewFrame() - frameControlIsOn with NEXT button clicked, sleeps for 500 ms. \n";
+        qDebug() << "PK Debug frameview_widget::handleNewFrame() - frameControlIsOn with NEXT button clicked, sleeps for 500 ms. \n";
         QThread::usleep( 500000 );
     }
 
-    if (!this->isHidden() && frame_handler->Camera->isRunning()) {
+    frameDataFile *LVData;
+    std::vector <frameLineData> frameLines;
+    //
+    // 2-25-21 image-line-control
+    //
+    // The following line caused image frame missing and not displayed
+    // by LiveView.  This is due to timing issue among the threads.
+    //
+    //  if (!this->isHidden() && frame_handler->Camera->isRunning())
+    // 
+    // Thus, frame_handler->Camera->isRunning() is replaced with
+    // (LVData = frameWorkerParent->getFrameDataFile()) != NULL to ensure
+    // all image files (records) in the FrameDataFileList is processed.
+    if( !this->isHidden() &&
+        (LVData = frameWorkerParent->getFrameDataFile()) != NULL )
+    {
         timeout_display = true;
-        std::vector<float>image_data{(frame_handler->*p_getFrame)()};
-        for (int col = 0; col < frWidth; col++) {
-            for (int row = 0; row < frHeight; row++ ) {
-                colorMap->data()->setCell(col, row,
-                                          double(image_data[size_t(row * frWidth + col)])); // y-axis NOT reversed
+
+        //
+        // image-line-control new feature
+        // 
+        // instead of calling frame_handler->*p_getFrame()
+        // replace it with frameWorkerParent->getFrameDataFile() to
+        // obtain a frameDataFile record.
+        //
+        if( LVData != NULL )
+        {
+            currentFrameDataFile = LVData;
+
+            if( !frameLineControlEnabled )
+            {
+                //
+                // display current frame filename
+                emit updateFrameFilename( LVData->filename );
+
+                //
+                // Display the frame lines ...
+                displayFrameLines( LVData );
             }
         }
-        qcp->replot();
-        count++;
+        else
+        {
+            qDebug() << "PK Debug frameview_widget::handleNewFrame() LVData is NULL ... ";
+        }
 
-
-    } else {
+    }
+    else
+    {
         if (timeout_display) {
-
             timeout_display = false;
         }
     }
-
-    // count-based FPS counter, gets slower to update the lower the fps,
-    // but can provide fractional fps values.
-    /* if (count % 50 == 0 && count != 0) {
-        fps = 50.0 / fpsclock.restart() * 1000.0;
-        fps_string = QString::number(fps, 'f', 1);
-        fpsLabel->setText(QString("Display: %1 fps").arg(fps_string));
-    } */
-
 
     // PK 1-13-21 added ... Forward button support
     //
@@ -510,3 +622,82 @@ void frameview_widget::mouse_up(QMouseEvent *event) {
    frame_handler->bottomRight = QPointF(brx, bry);
    frame_handler->topLeft = QPointF(tlx, tly);
 }
+
+/****************************************************************
+ *
+ * Function: displayFrameLines()
+ *
+ *           This function displays all 32 image frame lines 
+ *           onto LiveView window.
+ *
+ * Returns:  nothing.
+ * 
+ ****************************************************************/
+void frameview_widget::displayFrameLines( frameDataFile *LVData )
+{
+    //
+    // It's no longer a SINGLE write to the lvframe_buffer because 
+    // now we have a full collection of 32 frame lines of an image
+    // frame to process !!
+    std::vector <frameLineData> frameLines = LVData->lineData;
+    size_t frameSizeInPixel = (LVData->frameSize)/2;
+ 
+    int lineNo = 0;
+    for( frameLineData line : frameLines )
+    {
+        std::vector<float> image_data(size_t(frameSizeInPixel), 0);
+        for( unsigned int i = 0; i < frameSizeInPixel; i++ )
+        {
+            image_data[i] = float (line.data[i]);
+        }
+                
+        for (int col = 0; col < frWidth; col++) {
+            for (int row = 0; row < frHeight; row++ ) {
+                colorMap->data()->setCell(col, row,
+                                          double(image_data[size_t(row * frWidth + col)])); // y-axis NOT reversed
+            }
+        }
+        qcp->replot();
+        if( frameLineDebugLog )  // PK 3-2-21 image-line-debug
+            qDebug() << "PK Debug frameview_widget::handleNewFrame() qcp->replot() done, count: " << count;
+        count++;
+        lineNo++;
+
+    } // bottom of the frame line loop
+
+} // end of frameview_widget::displayFrameLines()
+
+
+frameLineData frameview_widget::getFrameLine( int i, frameDataFile fData )
+{
+    std::vector <frameLineData> frameLines = fData.lineData;
+    frameLineData line = frameLines[i];
+    return line;
+} // end of frameview_widget::getFrameLine()
+
+void frameview_widget::displaySingleFrameLine( int lineNo, size_t frameSizeInPixel, frameLineData line )
+{
+    qDebug() << "PK Debug frameview_widget::displaySingleFrameLine() starts ...";
+    qDebug() << "PK Debug lineNo:" << lineNo;
+    qDebug() << "PK Debug lineCount:" << line.lineCount;
+    qDebug() << "PK Debug collectionId:" << line.dataId;
+    qDebug() << "PK Debug frameview_widget::displaySingleFrameLine() ends ...";
+
+    std::vector<float> image_data(size_t(frameSizeInPixel), 0);
+    for( unsigned int i = 0; i < frameSizeInPixel; i++ )
+    {
+        image_data[i] = float (line.data[i]);
+    }
+                
+    for (int col = 0; col < frWidth; col++) {
+        for (int row = 0; row < frHeight; row++ ) {
+            colorMap->data()->setCell(col, row,
+                                      double(image_data[size_t(row * frWidth + col)])); // y-axis NOT reversed
+        }
+    }
+    qcp->replot();
+    // if( frameLineDebugLog )  // PK 3-2-21 image-line-debug
+    qDebug() << "PK Debug - displaySingleFrameLine() qcp->replot() done ";
+
+} // end of frameview_widget::displaySingleFrameLine()
+

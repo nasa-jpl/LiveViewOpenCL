@@ -26,6 +26,8 @@
 
 using namespace std::chrono;
 
+
+
 class XIOCamera : public CameraModel
 {
     Q_OBJECT
@@ -44,10 +46,19 @@ public:
 
     virtual uint16_t* getFrame();
 
+    frameLineData parseLineData( std::vector<uint16_t> line );
+
+    void dumpFrameFileData( frameDataFile *f );
+    
 private:
     std::string getFname();
-    void readFile();
+    //
+    // PK 3-6-21 debug-LV-hang
+    bool readFile(); 
+
+
     void readLoop();
+
 
     bool is_reading; // Flag that is true while reading from a directory
 
@@ -78,6 +89,10 @@ private:
     QFuture<void> readLoopFuture;
     int tmoutPeriod;
 
+    // PK 2-11-21 image-line-control
+    // std::vector<frameFileData> frameDataFileList;
+    std::vector<frameDataFile> frameDataFileList;
+    frameDataFile frameData;
 };
 
 #endif // XIOCAMERA_H

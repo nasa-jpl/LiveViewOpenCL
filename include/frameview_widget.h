@@ -34,6 +34,14 @@ public slots:
     void setPlotMode(bool checked);
     QCPColorMap* getColorMap();
 
+
+public:
+    //
+    // 2-28-21 image-line-control
+    void displayFrameLines( frameDataFile *LVData );
+    frameLineData getFrameLine( int i, frameDataFile fData );
+    void displaySingleFrameLine( int i, size_t frameSizeInPixel, frameLineData line );
+
 private:
     //
     // EMITFPIED-331
@@ -41,7 +49,9 @@ private:
     FrameWorker *frameWorkerParent;
     
     inline void setDarkMode();
+
     std::vector<float> (FrameWorker::*p_getFrame)();
+    
     // std::vector<float> (FrameWorker::*CameraFrameControlMgr();
     image_t image_type;
 
@@ -81,6 +91,11 @@ private slots:
     void mouse_down(QMouseEvent *event);
     void mouse_move(QMouseEvent *event);
     void mouse_up(QMouseEvent *event);
+
+
+signals:   // PK 3-4-21 image-line-control
+    void updateFrameFilename( const std::string filename );
+    void updateFrameLineInfo();
 
 };
 
