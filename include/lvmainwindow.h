@@ -86,6 +86,7 @@ private:
     QFuture<void> SDLoop;
     QTabWidget *tab_widget;
     frameview_widget *raw_display;
+    frameview_widget *wfl_display;
     frameview_widget *dsf_display;
     frameview_widget *sdv_display;
     histogram_widget *hst_display;
