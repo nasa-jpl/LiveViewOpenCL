@@ -101,6 +101,9 @@ private:
     // 3-3-21 Frame line control 
     frameview_widget *frameDisplay;
 
+    QLabel    *frameControlStatus;
+    QLabel    *frameLineControlStatus;
+
     QLabel    *frameFilename;
 
     //

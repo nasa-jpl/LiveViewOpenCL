@@ -1,17 +1,12 @@
 #include <QMutex>         // 3-8-21 frame-line-control
+#include <atomic>         // 3-15-21 frame-line-control enhancement
 #include "frameview_widget.h"
 #include "lvframe.h"      // 3-8-21 frame-line-control
 
 
 extern bool frameLineDebugLog;   // PK 3-2-21 image-line-debug
 
-// PK 3-5-21 image-line-control ...
-extern bool frameLineControlEnabled;
-extern bool displayNextFrameLine;
-extern bool frameLineDisplayReset;    
-
 frameDataFile *currentFrameDataFile;
-// ... PK 3-5-21 image-line-control
 
 extern frameLineControlData   frameLineDisplayInfo;
 extern QMutex frameLineDisplayInfoMutex;
@@ -24,7 +19,6 @@ enum frameLineSteppingStatus {
     Status_resetFrameLineDisplay     = 2,
     Status_frameLineControlDisabled  = 3
 };
-
 
 frameview_widget::frameview_widget(FrameWorker *fw,
                                    image_t image_type,
@@ -244,6 +238,10 @@ frameview_widget::frameview_widget(FrameWorker *fw,
         fpsclock.start(1000); // 1 sec
     }
 
+    // 3-15-21 frame-line-control enhancement
+    frameLineControlEnabled = displayNextFrameLine = frameLineDisplayReset = false;
+    frameLineIndex.store( 0 );
+
 } // end of frameview_widget::frameview_widget()
 
 
@@ -261,45 +259,52 @@ void frameview_widget::handleNewFrame()
     // This is where to insert a check for frame display suspension status
     static bool logged = false;
 
-    // 3-10-21 frame-line-contol ...
-    //
-    // Issue - 
-    // handleNewFrame() test code 
-    static int frameLineIndex = 0;
-
-    if( frameLineDisplayReset )
+    if( IsTimeToResetFrameLineDisplay() == true )
     {
-        frameLineIndex = 0;
-        frameLineDisplayReset = false;
+        frameLineIndex.store(0);
+        resetFrameLineDisplay( false );
     }
 
-    if( !frameLineControlEnabled ) 
+    if( IsFrameLineControlEnabled() == false )
     {
-        // Reset line index 
-        if( frameLineIndex > 0 ) frameLineIndex = 0;
+        // Reset line index
+        if( frameLineIndex.load() > 0 ) frameLineIndex.store(0);
     }
     else
     {
         //
         // Always display the 1st line when frame line control is ENABLED.
-        if( frameLineIndex == 0 )
+        if( frameLineIndex.load() == 0 )
         {
-            frameLineData sLine = getFrameLine( frameLineIndex, *currentFrameDataFile );
-            frameLineDisplayInfoMutex.lock();
+            qDebug() << "PK Debug handleNewFrame() frameLineControlEnabled is true, frameLineIndex:" << frameLineIndex;
+            if( currentFrameDataFile != NULL )
             {
-                frameLineDisplayInfo.line_no = frameLineIndex+1;
-                frameLineDisplayInfo.lineCount = sLine.lineCount;
-                frameLineDisplayInfo.dataId = sLine.dataId;
-            }
-            frameLineDisplayInfoMutex.unlock();
+                frameLineData sLine = getFrameLine( frameLineIndex, *currentFrameDataFile );
+                frameLineDisplayInfoMutex.lock();
+                {
+                    frameLineDisplayInfo.line_no = frameLineIndex+1;
+                    frameLineDisplayInfo.lineCount = sLine.lineCount;
+                    frameLineDisplayInfo.dataId = sLine.dataId;
+                }
+                frameLineDisplayInfoMutex.unlock();
             
-            displaySingleFrameLine( frameLineIndex, currentFrameDataFile->frameSize, sLine );
-            emit updateFrameLineInfo();
-            frameLineIndex++;
+                displaySingleFrameLine( frameLineIndex, currentFrameDataFile->frameSize, sLine );
+                emit updateFrameLineInfo();
+                frameLineIndex.store( frameLineIndex.load() + 1 );
+                qDebug() << "PK Debug handleNewFrame() frameLineControlEnabled is true, emit updateFrameLineInfo(), frameLineIndex:" << frameLineIndex.load();
+            }
+            else
+            {
+                frameLineDisplayInfoMutex.lock();
+                // set line_no < 0 to indicate error !!
+                frameLineDisplayInfo.line_no = -1;
+                frameLineDisplayInfoMutex.unlock();
+                emit updateFrameLineInfo();
+                qDebug() << "PK Debug - NO frame data available, enable frameLineControl FAILED !!";                        }
         }
     }
 
-    if( displayNextFrameLine )
+    if( IsTimeToDisplayNextFrameLine() == true )
     {
         if( frameLineIndex < FRAME_LINE_TOTAL )
         {
@@ -315,11 +320,12 @@ void frameview_widget::handleNewFrame()
 
             displaySingleFrameLine( frameLineIndex, currentFrameDataFile->frameSize, sLine );
             emit updateFrameLineInfo();
-            frameLineIndex++;
+            frameLineIndex.store( frameLineIndex.load() + 1 );
+            qDebug() << "PK Debug handleNewFrame() IsTimeToDisplayNewFrameLine is true, emit updateFrameLineInfo(), frameLineIndex:" << frameLineIndex.load();
+
         }
 
-        if( displayNextFrameLine )
-            displayNextFrameLine = false;
+        forwardToNextFrameLine( false );
     }
     // ... 3-10-21 frame-line-contol 
 
@@ -668,6 +674,16 @@ void frameview_widget::displayFrameLines( frameDataFile *LVData )
 } // end of frameview_widget::displayFrameLines()
 
 
+/****************************************************************
+ *
+ * Function: getFrameLines()
+ *
+ *           This function retrieves a frame line with the
+ *           requested index i.
+ *
+ * Returns:  requested frame line.
+ * 
+ ****************************************************************/
 frameLineData frameview_widget::getFrameLine( int i, frameDataFile fData )
 {
     std::vector <frameLineData> frameLines = fData.lineData;
@@ -675,6 +691,17 @@ frameLineData frameview_widget::getFrameLine( int i, frameDataFile fData )
     return line;
 } // end of frameview_widget::getFrameLine()
 
+
+/****************************************************************
+ *
+ * Function: displaySingleFrameLine()
+ *
+ *           This function displays ONE frame line on LiveView
+ *           tab window.
+ *
+ * Returns:  nothing
+ * 
+ ****************************************************************/
 void frameview_widget::displaySingleFrameLine( int lineNo, size_t frameSizeInPixel, frameLineData line )
 {
     qDebug() << "PK Debug frameview_widget::displaySingleFrameLine() starts ...";
@@ -701,3 +728,49 @@ void frameview_widget::displaySingleFrameLine( int lineNo, size_t frameSizeInPix
 
 } // end of frameview_widget::displaySingleFrameLine()
 
+
+// PK 3-15-21 frame-line-control enhancement ... 
+
+/****************************************************************
+ *
+ * The following are utility functions for frame line control:
+ * 
+ *      - updateFrameLineControlStatus()
+ *      - forwardToNextFrameLine()
+ *      - resetFrameLineDisplay()
+ * 
+ ****************************************************************/
+void frameview_widget::updateFrameLineControlStatus( bool status )
+{
+
+    frameLineDisplayInfoMutex.lock();
+    frameLineControlEnabled = status;
+    frameLineDisplayInfoMutex.unlock();
+
+    qDebug() << "PK Debug - frameview_widget::updateFrameLineControlStatus() is called with status:" << frameLineControlEnabled;
+    
+} // end of frameview_widget::updateFrameLineControlStatus( bool status )
+
+
+void frameview_widget::forwardToNextFrameLine( bool nextLine )
+{
+
+    frameLineDisplayInfoMutex.lock();
+    displayNextFrameLine = nextLine;
+    frameLineDisplayInfoMutex.unlock();
+    qDebug() << "PK Debug - frameview_widget::displayNextFrameLine() displayNextFrameLine:" << displayNextFrameLine;
+
+} // end of frameview_widget::forwardToNextFrameLine()
+
+
+void frameview_widget::resetFrameLineDisplay( bool resetNow )
+{
+    qDebug() << "PK Debug - frameview_widget::resetFrameLineDisplay() is called";
+
+    frameLineDisplayInfoMutex.lock();
+    frameLineDisplayReset = resetNow;
+    frameLineDisplayInfoMutex.unlock();
+
+} // end of bool frameview_widget::resetFrameLineDisplay()
+
+// ... PK 3-15-21 frame-line-control enhancement 

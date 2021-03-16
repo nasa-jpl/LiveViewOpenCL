@@ -1,13 +1,9 @@
 #include "controlsbox.h"
 
-// PK 3-5-21 image-line-control ...
-bool frameLineControlEnabled = false;  
-bool displayNextFrameLine    = false;
-bool frameLineDisplayReset   = false;    
-// ... PK 3-5-21 image-line-control
 
 frameLineControlData   frameLineDisplayInfo;
 QMutex frameLineDisplayInfoMutex;
+
 
 ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
                          const QString &ipAddress, quint16 port,
@@ -95,11 +91,15 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     frameControl_prevButton = new QToolButton( this );
     frameControl_prevButton->setFixedSize( btnSize );  // 3-3-21 increase button size
     frameControl_prevButton->setIcon( style()->standardIcon(QStyle::SP_MediaSkipBackward) );
+    frameControl_prevButton->setStyleSheet( "QToolButton { background-color: white; }" );
+
     connect(frameControl_prevButton, &QAbstractButton::clicked, this, &ControlsBox::frameControlPrevButtonClicked);
 
     frameControl_nextButton = new QToolButton( this );
     frameControl_nextButton->setFixedSize( btnSize );  // 3-3-21 increase button size
     frameControl_nextButton->setIcon( style()->standardIcon(QStyle::SP_MediaSkipForward) );
+    frameControl_nextButton->setStyleSheet( "QToolButton { background-color: white; }" );
+
     connect(frameControl_nextButton, &QAbstractButton::clicked, this, &ControlsBox::frameControlNextButtonClicked);
 
     
@@ -110,37 +110,26 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     frameControl_stopButton = new QToolButton( this );
     frameControl_stopButton->setFixedSize( btnSize );  // 3-3-21 increase button size
     frameControl_stopButton->setIcon( style()->standardIcon(QStyle::SP_MediaStop) );
+    frameControl_stopButton->setStyleSheet( "QToolButton { background-color: white; }" );
+
     connect(frameControl_stopButton, &QAbstractButton::clicked, this, &ControlsBox::frameControlStopButtonClicked);
 
     frameControlBar = new QToolBar( this );
-
-    // let's take the default !!  but too small the buttons !!
-    // frameControlBar->setFixedHeight(42);  // 3-3-21 added for image-line-debug
-    // frameControlBar->setFixedWidth(180);  // 3-3-21 min. width, added for image-line-debug
-
     frameControlBar->addWidget( frameControl_prevButton );
     frameControlBar->addWidget( frameControl_stopButton );
     frameControlBar->addWidget( frameControl_nextButton );
 
     //
-    // 3-3-21 image-line-debug
+    // 3-15-21 frame control status widgets enhancement
     enum cboxLayout_Y_POS{
         cboxLayout_TOP_LINE = 0,
         cboxLayout_Line_1 = cboxLayout_TOP_LINE + 1,
         cboxLayout_Line_2 = cboxLayout_Line_1 + 1,
-        cboxLayout_Line_3 = cboxLayout_Line_2 + 1
+        cboxLayout_Line_3 = cboxLayout_Line_2 + 1,
+        cboxLayout_Line_4 = cboxLayout_Line_3 + 1
     };
 
-    //
-    // action items:
-    //
-    // 1. need to connect slots (event handlers) to all frame control
-    //    buttons
-    // 
-    // 2. Done - need to add frame control buttons to cboxLayout 
-    // 
     auto cboxLayout = new QGridLayout(this);
-
 
     // PK 3-4-21 added image-line-control ...
     //
@@ -153,9 +142,7 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     frameDisplay   = qobject_cast<frameview_widget *> (getCurrentTab());
 
     frameFilename  = new QLabel("Image Filename: ");
-    
-    //
-    // 3-10-21 attempt to fix widget update latency issue 
+
     frameLineNo    = new QLabel("Line #: ");
     frameLineCount = new QLabel("Line Count: ");
     frameCollectionID = new QLabel("Collection ID: ");
@@ -168,57 +155,63 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     connect( frameDisplay, &frameview_widget::updateFrameFilename,
              this, &ControlsBox::updateFrameFilename );
 
-    // latency issue found ... when updating the frame line widgets 
     connect( frameDisplay, &frameview_widget::updateFrameLineInfo,
              this, &ControlsBox::updateFrameLineInfo );
 
     connect( frameLineControl, SIGNAL(toggled(bool)), this, SLOT(frameLineControlChecked(bool)));
 
 
-    cboxLayout->addWidget(frameFilename,     cboxLayout_TOP_LINE, 0, 1, 3);
-    cboxLayout->addWidget(frameLineNo,       cboxLayout_TOP_LINE, 3, 1, 1);
-    cboxLayout->addWidget(frameLineCount,    cboxLayout_TOP_LINE, 4, 1, 2);
-    cboxLayout->addWidget(frameCollectionID, cboxLayout_TOP_LINE, 6, 1, 3);  // 4 - this line up perfectly 
-    cboxLayout->addWidget(frameLineControl,  cboxLayout_TOP_LINE, 9, 1, 1);  
-    cboxLayout->addWidget(frameControlBar,   cboxLayout_TOP_LINE, 10, 1, 1);
+    //
+    // 3-15-21 frame control status widgets enhancement ...
+    frameControlStatus        = new QLabel("Frame Control:  OFF");
+    frameLineControlStatus    = new QLabel("Frame Line Control:  OFF");
+
+    cboxLayout->addWidget(frameControlStatus,       cboxLayout_TOP_LINE, 3, 1, 3);
+    cboxLayout->addWidget(frameLineControlStatus,   cboxLayout_TOP_LINE, 6, 1, 1);
+    // ... 3-15-21 frame control status widgets enhancement 
+    
+
+
+    cboxLayout->addWidget(frameFilename,     cboxLayout_Line_1, 0, 1, 3);
+    cboxLayout->addWidget(frameLineNo,       cboxLayout_Line_1, 3, 1, 2);
+    cboxLayout->addWidget(frameLineCount,    cboxLayout_Line_1, 5, 1, 2);
+    cboxLayout->addWidget(frameCollectionID, cboxLayout_Line_1, 7, 1, 2);  // 4 - this line up perfectly 
+    cboxLayout->addWidget(frameLineControl,  cboxLayout_Line_1, 9, 1, 1);  
+    cboxLayout->addWidget(frameControlBar,   cboxLayout_Line_1, 10, 1, 1);
 
     // ... PK 3-4-21 added image-line-control
 
-    cboxLayout->addWidget(fpsLabel,                   cboxLayout_Line_1, 0, 1, 1);
-    cboxLayout->addWidget(new QLabel("Range:", this), cboxLayout_Line_1, 1, 1, 1);
-    cboxLayout->addWidget(min_box,                    cboxLayout_Line_1, 2, 1, 1);
-    cboxLayout->addWidget(rangeSlider,                cboxLayout_Line_1, 3, 1, 5);
-    cboxLayout->addWidget(max_box,                    cboxLayout_Line_1, 8, 1, 1);
+    cboxLayout->addWidget(fpsLabel,                   cboxLayout_Line_2, 0, 1, 1);
+    cboxLayout->addWidget(new QLabel("Range:", this), cboxLayout_Line_2, 1, 1, 1);
+    cboxLayout->addWidget(min_box,                    cboxLayout_Line_2, 2, 1, 1);
+    cboxLayout->addWidget(rangeSlider,                cboxLayout_Line_2, 3, 1, 5);
+    cboxLayout->addWidget(max_box,                    cboxLayout_Line_2, 8, 1, 1);
+    cboxLayout->addWidget(precisionBox, cboxLayout_Line_2, 9, 1, 1);
+    cboxLayout->addWidget(maskButton, cboxLayout_Line_2, 10, 1, 1);
 
-    //
-    // add Frame control buttons
-    // cboxLayout->addWidget(frameControlBar, cboxLayout_Line_1, 9, 1, 1);
-    // cboxLayout->addWidget(frameControlOptionButton, cboxLayout_Line_1, 10, 1, 1);
+    cboxLayout->addWidget(ipLabel, cboxLayout_Line_3, 0, 1, 1);
+    cboxLayout->addWidget(new QLabel("Save File to:", this), cboxLayout_Line_3, 1, 1, 1);
+    cboxLayout->addWidget(saveFileNameEdit, cboxLayout_Line_3, 2, 1, 5);
+    cboxLayout->addWidget(browseButton, cboxLayout_Line_3, 7, 1, 1);
+    cboxLayout->addWidget(saveFramesButton, cboxLayout_Line_3, 8, 1, 1);
+    cboxLayout->addWidget(new QLabel("Num. Frames:", this), cboxLayout_Line_3, 9, 1, 1);
+    cboxLayout->addWidget(numFramesEdit, cboxLayout_Line_3, 10, 1, 1);
 
-    cboxLayout->addWidget(precisionBox, cboxLayout_Line_1, 9, 1, 1);
-    cboxLayout->addWidget(maskButton, cboxLayout_Line_1, 10, 1, 1);
-
-    cboxLayout->addWidget(ipLabel, cboxLayout_Line_2, 0, 1, 1);
-    cboxLayout->addWidget(new QLabel("Save File to:", this), cboxLayout_Line_2, 1, 1, 1);
-    cboxLayout->addWidget(saveFileNameEdit, cboxLayout_Line_2, 2, 1, 5);
-    cboxLayout->addWidget(browseButton, cboxLayout_Line_2, 7, 1, 1);
-    cboxLayout->addWidget(saveFramesButton, cboxLayout_Line_2, 8, 1, 1);
-    cboxLayout->addWidget(new QLabel("Num. Frames:", this), cboxLayout_Line_2, 9, 1, 1);
-    cboxLayout->addWidget(numFramesEdit, cboxLayout_Line_2, 10, 1, 1);
-
-    cboxLayout->addWidget(portLabel, cboxLayout_Line_3, 0, 1, 1);
-    cboxLayout->addWidget(new QLabel("Std. Dev. N:", this), cboxLayout_Line_3, 1, 1, 1);
-    cboxLayout->addWidget(stdDevNBox, cboxLayout_Line_3, 2, 1, 1);
-    cboxLayout->addWidget(stdDevNSlider, cboxLayout_Line_3, 3, 1, 5);
-    cboxLayout->addWidget(new QLabel("Num. Avgs:", this), cboxLayout_Line_3, 9, 1, 1);
-    cboxLayout->addWidget(numAvgsEdit, cboxLayout_Line_3, 10, 1, 1);
+    cboxLayout->addWidget(portLabel, cboxLayout_Line_4, 0, 1, 1);
+    cboxLayout->addWidget(new QLabel("Std. Dev. N:", this), cboxLayout_Line_4, 1, 1, 1);
+    cboxLayout->addWidget(stdDevNBox, cboxLayout_Line_4, 2, 1, 1);
+    cboxLayout->addWidget(stdDevNSlider, cboxLayout_Line_4, 3, 1, 5);
+    cboxLayout->addWidget(new QLabel("Num. Avgs:", this), cboxLayout_Line_4, 9, 1, 1);
+    cboxLayout->addWidget(numAvgsEdit, cboxLayout_Line_4, 10, 1, 1);
 
     this->setLayout(cboxLayout);
     // 3-3-21 image-line-control
     //
     // Increase the height because added another line for image-line-control
     // original - this->setMaximumHeight(150);
-    this->setMaximumHeight(190);  
+
+    // latest - this->setMaximumHeight(190);
+    this->setMaximumHeight(220);  // 3-15-21 frame control status widgets enhancement
     tabChanged(0);
 
     connect(rangeSlider, &ctkRangeSlider::minimumPositionChanged, this, &ControlsBox::setMinSpin);
@@ -405,8 +398,8 @@ void ControlsBox::frameControlPrevButtonClicked()
 {
     qDebug() << "\nPK Debug - frameControlStopButtonClicked() - PREV button Clicked ...\n";
 
-    if( frameLineControlEnabled )
-        frameLineDisplayReset = true;
+    if( frameDisplay->IsFrameLineControlEnabled() )
+        frameDisplay->resetFrameLineDisplay( true );
     
 } // end of ControlsBox::frameControlPrevButtonClicked()
 
@@ -423,10 +416,7 @@ void ControlsBox::frameControlNextButtonClicked()
     }
 
 
-    //
-    // Issue - 
-    // we have a problem !!  handleNewFrame() fails to catch displayNextFrameLine 
-    if( !frameLineControlEnabled )
+    if( frameDisplay->IsFrameLineControlEnabled() == false )
     {
         // PK 1-13-21 added ...
         frameWorkerParent->setFrameAcquisitionFrameCount( 1 ); 
@@ -437,7 +427,7 @@ void ControlsBox::frameControlNextButtonClicked()
     else
     {
         qDebug() << "\nPK Debug - frameControlNextButtonClicked() - displayNextFrameLine is set ...\n";
-        displayNextFrameLine = true;
+        frameDisplay->forwardToNextFrameLine( true );
     }
     
 } // end of ControlsBox::frameControlNextButtonClicked()
@@ -473,6 +463,7 @@ void ControlsBox::frameControlStopButtonClicked()
             // turn On frameControl, and suspend frame display
             frameWorkerParent->setFrameControlStatus( true );
             frameWorkerParent->suspendFrameAcquisition();
+            frameControlStatus->setText( QString::fromStdString( "Frame Control:  ON ") );
         }
         break;
 
@@ -486,17 +477,20 @@ void ControlsBox::frameControlStopButtonClicked()
 
         frameWorkerParent->setFrameControlStatus( false );  
         frameWorkerParent->resumeFrameAcquisition();
+        frameControlStatus->setText( QString::fromStdString( "Frame Control:  OFF ") );
 
-        if( frameLineControlEnabled )
+
+        if( frameDisplay->IsFrameLineControlEnabled() == true )
         {
-            frameLineControlEnabled = false;
-            qDebug() << "\nPK Debug ControlsBox::frameControlStopButtonClicked() frame line control:" << frameLineControlEnabled; 
+            frameDisplay->updateFrameLineControlStatus( false );
+            qDebug() << "\nPK Debug ControlsBox::frameControlStopButtonClicked() frame line control:" << frameDisplay->IsFrameLineControlEnabled();
             qDebug() << "\nPK Debug disabled frameLineControl ...";
             //
             // Clear all frame line control labels
             frameLineNo->setText( QString::fromStdString("Line #: ") );
             frameLineCount->setText( QString::fromStdString("Line Count: ") );
             frameCollectionID->setText( QString::fromStdString("Collection ID: ") );
+            frameLineControlStatus->setText( QString::fromStdString( "Frame Line Control:  OFF ") );
             frameLineControl->setChecked( false );
         }
             
@@ -522,20 +516,27 @@ void ControlsBox::frameLineControlChecked( bool enabled )
 
     //
     // Signal to start frame line control ... and update 
-    //  frame line control status 
-    if( frameLineControlEnabled == false )
+    //  frame line control status
+    if( frameDisplay->IsFrameLineControlEnabled() == false )
     {
-        frameLineControlEnabled = true;
+        // 3-15-21 frame-line-control enhancement
+        frameDisplay->updateFrameLineControlStatus( true ); 
+
         //
         // testing take it out for now
         // emit startFrameLineControl();
-        qDebug() << "\nPK Debug ControlsBox::frameLineControlChecked() frame line control:" << frameLineControlEnabled << ", emit startFrameLineControl()" ;
+        qDebug() << "\nPK Debug ControlsBox::frameLineControlChecked() frame line control:" << frameDisplay->IsFrameLineControlEnabled();
+        frameLineControlStatus->setText( QString::fromStdString( "Frame Line Control:  ON") );
 
     }
     else
     {
-        frameLineControlEnabled = false;
-        qDebug() << "\nPK Debug ControlsBox::frameLineControlChecked() frame line control:" << frameLineControlEnabled; 
+        // 3-15-21 frame-line-control enhancement
+        frameDisplay->updateFrameLineControlStatus( false ); 
+
+        qDebug() << "\nPK Debug ControlsBox::frameLineControlChecked() frame line control:" << frameDisplay->IsFrameLineControlEnabled(); 
+
+        frameLineControlStatus->setText( QString::fromStdString( "Frame Line Control:  OFF") );
 
         //
         // Clear all frame line control labels
@@ -562,26 +563,48 @@ void ControlsBox::updateFrameLineInfo() // 3-10-21 image-line-control
     
     frameLineControlData   info;
 
-    // frameLineDisplayInfoMutex.lock();
+    // PK 3-15-21 frame-line-control enhancement ... 
+    frameLineDisplayInfoMutex.lock();  
     info = frameLineDisplayInfo;
-    // frameLineDisplayInfoMutex.unlock();
+    frameLineDisplayInfoMutex.unlock();
+    // ... PK 3-15-21 frame-line-control enhancement
 
-    qDebug() << "PK Debug ControlsBox::updateFrameLineInfo line#:" << info.line_no;
-    std::string line_no_label = "Line #: " + std::to_string(info.line_no);
-    frameLineNo->setTextFormat( Qt::PlainText );
-    frameLineNo->setText( QString::fromStdString(line_no_label) );
+    if( info.line_no < 0 )
+    {
+        //
+        // Negative line_no indicates it's an error, disable frame line control
+        frameDisplay->updateFrameLineControlStatus( false ); 
 
-    qDebug() << "PK Debug ControlsBox::updateFrameLineInfo lineCount:" << info.lineCount;
-    std::string lineCount_label = "Line Count: " + std::to_string(info.lineCount);
-    frameLineCount->setTextFormat( Qt::PlainText );
-    frameLineCount->setText( QString::fromStdString(lineCount_label) );
+        qDebug() << "\nPK Debug ControlsBox::updateFrameLineInfo() disable frame line control due to error";
 
-    qDebug() << "PK Debug ControlsBox::updateFrameLineInfo CollectionId:" << info.dataId;
-    std::string collectionID_label = "Collection ID: " + std::to_string(info.dataId);
-    frameCollectionID->setTextFormat( Qt::PlainText );
-    frameCollectionID->setText( QString::fromStdString(collectionID_label) );
+        frameLineControlStatus->setText( QString::fromStdString( "Frame Line Control:  OFF") );
 
-    // this->repaint();
+        //
+        // Clear all frame line control labels
+        frameLineNo->setText( QString::fromStdString("Line #: ") );
+        frameLineCount->setText( QString::fromStdString("Line Count: ") );
+        frameCollectionID->setText( QString::fromStdString("Collection ID: ") );
+        frameLineControl->setChecked( false );
+        
+    }
+    else
+    {
+        qDebug() << "PK Debug ControlsBox::updateFrameLineInfo line#:" << info.line_no;
+        std::string line_no_label = "Line #: " + std::to_string(info.line_no);
+        frameLineNo->setTextFormat( Qt::PlainText );
+        frameLineNo->setText( QString::fromStdString(line_no_label) );
+
+        qDebug() << "PK Debug ControlsBox::updateFrameLineInfo lineCount:" << info.lineCount;
+        std::string lineCount_label = "Line Count: " + std::to_string(info.lineCount);
+        frameLineCount->setTextFormat( Qt::PlainText );
+        frameLineCount->setText( QString::fromStdString(lineCount_label) );
+
+        qDebug() << "PK Debug ControlsBox::updateFrameLineInfo CollectionId:" << info.dataId;
+        std::string collectionID_label = "Collection ID: " + std::to_string(info.dataId);
+        frameCollectionID->setTextFormat( Qt::PlainText );
+        frameCollectionID->setText( QString::fromStdString(collectionID_label) );
+    }
+
 
 } // end of updateFrameLineInfo()
 

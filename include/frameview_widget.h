@@ -6,13 +6,15 @@
 #include <QGroupBox>
 #include <QRadioButton>
 #include <QSettings>
+#include <atomic>         // 3-15-21 frame-line-control enhancement
 
 #include <stdint.h>
 #include <functional>
-
 #include "lvtabapplication.h"
+
 #include "image_type.h"
 #include "constants.h"
+
 
 class frameview_widget : public LVTabApplication
 {
@@ -42,12 +44,22 @@ public:
     frameLineData getFrameLine( int i, frameDataFile fData );
     void displaySingleFrameLine( int i, size_t frameSizeInPixel, frameLineData line );
 
+    // void *cboxParent;    // 3-15-21 frame-line-control enhancement
+    void updateFrameLineControlStatus( bool status );
+    bool IsFrameLineControlEnabled() { return frameLineControlEnabled; };
+
+    void forwardToNextFrameLine( bool nextLine ) ;
+    bool IsTimeToDisplayNextFrameLine() { return displayNextFrameLine; };
+
+    void resetFrameLineDisplay( bool resetNow );
+    bool IsTimeToResetFrameLineDisplay() { return frameLineDisplayReset; };
+
 private:
     //
     // EMITFPIED-331
     // PK new mouse feature 11-16-20
     FrameWorker *frameWorkerParent;
-    
+
     inline void setDarkMode();
 
     std::vector<float> (FrameWorker::*p_getFrame)();
@@ -86,6 +98,15 @@ private:
     double loBoundY;
     double hiBoundY;
 
+
+    // 3-15-21 frame-line-control enhancement ...
+    bool frameLineControlEnabled;  
+    bool displayNextFrameLine;
+    bool frameLineDisplayReset;
+
+    std::atomic<int> frameLineIndex;
+
+    // ... 3-15-21 frame-line-control enhancement
 
 private slots:
     void mouse_down(QMouseEvent *event);

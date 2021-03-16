@@ -5,7 +5,7 @@
 
 
 extern bool frameLineDebugLog;   // PK 2-5-21 image-line-debug
-extern QMutex LVDataMutex;  // PK 2-18-21 image-line-debug
+extern QMutex LVDataMutex;       // PK 2-18-21 image-line-debug
 
 class LVFrameBuffer
 {
@@ -313,10 +313,6 @@ void FrameWorker::captureFrames()
         if( temp_frame != NULL )       // PK 2-3-21 image-line-debug
         {                              // PK 2-3-21 image-line-debug
  
-            // Action item:
-            //
-            //  - needs to add code to handle data from 'Camera->getFrame()
-            //
             fData = (frameDataFile *) reinterpret_cast <uint16_t *> (temp_frame);
             if( frameLineDebugLog )
                 dumpFrameFileData( fData );
