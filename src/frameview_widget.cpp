@@ -351,9 +351,9 @@ void frameview_widget::handleNewFrame()
     if( frameWorkerParent->getFrameControlFrameCount() > 0 )
     {
         // gives the thread a chance to fill the lvframe_buf
-        // sleep for 500 msec
-        qDebug() << "PK Debug frameview_widget::handleNewFrame() - frameControlIsOn with NEXT button clicked, sleeps for 500 ms. \n";
-        QThread::usleep( 500000 );
+        // sleep for 800 msec
+        qDebug() << "PK Debug frameview_widget::handleNewFrame() - frameControlIsOn with NEXT button clicked, sleeps for 800 ms. \n";
+        QThread::usleep( 800000 );   
     }
 
     frameDataFile *LVData;
