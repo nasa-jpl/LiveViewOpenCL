@@ -51,7 +51,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     tab_widget = new QTabWidget(this);
 
     raw_display = new frameview_widget(fw, BASE, settings);
-    wfl_display = new frameview_widget(fw, BASE, settings);
+    wfl_display = new frameview_widget(fw, WFL, settings);
     dsf_display = new frameview_widget(fw, DSF, settings);
     sdv_display = new frameview_widget(fw, STD_DEV, settings);
     hst_display = new histogram_widget(fw);
@@ -129,6 +129,7 @@ LVMainWindow::~LVMainWindow()
     }
     delete cbox;
     delete raw_display;
+    delete wfl_display;
     delete dsf_display;
     delete sdv_display;
     delete hst_display;

@@ -467,6 +467,22 @@ std::vector<float> FrameWorker::getFrame()
     return raw_data;
 }
 
+std::vector<float> FrameWorker::getWFLFrame()
+{
+    //Maintains reference to data by using vector for memory management
+
+    uint16_t last_ndx = lvframe_buffer->dsfIndex.load();
+    // int prev_ndx = (lvframe_buffer->lastIndex.load() - 1) % 200;
+    std::vector<float> raw_data(frSize);
+    // if (lvframe_buffer->frame(last_ndx)->raw_data[1000] > 35000) {
+    //     qDebug() << lvframe_buffer->fbIndex << lvframe_buffer->lastSTD()->raw_data[1000] << last_ndx << lvframe_buffer->frame(last_ndx)->raw_data[1000];
+    // }
+    for (unsigned int i = 0; i < frSize; i++) {
+        raw_data[i] = float(lvframe_buffer->frame(last_ndx)->raw_data[i])/5;
+    }
+    return raw_data;
+}
+
 std::vector<float> FrameWorker::getDSFrame()
 {
     //Maintains reference to data by using vector for memory management

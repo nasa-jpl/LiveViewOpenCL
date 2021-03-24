@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <string>
 
-enum image_t {BASE, DSF, STD_DEV, SPATIAL_PROFILE, SPECTRAL_PROFILE, SPATIAL_MEAN, SPECTRAL_MEAN};
+enum image_t {BASE, WFL, DSF, STD_DEV, SPATIAL_PROFILE, SPECTRAL_PROFILE, SPATIAL_MEAN, SPECTRAL_MEAN};
 
 enum camera_t {SSD_ENVI, SSD_XIO, CL_6604A, CL_6604B};
 

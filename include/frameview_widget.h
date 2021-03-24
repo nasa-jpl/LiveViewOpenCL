@@ -1,6 +1,6 @@
 #ifndef FRAMEVIEW_WIDGET_H
 #define FRAMEVIEW_WIDGET_H
-
+#include <float.h>
 #include <QWidget>
 #include <QTimer>
 #include <QGroupBox>
@@ -26,6 +26,7 @@ public:
 
 public slots:
     void handleNewFrame();
+    void handleNewWFLFrame();
     void drawCrosshair(QCPAbstractPlottable *plottable, int dataIndex, QMouseEvent *event);
     void hideCrosshair(bool hide);
     void showTooltip(bool show);
@@ -38,6 +39,10 @@ private:
     inline void setDarkMode();
     std::vector<float> (FrameWorker::*p_getFrame)();
     image_t image_type;
+    //QVector <QByteArray> wfimage;
+    //QByteArray wfline;
+    QVector<QVector<float>> wfimage;
+    QVector<float> wfline;
 
     QCPColorMap *colorMap;
     QCPColorMapData *colorMapData;
@@ -69,6 +74,8 @@ private:
 
     double loBoundY;
     double hiBoundY;
+
+    double wfLength;
 
 private slots:
     void mouse_down(QMouseEvent *event);

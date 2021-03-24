@@ -52,6 +52,7 @@ public:
     void resetDir(const char *dirname);
 
     std::vector<float> getFrame();
+    std::vector<float> getWFLFrame();
 
     TwosComplimentFilter* TwosFilter;
     InterlaceFilter* IlaceFilter;
