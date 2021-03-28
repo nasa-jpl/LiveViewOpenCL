@@ -50,8 +50,8 @@ public:
     // EMITFPIED-331_v2
     //
     // PK new mouse feature 11-16-20
-    bool isFrameControlOn( void ) { return frameControlIsOn; };
-    void setFrameControlStatus( int status )  { frameControlIsOn = status; };
+    bool isFrameControlOn( void );
+    void setFrameControlStatus( bool status );
     void suspendFrameAcquisition();
     void resumeFrameAcquisition();
     // EMITFPIED-331_v2
@@ -110,6 +110,12 @@ public:
     QPointF bottomRight;
     QPointF topLeft;
     double fps = 0;
+
+    //
+    // PK 3-20-21 attempts to fix Linux filename update issue !!
+    void    setFrameFilenameWidget( QLabel *widget ) { frameFilenameWidget = widget; }
+    QLabel *getFrameFilenameWidget( void ) { return frameFilenameWidget; }
+
 
 
 signals:
@@ -178,6 +184,11 @@ private:
     // PK 2-18-21 image-line-control
     std::vector<frameDataFile> LVDataFileList;
     frameDataFile LVFrameData;
+
+    //
+    // PK 3-20-21 attempts to fix Linux filename update issue !!
+    QLabel    *frameFilenameWidget;
+
 
     // std::mutex time_index_lock;
     // size_t time_index{0};

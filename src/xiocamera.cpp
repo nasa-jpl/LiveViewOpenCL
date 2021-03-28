@@ -4,6 +4,13 @@
 
 extern bool frameLineDebugLog;   // PK 2-5-21 image-line-debug
 extern QMutex frameDataMutex;    // PK 2-17-21 image-line-debug
+extern QMutex frameControlMutex; // PK 3-19-21 frame control mutex
+
+//
+// 3-20-21 added
+// This variable is to stop the running readLoop thread.
+bool timeToExit_readLoop = false;   
+
 
 XIOCamera::XIOCamera(int frWidth,
         int frHeight, int dataHeight,
@@ -43,16 +50,31 @@ XIOCamera::~XIOCamera()
     readLoopFuture.waitForFinished();
 } // end of XIOCamera::~XIOCamera()
 
+
+
+
 void XIOCamera::setDir(const char *dirname)
 {
+    //
+    // 3-20-21 added
+    // set timeToExit_readLoop to true to stop existing running readLoop thread.
+    timeToExit_readLoop = true;   // 3-20-21
+    qDebug() << "PK Debug XIOCamera::setDir() starts ... timeToExit_readLoop:" << timeToExit_readLoop;  // 3-20-21
+
     is_reading = false;
     while (!frame_buf.empty()) {
         frame_buf.pop_back();
     }
 
+    qDebug() << "PK Debug XIOCamera::setDir() clear frame_buf is done, wait for readLoopFuture to finished ...";  // 3-20-21
+    
     if (readLoopFuture.isRunning()) {
         readLoopFuture.waitForFinished();
     }
+
+    qDebug() << "PK Debug XIOCamera::setDir() readLoopFuture is FINISHED ...";  // 3-20-21
+    
+
     data_dir = dirname;
     if (data_dir.empty()) {
         if (running.load()) {
@@ -84,17 +106,38 @@ void XIOCamera::setDir(const char *dirname)
     emit started();
 
     is_reading = true;
+
+    //
+    // 3-20-21 added
+    // Reset timeToExit_readLoop before starting a new readLoop thread.
+    timeToExit_readLoop = false;  // 3-20-21 added 
+    qDebug() << "PK Debug - XIOCamera::setDir() before starting a new readLoop thread";
     readLoopFuture = QtConcurrent::run(this, &XIOCamera::readLoop);
+    qDebug() << "PK Debug - XIOCamera::setDir() starting readLoop is done ...\n";
+
 } // end of XIOCamera::setDir() 
 
 // EMITFPIED-331
 void XIOCamera::suspendFrameAcquisition( bool status )
 {
-  frameAcquisitionSuspended = status;
-  qDebug() << "PK Debug - XIOCamera::suspendFrameAcquisition()";
-  qDebug() << "PK Debug - XIOCamera::frameAcquisitionSuspended = " << frameAcquisitionSuspended; 
-  
+    frameControlMutex.lock();
+    frameAcquisitionSuspended = status;
+    qDebug() << "PK Debug - XIOCamera::suspendFrameAcquisition()";
+    qDebug() << "PK Debug - XIOCamera::frameAcquisitionSuspended = " << frameAcquisitionSuspended; 
+    frameControlMutex.unlock();
 } // end of void XIOCamera::suspendFrameAcquisition()
+
+bool XIOCamera::getFrameAcquisitionStatus( void )
+{
+    bool status;
+    frameControlMutex.lock();
+    status = frameAcquisitionSuspended;
+    frameControlMutex.unlock();
+    // qDebug() << "PK Debug - XIOCamera::getFrameAcquisitionStatus() status:" << status;
+    return status;
+} // end of void XIOCamera::getFrameAcquisitionStatus()
+
+
 // EMITFPIED-331
 
 
@@ -102,13 +145,19 @@ void XIOCamera::suspendFrameAcquisition( bool status )
 // PK 1-13-21 added ... Forward button support
 int XIOCamera::getFrameAcquisitionCount( void )
 {
-    return frameAcquisitionCount;
+    int count;
+    frameControlMutex.lock();
+    count = frameAcquisitionCount;
+    frameControlMutex.unlock();
+    return count;
 } // end of XIOCamera::getFrameAcquisitionCount()
 
 void XIOCamera::setFrameAcquisitionCount( int count )
 {
-    frameAcquisitionCount = count;
     qDebug() << "PK Debug - XIOCamera::setFrameAcquisitionCount() frameAcquisitionCount is set to " << count;
+    frameControlMutex.lock();
+    frameAcquisitionCount = count;
+    frameControlMutex.unlock();
 } // end of XIOCamera::setFrameAcquisitionCount()
 // PK 1-13-21 added ... Forward button support
 
@@ -240,9 +289,23 @@ bool XIOCamera::readFile()
 
     while(!validFile) {
 
+        if( timeToExit_readLoop ) // 3-20-21 added
+        {
+            //
+            // 3-20-21
+            qDebug() << "PK Debug - timeToExit_readLoop is true, XIOCamera::readFile() returns ...\n";
+            return true;
+        }
+        else
+        {
+            // qDebug() << "PK Debug - timeToExit_readLoop is false, XIOCamera::readFile() continues";
+        }
+
+
         //
         // PK 1-13-21 added ... Forward button support
-        if( frameAcquisitionSuspended == true && frameAcquisitionCount == 0 )
+        // PK 3-19-21 replaced use of global var.  
+        if( getFrameAcquisitionStatus() == true && getFrameAcquisitionCount() == 0 )            
         {
             //
             // if frameAcquisitionSuspended is ON, stop reading new frames.
@@ -251,15 +314,14 @@ bool XIOCamera::readFile()
                 qDebug() << "frameAcquisitionSuspended is ON, XIOCamera::readFile() do NOTHING";
                 logged = true;
             }
-            // qDebug() << "XIOCamera::readLoop() sleep 1 msec"
+            // qDebug() << "XIOCamera::readFile() sleep 1 msec"
             // sleep for 10 msec
             QThread::usleep( 10000 );
             continue;
         }
 
-
         // qDebug() << "PK Debug XIOCamera::readFile() begin ....";
-        // qDebug() << "PK Debug XIOCamera::readFile() image_no: " << image_no << ", xio_files size: " << xio_files.size();
+        qDebug() << "PK Debug XIOCamera::readFile() image_no: " << image_no << ", xio_files size: " << xio_files.size();
 
         ifname = getFname();
         if (ifname.empty())
@@ -275,6 +337,7 @@ bool XIOCamera::readFile()
             }
             // PK 3-6-21 debug-LV-hang
             // returns 'true' after all files are read and loaded.
+            qDebug() << "PK Debug XIOCamera::readFile() no more files, running true";
             return true;
         }
 
@@ -284,10 +347,12 @@ bool XIOCamera::readFile()
         {
             qDebug() << "Could not open file" << ifname.data() << ". Does it exist?";
             dev_p.clear();
-            readFile();
+            // readFile();
             // PK 3-6-21 debug-LV-hang
             // return 'false' if there is an error. 
-            return false;
+            // return false;
+            qDebug() << "Could not open file, try next file.";
+            continue;
         }
 
         qDebug() << "PK Debug XIOCamera::readFile() ifname: " << ifname.data();
@@ -323,7 +388,7 @@ bool XIOCamera::readFile()
         }
         else
         { //otherwise we load it
-            validFile = true;
+            // validFile = true;  // 3-19-21 tmp out for debug
             dev_p.seekg(headsize, std::ios::beg);
 
             // qDebug() << "File size is" << filesize << "bytes, which corresponds to a framesize of" << framesize << "bytes.";
@@ -358,12 +423,10 @@ bool XIOCamera::readFile()
                     qDebug() << "PK Debug - XIOCamera::readFile() frame line #:" << (n+1);
 
                     qDebug() << "PK Debug - XIOCamera::readFile() debug line header info: ";
-                    qDebug() << "\t\tframeline timeStamp:" << lineData.timeStamp;
+                    // qDebug() << "\t\tframeline timeStamp:" << lineData.timeStamp;
                     qDebug() << "\t\tframeline lineCount:" << lineData.lineCount;
-                    qDebug() << "\t\tframeline dataId:"    << lineData.dataId;
-
+                    qDebug() << "\t\tframeline timeStamp:"    << lineData.timeStamp;
                 }
-
                 // ... PK 2-15-21 image-line-debug test code
 
                 
@@ -391,7 +454,14 @@ bool XIOCamera::readFile()
         // After ONE frame was loaded, reset frameAcquisition count to 0
         if( getFrameAcquisitionCount() != 0 )
             setFrameAcquisitionCount( 0 );
+        
     } // bottom of the while(!validFile) loop
+
+    
+    // 3-19-21 added for debug
+    qDebug() << "PK Debug - XIOCamera::readFile() finished, return true.";
+
+    return true;   // 3-19-21 added to fix compiler warning
 
 } // end of XIOCamera::readFile()
 
@@ -400,7 +470,16 @@ void XIOCamera::readLoop()
     bool done = false;   // PK 3-6-21 debug-LV-hang
 
     QTime remTime;
-    do {
+    do
+    {
+        if( timeToExit_readLoop ) // 3-20-21 added
+        {
+            //
+            // 3-20-21
+            qDebug() << "PK Debug - timeToExit_readLoop is true, XIOCamera::readLoop returns ...\n";
+            return;
+        }
+
         // Yeah yeah whatever it's a magic buffer size recommendation
 
         //
@@ -424,8 +503,11 @@ void XIOCamera::readLoop()
                 QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
             }
         }
-    } while (is_reading);
-}
+
+    } while(is_reading);  
+
+
+} // end of XIOCamera::readLoop()
 
 
 void XIOCamera::dumpFrameFileData( frameDataFile *f )
@@ -437,9 +519,9 @@ void XIOCamera::dumpFrameFileData( frameDataFile *f )
     for( frameLineData l : line )
     {
         qDebug() << "\tLine #:" << lineId++;
-        qDebug() << "\ttimeStamp:" << l.timeStamp;
+        // qDebug() << "\ttimeStamp:" << l.timeStamp;
         qDebug() << "\tlineCount:" << l.lineCount;
-        qDebug() << "\tdataId:"    << l.dataId;
+        qDebug() << "\ttimeStamp:" << l.timeStamp;
     }
 
     qDebug() << "PK Debug - dumpFrameFileData ends ...\n";
@@ -470,8 +552,10 @@ uint16_t* XIOCamera::getFrame()
         // shared data 'frameDataFileList'
         frameDataMutex.lock();
         
-        // PK 2-15-21 image-line-debug
-        frameData = frameDataFileList.back();
+        //
+        // Preserve the image file loading order, retrieve the
+        // 1st element at all time.
+        frameData = frameDataFileList.front();
 
         count++;
         qDebug() << "PK Debug - XIOCamera::getFrame() called #" << count;
@@ -483,47 +567,32 @@ uint16_t* XIOCamera::getFrame()
             {
                 //
                 // Dump frame data ... 
-                // dumpFrameFileData( &(frameDataFileList.back()) );
                 dumpFrameFileData( &frameData );
             }
 
             // ... PK 2-15-21 image-line-debug
         }
 
-        // remove the element from the list
-        frameDataFileList.pop_back();
+        //
+        // remove the record from the list HEAD and release the list
+        frameDataFileList.erase( frameDataFileList.begin() );
 
         //
         // release the mutex lock to share data frameDataFileList.
         frameDataMutex.unlock();
         qDebug() << "PK Debug - XIOCamera::getFrame() before returning the data";        
 
-#ifdef ORIGINAL_CODE        
-
-        return temp_frame.data();
-
-#else // NEW_CODE PK-2-15-21 ...
-
-
         return( (uint16_t*) reinterpret_cast<frameDataFile *> (&frameData) );
 
-#endif // ... NEW_CODE PK-2-15-21
     }
     else
     {
-
-#ifdef ORIGINAL_CODE        
-
-        return dummy.data();
-
-#else // NEW_CODE PK 2-3-21 image-line-debug
 
         //
         // PK 2-3-21 image-line-debug
         // return NULL indicating no data
         return NULL;
 
-#endif // NEW_CODE PK 2-3-21 image-line-debug
     }
 } // end of XIOCamera::getFrame()
 
@@ -537,14 +606,16 @@ uint16_t* XIOCamera::getFrame()
 // collection id (dataId).
 //
 // Image frame line header specification is documented in
-// EMIT_NGIS_DataDictionaries_FrameHeader_20200712.xlsx spreadsheet
-// under 'LineHeaderSpec&Impl FPAROIC' tab.
+//
+// new spec: EMIT_NGIS_DataDictionaries_FrameHeader_2021-03-13.xlsx
+// under 'LineHeader Emulator' tab.
 //
 frameLineData XIOCamera::parseLineData( std::vector<uint16_t> line )
 {
     frameLineData header;
-    char buf[16], *p = buf;
+    char buf[32], *p = buf;
 
+    memset( (void *) buf, '\0', sizeof(buf) );
     //
     // Extract line header info. from the leading 16-byte of image line 
     memcpy( (void *) buf,
@@ -552,9 +623,13 @@ frameLineData XIOCamera::parseLineData( std::vector<uint16_t> line )
 
     //
     // Fill in the image line data header info.
-    memcpy( (void *) &header.timeStamp, (void *) p,      sizeof(uint32_t) );
-    memcpy( (void *) &header.lineCount, (void *) (p+4),  sizeof(uint32_t) );
-    memcpy( (void *) &header.dataId,    (void *) (p+12), sizeof(uint16_t) );
+    //
+    // new spec: EMIT_NGIS_DataDictionaries_FrameHeader_2021-03-13.xlsx
+    memcpy( (void *) &header.lineCount, (void *) p,  sizeof(int64_t) );
+    memcpy( (void *) &header.timeStamp, (void *) (p + sizeof(int64_t)), sizeof(int64_t) );
+
+    // qDebug() << "\nXIOCamera::parseLineData() lineCount:" << header.lineCount;
+    // qDebug() << "XIOCamera::parseLineData() timeStamp:"   << header.timeStamp;
 
     header.data = line;
     return header;

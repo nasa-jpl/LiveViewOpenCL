@@ -259,6 +259,8 @@ void frameview_widget::handleNewFrame()
     // This is where to insert a check for frame display suspension status
     static bool logged = false;
 
+    // qDebug() << "frameview_widget::handleNewFrame() starts checking the flags ..."; // 3-19-21 debug added
+
     if( IsTimeToResetFrameLineDisplay() == true )
     {
         frameLineIndex.store(0);
@@ -284,7 +286,7 @@ void frameview_widget::handleNewFrame()
                 {
                     frameLineDisplayInfo.line_no = frameLineIndex+1;
                     frameLineDisplayInfo.lineCount = sLine.lineCount;
-                    frameLineDisplayInfo.dataId = sLine.dataId;
+                    frameLineDisplayInfo.timeStamp = sLine.timeStamp;
                 }
                 frameLineDisplayInfoMutex.unlock();
             
@@ -313,7 +315,7 @@ void frameview_widget::handleNewFrame()
             {
                 frameLineDisplayInfo.line_no = frameLineIndex+1;
                 frameLineDisplayInfo.lineCount = sLine.lineCount;
-                frameLineDisplayInfo.dataId = sLine.dataId;
+                frameLineDisplayInfo.timeStamp = sLine.timeStamp;
             }
             frameLineDisplayInfoMutex.unlock();
         
@@ -385,15 +387,19 @@ void frameview_widget::handleNewFrame()
         {
             currentFrameDataFile = LVData;
 
-            if( !frameLineControlEnabled )
+            // if( !frameLineControlEnabled )
+            if( IsFrameLineControlEnabled() == false )
             {
                 //
-                // display current frame filename
-                emit updateFrameFilename( LVData->filename );
+                // PK 3-20-21 attempts to fix Linux filename update issue !!
+                displayFrameFilename( LVData->filename );
+                qDebug() << "PK Debug frameview_widget::displayFrameFilename() filename:" << LVData->filename.data() << " is done.";
+                
 
                 //
                 // Display the frame lines ...
                 displayFrameLines( LVData );
+
             }
         }
         else
@@ -418,6 +424,7 @@ void frameview_widget::handleNewFrame()
         frameWorkerParent->setFrameControlFrameCount( 0 );
     }
 
+    // qDebug() << "frameview_widget::handleNewFrame() is done ..."; // 3-19-21 debug added
 
 } // end of frameview_widget::handleNewFrame() 
 
@@ -664,8 +671,10 @@ void frameview_widget::displayFrameLines( frameDataFile *LVData )
             }
         }
         qcp->replot();
+
         if( frameLineDebugLog )  // PK 3-2-21 image-line-debug
             qDebug() << "PK Debug frameview_widget::handleNewFrame() qcp->replot() done, count: " << count;
+
         count++;
         lineNo++;
 
@@ -707,7 +716,7 @@ void frameview_widget::displaySingleFrameLine( int lineNo, size_t frameSizeInPix
     qDebug() << "PK Debug frameview_widget::displaySingleFrameLine() starts ...";
     qDebug() << "PK Debug lineNo:" << lineNo;
     qDebug() << "PK Debug lineCount:" << line.lineCount;
-    qDebug() << "PK Debug collectionId:" << line.dataId;
+    qDebug() << "PK Debug timeStamp:" << line.timeStamp;
     qDebug() << "PK Debug frameview_widget::displaySingleFrameLine() ends ...";
 
     std::vector<float> image_data(size_t(frameSizeInPixel), 0);
@@ -740,9 +749,17 @@ void frameview_widget::displaySingleFrameLine( int lineNo, size_t frameSizeInPix
  *      - resetFrameLineDisplay()
  * 
  ****************************************************************/
+bool frameview_widget::IsFrameLineControlEnabled( void )
+{
+    bool status;
+    frameLineDisplayInfoMutex.lock();
+    status = frameLineControlEnabled;
+    frameLineDisplayInfoMutex.unlock();
+    return status;
+} // end of frameview_widget::IsFrameLineControlEnabled()
+
 void frameview_widget::updateFrameLineControlStatus( bool status )
 {
-
     frameLineDisplayInfoMutex.lock();
     frameLineControlEnabled = status;
     frameLineDisplayInfoMutex.unlock();
@@ -750,6 +767,15 @@ void frameview_widget::updateFrameLineControlStatus( bool status )
     qDebug() << "PK Debug - frameview_widget::updateFrameLineControlStatus() is called with status:" << frameLineControlEnabled;
     
 } // end of frameview_widget::updateFrameLineControlStatus( bool status )
+
+bool frameview_widget::IsTimeToDisplayNextFrameLine( void )
+{
+    bool status;
+    frameLineDisplayInfoMutex.lock();
+    status = displayNextFrameLine;
+    frameLineDisplayInfoMutex.unlock();
+    return status;
+} // end of frameview_widget::IsTimeToDisplayNextFrameLine()
 
 
 void frameview_widget::forwardToNextFrameLine( bool nextLine )
@@ -762,6 +788,14 @@ void frameview_widget::forwardToNextFrameLine( bool nextLine )
 
 } // end of frameview_widget::forwardToNextFrameLine()
 
+bool frameview_widget::IsTimeToResetFrameLineDisplay( void ) 
+{
+    bool status;
+    frameLineDisplayInfoMutex.lock();
+    status = frameLineDisplayReset;
+    frameLineDisplayInfoMutex.unlock();
+    return status;
+} // end of frameview_widget::IsTimeToResetFrameLineDisplay() 
 
 void frameview_widget::resetFrameLineDisplay( bool resetNow )
 {
@@ -774,3 +808,16 @@ void frameview_widget::resetFrameLineDisplay( bool resetNow )
 } // end of bool frameview_widget::resetFrameLineDisplay()
 
 // ... PK 3-15-21 frame-line-control enhancement 
+
+//
+// PK 3-20-21 attempts to fix Linux filename update issue !!
+void frameview_widget::displayFrameFilename( const std::string filename )
+{
+    QLabel *w = frameWorkerParent->getFrameFilenameWidget();
+    if( w != NULL )
+    {
+        qDebug() << "PK Debug frameview_widget::displayFrameFilename:" << filename.data();
+        std::string labelStr = "Image Filename: " + filename;
+        w->setText( QString::fromStdString(labelStr) );
+    }
+} // end of frameview_widget::displayFrameFilename()

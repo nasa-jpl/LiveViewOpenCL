@@ -143,17 +143,20 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
 
     frameFilename  = new QLabel("Image Filename: ");
 
-    frameLineNo    = new QLabel("Line #: ");
-    frameLineCount = new QLabel("Line Count: ");
-    frameCollectionID = new QLabel("Collection ID: ");
-    frameLineControl  = new QCheckBox("Line Control", this);
+    //
+    // PK 3-20-21 attempts to fix Linux filename update issue !!
+    if( frameFilename != NULL )
+        frame_handler->setFrameFilenameWidget( frameFilename );
+    
+    frameLineNo        = new QLabel("Line #: ");
+    frameLineCount     = new QLabel("Line Count: ");
+    frameLineTimeStamp = new QLabel("Time Stamp: ");
+    frameLineControl   = new QCheckBox("Line Control", this);
     
     //
     // connect the widget with :
     // Signal Emitter, Signal name,
     // Signal Receiver, Signal processing function
-    connect( frameDisplay, &frameview_widget::updateFrameFilename,
-             this, &ControlsBox::updateFrameFilename );
 
     connect( frameDisplay, &frameview_widget::updateFrameLineInfo,
              this, &ControlsBox::updateFrameLineInfo );
@@ -175,7 +178,7 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     cboxLayout->addWidget(frameFilename,     cboxLayout_Line_1, 0, 1, 3);
     cboxLayout->addWidget(frameLineNo,       cboxLayout_Line_1, 3, 1, 2);
     cboxLayout->addWidget(frameLineCount,    cboxLayout_Line_1, 5, 1, 2);
-    cboxLayout->addWidget(frameCollectionID, cboxLayout_Line_1, 7, 1, 2);  // 4 - this line up perfectly 
+    cboxLayout->addWidget(frameLineTimeStamp,cboxLayout_Line_1, 7, 1, 2);
     cboxLayout->addWidget(frameLineControl,  cboxLayout_Line_1, 9, 1, 1);  
     cboxLayout->addWidget(frameControlBar,   cboxLayout_Line_1, 10, 1, 1);
 
@@ -396,7 +399,7 @@ LVTabApplication* ControlsBox::getCurrentTab()
 // add Frame Control buttons: Rewind, Play/Stop, Forward
 void ControlsBox::frameControlPrevButtonClicked()
 {
-    qDebug() << "\nPK Debug - frameControlStopButtonClicked() - PREV button Clicked ...\n";
+    qDebug() << "\nPK Debug - frameControlPrevButtonClicked() - PREV button Clicked ...\n";
 
     if( frameDisplay->IsFrameLineControlEnabled() )
         frameDisplay->resetFrameLineDisplay( true );
@@ -489,7 +492,7 @@ void ControlsBox::frameControlStopButtonClicked()
             // Clear all frame line control labels
             frameLineNo->setText( QString::fromStdString("Line #: ") );
             frameLineCount->setText( QString::fromStdString("Line Count: ") );
-            frameCollectionID->setText( QString::fromStdString("Collection ID: ") );
+            frameLineTimeStamp->setText( QString::fromStdString("Time Stamp: ") );
             frameLineControlStatus->setText( QString::fromStdString( "Frame Line Control:  OFF ") );
             frameLineControl->setChecked( false );
         }
@@ -511,6 +514,7 @@ void ControlsBox::frameLineControlChecked( bool enabled )
         // no action taken ...  Frame line control can ONLY be enabled
         // when frame control is ON.
         qDebug() << "\nPK Debug frameLineControlChecked() frame line control enable/disable IGNORED !!! because frame control is DISABLED.";
+        frameLineControl->setChecked( false );
         return;
     }
 
@@ -542,7 +546,7 @@ void ControlsBox::frameLineControlChecked( bool enabled )
         // Clear all frame line control labels
         frameLineNo->setText( QString::fromStdString("Line #: ") );
         frameLineCount->setText( QString::fromStdString("Line Count: ") );
-        frameCollectionID->setText( QString::fromStdString("Collection ID: ") );
+        frameLineTimeStamp->setText( QString::fromStdString("Time Stamp: ") );
     }
 
 } // end of frameLineControlChecked()
@@ -583,7 +587,7 @@ void ControlsBox::updateFrameLineInfo() // 3-10-21 image-line-control
         // Clear all frame line control labels
         frameLineNo->setText( QString::fromStdString("Line #: ") );
         frameLineCount->setText( QString::fromStdString("Line Count: ") );
-        frameCollectionID->setText( QString::fromStdString("Collection ID: ") );
+        frameLineTimeStamp->setText( QString::fromStdString("Time Stamp: ") );
         frameLineControl->setChecked( false );
         
     }
@@ -599,10 +603,10 @@ void ControlsBox::updateFrameLineInfo() // 3-10-21 image-line-control
         frameLineCount->setTextFormat( Qt::PlainText );
         frameLineCount->setText( QString::fromStdString(lineCount_label) );
 
-        qDebug() << "PK Debug ControlsBox::updateFrameLineInfo CollectionId:" << info.dataId;
-        std::string collectionID_label = "Collection ID: " + std::to_string(info.dataId);
-        frameCollectionID->setTextFormat( Qt::PlainText );
-        frameCollectionID->setText( QString::fromStdString(collectionID_label) );
+        qDebug() << "PK Debug ControlsBox::updateFrameLineInfo timeStamp:" << info.timeStamp;
+        std::string timeStamp_label = "Time Stamp: " + std::to_string(info.timeStamp);
+        frameLineTimeStamp->setTextFormat( Qt::PlainText );
+        frameLineTimeStamp->setText( QString::fromStdString(timeStamp_label) );
     }
 
 

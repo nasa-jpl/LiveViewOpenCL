@@ -7,6 +7,8 @@
 extern bool frameLineDebugLog;   // PK 2-5-21 image-line-debug
 extern QMutex LVDataMutex;       // PK 2-18-21 image-line-debug
 
+QMutex frameControlMutex;       // PK 3-19-21 frame control mutex 
+
 class LVFrameBuffer
 {
 public:
@@ -210,17 +212,50 @@ bool FrameWorker::running()
 
 // EMITFPIED-331
 // PK new mouse feature 11-16-20
-void FrameWorker::suspendFrameAcquisition()
+/**************************************************************
+ *
+ * The following are frame control utility functions:
+ *
+ *      - isFrameControlOn() 
+ *        provides current frame control status
+ *
+ *      - setFrameControlStatus()
+ *        update frame control status
+ *
+ *      - suspendFrameAcquisition()
+ *        suspends reading/loading image frames
+ *
+ *      - resumeFrameAcquisition()
+ *        restart reading/loading image frames
+ *
+ ****************************************************************/
+bool FrameWorker::isFrameControlOn( void )
+{
+    bool status = false;
+    frameControlMutex.lock();
+    status = frameControlIsOn;
+    frameControlMutex.unlock();
+    return status;
+} // end of FrameWorker::isFrameControlOn()
+
+void FrameWorker::setFrameControlStatus( bool status )
+{
+    frameControlMutex.lock();
+    frameControlIsOn = status;
+    frameControlMutex.unlock();
+} // end of FrameWorker::setFrameControlStatus()
+
+void FrameWorker::suspendFrameAcquisition( void )
 {
     qDebug() << "PK Debug - FrameWorker::suspendFrameAcquisition() Supspends frame acquistion.";
     Camera->suspendFrameAcquisition( true );
-}
+} // end of FrameWorker::suspendFrameAcquisition()
 
 void FrameWorker::resumeFrameAcquisition()
 {
     qDebug() << "PK Debug - FrameWorker::resumeFrameAcquisition() Resumes frame acquistion.";
     Camera->suspendFrameAcquisition( false );
-}
+} // end of FrameWorker::resumeFrameAcquisition()
 // EMITFPIED-331
 
 // PK 1-13-21 added ... Forward button support
@@ -228,19 +263,25 @@ void FrameWorker::setFrameAcquisitionFrameCount( int count )
 {
     qDebug() << "PK Debug - FrameWorker::setFrameAcquisitionFrameCount() count = " << count;
     Camera->setFrameAcquisitionCount( count );
-}
-
+} // end of setFrameAcquisitionFrameCount()
 
 void FrameWorker::setFrameControlFrameCount( int frameCount )
 {
+    frameControlMutex.lock();
     frameControlFrameCount = frameCount;
-}
-
+    frameControlMutex.unlock();
+} // end of setFrameControlFrameCount()
 
 int FrameWorker::getFrameControlFrameCount( void )
 {
-    return frameControlFrameCount;
-}
+    int count;
+    frameControlMutex.lock();
+    count = frameControlFrameCount;
+    frameControlMutex.unlock();
+    return count;
+} // end of getFrameControlFrameCount()
+
+
 
 
 
@@ -264,9 +305,9 @@ void FrameWorker::dumpFrameFileData( frameDataFile *f )
     for( frameLineData l : line )
     {
         qDebug() << "\tLine #:" << lineId++;
-        qDebug() << "\ttimeStamp:" << l.timeStamp;
+        // qDebug() << "\ttimeStamp:" << l.timeStamp;
         qDebug() << "\tlineCount:" << l.lineCount;
-        qDebug() << "\tdataId:"    << l.dataId;
+        qDebug() << "\ttimeStamp:" << l.timeStamp;
     }
 
     qDebug() << "PK Debug - FrameWorker dumpFrameFileData ends ...\n";
@@ -314,6 +355,7 @@ void FrameWorker::captureFrames()
         {                              // PK 2-3-21 image-line-debug
  
             fData = (frameDataFile *) reinterpret_cast <uint16_t *> (temp_frame);
+
             if( frameLineDebugLog )
                 dumpFrameFileData( fData );
 
@@ -344,17 +386,6 @@ void FrameWorker::captureFrames()
             // stream.
             //
             // Therefore, NO data size mismatch issue.
-
-
-#ifdef ORIGINAL_CODE            
-            
-            for (int pix = 0; pix < int(frSize); pix++) {
-                lvframe_buffer->current()->raw_data[pix] = temp_frame[pix];
-            }
-
-            //lvframe_buffer->current()->raw_data = Camera->getFrame();
-
-#else // NEW_CODE
 
             //
             // It's no longer a SINGLE write to the lvframe_buffer because 
@@ -401,7 +432,6 @@ void FrameWorker::captureFrames()
             // the LVDataFileList 
             LVDataMutex.unlock();
 
-#endif // NEW_CODE
 
         }  // PK 2-3-21 image-line-debug ...
         else
@@ -666,11 +696,16 @@ frameDataFile * FrameWorker::getFrameDataFile()
     if( LVDataFileList.size() > 0 )
     {
         LVDataMutex.lock();
-        LVFrameData = LVDataFileList.back();
+
+        //
+        // Preserve the image file loading order, retrieve the
+        // 1st element at all time.
+        LVFrameData = LVDataFileList.front();
 
         //
         // remove the record from the list and release the list
-        LVDataFileList.pop_back();
+        LVDataFileList.erase( LVDataFileList.begin() );
+
         LVDataMutex.unlock();
         return( &LVFrameData );
     }

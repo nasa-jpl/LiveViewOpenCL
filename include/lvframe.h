@@ -81,12 +81,11 @@ struct LVFrame
 
 typedef struct frameLineData
 {
-    //
-    // This header contains the following frame
-    // line data items:
-    uint32_t     timeStamp;
-    uint32_t     lineCount;
-    uint16_t     dataId;
+
+    // EMIT_NGIS_DataDictionaries_FrameHeader_2021-03-13.xlsx
+    uint64_t     lineCount;
+    uint64_t     timeStamp;
+
     //
     // frame line data itself
     std::vector<uint16_t> data;
@@ -104,8 +103,11 @@ typedef struct frameDataFile
 typedef struct frameLineInfo
 {
     int         line_no;
-    uint32_t    lineCount;
-    uint16_t    dataId;
+
+    // EMIT_NGIS_DataDictionaries_FrameHeader_2021-03-13.xlsx
+    uint64_t     lineCount;
+    uint64_t     timeStamp;
+
 } frameLineControlData;
 
 // ... PK 2-11-21 image-line-control 

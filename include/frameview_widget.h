@@ -46,13 +46,17 @@ public:
 
     // void *cboxParent;    // 3-15-21 frame-line-control enhancement
     void updateFrameLineControlStatus( bool status );
-    bool IsFrameLineControlEnabled() { return frameLineControlEnabled; };
+    bool IsFrameLineControlEnabled( void );   // 3-19-21 mod. 
 
     void forwardToNextFrameLine( bool nextLine ) ;
-    bool IsTimeToDisplayNextFrameLine() { return displayNextFrameLine; };
+    bool IsTimeToDisplayNextFrameLine( void ); // 3-19-21 mod. 
 
     void resetFrameLineDisplay( bool resetNow );
-    bool IsTimeToResetFrameLineDisplay() { return frameLineDisplayReset; };
+    bool IsTimeToResetFrameLineDisplay( void ); // 3-19-21 mod. 
+
+    //
+    // PK 3-20-21 attempts to fix Linux filename update issue !!
+    void displayFrameFilename( const std::string filename );
 
 private:
     //

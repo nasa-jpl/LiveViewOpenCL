@@ -70,6 +70,7 @@ private:
     int  getFrameAcquisitionCount( void );
     void setFrameAcquisitionCount( int count );
 
+    bool getFrameAcquisitionStatus( void ); // 3-19-21 added
 
     std::ifstream dev_p;
     std::string ifname;

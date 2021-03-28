@@ -110,7 +110,7 @@ private:
     // 3-10-21 attempt to fix widget update latency issue 
     QLabel    *frameLineNo;
     QLabel    *frameLineCount;
-    QLabel    *frameCollectionID;
+    QLabel    *frameLineTimeStamp;
 
     QCheckBox   *frameLineControl;   // 3-3-21 line-control-debug
 
