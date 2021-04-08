@@ -96,6 +96,7 @@ typedef struct frameDataFile
 {
     std::string filename;
     size_t      frameSize;
+    uint32_t    frameLineCollectionId;
     std::vector <frameLineData> lineData;
 } frameDataFile;
 

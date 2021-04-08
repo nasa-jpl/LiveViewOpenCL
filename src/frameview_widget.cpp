@@ -13,13 +13,6 @@ extern QMutex frameLineDisplayInfoMutex;
 
 #define FRAME_LINE_TOTAL (32)
 
-enum frameLineSteppingStatus {
-    Status_noCurrentFrameDataFile    = 0,
-    Status_allFrameLinesDisplayed    = 1,
-    Status_resetFrameLineDisplay     = 2,
-    Status_frameLineControlDisabled  = 3
-};
-
 frameview_widget::frameview_widget(FrameWorker *fw,
                                    image_t image_type,
                                    QSettings *set,

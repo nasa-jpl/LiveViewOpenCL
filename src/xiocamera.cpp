@@ -388,6 +388,11 @@ bool XIOCamera::readFile()
         }
         else
         { //otherwise we load it
+
+            uint32_t collectionID;
+            memcpy( (void *) &collectionID, (void *) &header[28], sizeof(uint32_t) );
+            qDebug() << "PK Debug - XIOCamera::readFile() - Collection id:"  << collectionID;
+
             // validFile = true;  // 3-19-21 tmp out for debug
             dev_p.seekg(headsize, std::ios::beg);
 

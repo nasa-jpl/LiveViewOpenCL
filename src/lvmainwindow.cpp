@@ -11,19 +11,13 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     // Hardcoded default window size
     // this->resize(1560, 1000); original
 
-#ifdef OLD_CODE
-    // PK 10-22-20 new default window size
-    this->resize(1280, 840);
-#else // NEW CODE
     //
     // Make the window bigger after added another line for image-line-control
     this->resize(1280, 900);
-#endif // NEW CODE
-
     
     QPixmap icon_pixmap(":images/icon.png");
     this->setWindowIcon(QIcon(icon_pixmap));
-    this->setWindowTitle("LiveView 4.0");
+    this->setWindowTitle("LiveView 5.0");
 
     source_type = static_cast<source_t>(settings->value(QString("cam_model")).toInt());
 
