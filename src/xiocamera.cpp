@@ -366,16 +366,14 @@ bool XIOCamera::readFile()
         std::streampos filesize(0);
         std::string ext = os::getext(ifname);
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-        if (!std::strcmp(ext.data(), "decomp"))
-        {
-            dev_p.seekg(0, std::ios::end);
-            filesize = dev_p.tellg();
-            dev_p.seekg(headsize, std::ios::beg);
-        }
-        else
+
+        // 
+        // The filesize should always comes from the header regardless
+        if( !std::strcmp(ext.data(), "decomp") || !std::strcmp(ext.data(), "xio") )
         {
             // convert the raw hex string to decimal, one digit at a time.
             filesize = int(header[7]) * 16777216 + int(header[6]) * 65536 + int(header[5]) * 256 + int(header[4]);
+            qDebug() << "4-16-21 PK Debug - XIOCamera::readFile() - xio filesize:" << filesize;
         }
 
         //
@@ -389,9 +387,14 @@ bool XIOCamera::readFile()
         else
         { //otherwise we load it
 
+            qDebug() << "4-16-21 PK Debug - XIOCamera::readFile() - headsize:" << headsize;
+            qDebug() << "4-16-21 PK Debug - XIOCamera::readFile() - filesize:" << filesize;
+            qDebug() << "4-16-21 PK Debug - XIOCamera::readFile() - framesize:" << framesize;
+
             uint32_t collectionID;
             memcpy( (void *) &collectionID, (void *) &header[28], sizeof(uint32_t) );
             qDebug() << "PK Debug - XIOCamera::readFile() - Collection id:"  << collectionID;
+
 
             // validFile = true;  // 3-19-21 tmp out for debug
             dev_p.seekg(headsize, std::ios::beg);
