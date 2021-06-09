@@ -46,15 +46,42 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     numAvgsEdit = new QSpinBox(this);
     numAvgsEdit->setMinimum(1);
     numAvgsEdit->setMaximum(1000000);
-    QPushButton *saveFramesButton = new QPushButton("Save Frames", this);
-    saveFramesButton->setIcon(style()->standardIcon(QStyle::SP_DriveHDIcon));
-    connect(saveFramesButton, &QPushButton::clicked,
+
+    //The START Button
+
+    //let's do colors
+
+    QPushButton *startAcquisitionButton = new QPushButton("START Acquisition", this);
+    startAcquisitionButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    //startAcquisitionButton->setAutoFillBackground(true);
+    //QPalette palette = startAcquisitionButton->palette();
+    //palette.setColor(QPalette::Base, QColor(Qt.blue));
+    //startAcquisitionButton->setPalette(palette);
+    //startAcquisitionButton->show();
+
+
+    connect(startAcquisitionButton, &QPushButton::clicked,
             this, &ControlsBox::acceptSave);
-    connect(saveFileNameEdit, &QLineEdit::textChanged, saveFramesButton,
+    connect(saveFileNameEdit, &QLineEdit::textChanged, startAcquisitionButton,
+            [this]() {
+        saveFileNameEdit->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
+    }); // I think this line causes an acquisition to start after you change filename. We should remove this perhaps.
+    connect(startAcquisitionButton, &QPushButton::clicked, startAcquisitionButton,
             [this]() {
         saveFileNameEdit->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
     });
-    connect(saveFramesButton, &QPushButton::clicked, saveFramesButton,
+
+    //THE STOP BUTTON
+    //TODO - make it stop when pushing this button. Nimrod Jun 2nd 2021
+    QPushButton *stopAcquisitionButton = new QPushButton("STOP Acquisition", this);
+    stopAcquisitionButton->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+    connect(stopAcquisitionButton, &QPushButton::clicked,
+            this, &ControlsBox::acceptSave);
+    connect(saveFileNameEdit, &QLineEdit::textChanged, stopAcquisitionButton,
+            [this]() {
+        saveFileNameEdit->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
+    });
+    connect(stopAcquisitionButton, &QPushButton::clicked, stopAcquisitionButton,
             [this]() {
         saveFileNameEdit->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
     });
@@ -88,21 +115,22 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     cboxLayout->addWidget(fpsLabel, 0, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Range:", this), 0, 1, 1, 1);
     cboxLayout->addWidget(min_box, 0, 2, 1, 1);
-    cboxLayout->addWidget(rangeSlider, 0, 3, 1, 5);
-    cboxLayout->addWidget(max_box, 0, 8, 1, 1);
+    cboxLayout->addWidget(rangeSlider, 0, 3, 1, 2);
+    cboxLayout->addWidget(max_box, 0, 5, 1, 1);
     cboxLayout->addWidget(precisionBox, 0, 9, 1, 1);
     cboxLayout->addWidget(maskButton, 0, 10, 1, 1);
     cboxLayout->addWidget(ipLabel, 1, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Save File to:", this), 1, 1, 1, 1);
-    cboxLayout->addWidget(saveFileNameEdit, 1, 2, 1, 5);
-    cboxLayout->addWidget(browseButton, 1, 7, 1, 1);
-    cboxLayout->addWidget(saveFramesButton, 1, 8, 1, 1);
+    cboxLayout->addWidget(saveFileNameEdit, 1, 2, 1, 2);
+    cboxLayout->addWidget(browseButton, 1, 4, 1, 1);
+    cboxLayout->addWidget(startAcquisitionButton, 1, 5, 2, 2);
+    cboxLayout->addWidget(stopAcquisitionButton, 3, 5, 2, 2);
     cboxLayout->addWidget(new QLabel("Num. Frames:", this), 1, 9, 1, 1);
     cboxLayout->addWidget(numFramesEdit, 1, 10, 1, 1);
     cboxLayout->addWidget(portLabel, 2, 0, 1, 1);
     cboxLayout->addWidget(new QLabel("Std. Dev. N:", this), 2, 1, 1, 1);
     cboxLayout->addWidget(stdDevNBox, 2, 2, 1, 1);
-    cboxLayout->addWidget(stdDevNSlider, 2, 3, 1, 5);
+    cboxLayout->addWidget(stdDevNSlider, 2, 3, 1, 2);
     cboxLayout->addWidget(new QLabel("Num. Avgs:", this), 2, 9, 1, 1);
     cboxLayout->addWidget(numAvgsEdit, 2, 10, 1, 1);
 

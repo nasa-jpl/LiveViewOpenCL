@@ -478,7 +478,7 @@ std::vector<float> FrameWorker::getWFLFrame()
     //     qDebug() << lvframe_buffer->fbIndex << lvframe_buffer->lastSTD()->raw_data[1000] << last_ndx << lvframe_buffer->frame(last_ndx)->raw_data[1000];
     // }
     for (unsigned int i = 0; i < frSize; i++) {
-        raw_data[i] = float(lvframe_buffer->frame(last_ndx)->raw_data[i])/5;
+        raw_data[i] = float(lvframe_buffer->frame(last_ndx)->raw_data[i]);//5; //why are we dividing here?
     }
     return raw_data;
 }

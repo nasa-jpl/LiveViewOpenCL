@@ -203,7 +203,9 @@ frameview_widget::frameview_widget(FrameWorker *fw,
         // do things (thanks E)
         wfLength = 1000; // for now just to keep consistent with the frame view
         //QByteArray empty((int)1280, '\x01');
-        wfline.resize(1280);
+        wfline.resize(1280); //this should be taken from the sensor dimensions
+        // I'm not sure why we set this value here but it took me an hour to find this
+        // We need to set a correct value here that represents either the sensor x-dim or the CL simulation x-dim
         wfimage.resize(wfLength);
         for(int i=0; i < wfLength; i++)
         {
@@ -275,7 +277,9 @@ void frameview_widget::handleNewWFLFrame()
         std::vector<float>image_data{(frame_handler->*p_getFrame)()};
 
         for (int col=0; col < frWidth; col++) {
-            wfline[col] = image_data[size_t(col)];
+            //wfline[col] = image_data[size_t(col)];
+        //for (int col=frWidth*50; col < frWidth*51; col++) {
+            wfline[col] = image_data[size_t(frWidth*200+col)]; // this one works with envi files
             //wfline[col] = (unsigned char)(((double)image_data[size_t(col)]/65535) * 256);
 
         }
@@ -289,7 +293,7 @@ void frameview_widget::handleNewWFLFrame()
 
         for (int col = 0; col < frWidth; col++) {
             for (int row = 0; row < frHeight; row++ ) {
-                colorMap->data()->setCell(col, row, double(wfimage.at(row).at(col)));
+                colorMap->data()->setCell(col, row, float(wfimage.at(row).at(col)));
                                           //double(image_data[size_t(50 * frWidth + col)])); // y-axis NOT reversed
             }
         }
