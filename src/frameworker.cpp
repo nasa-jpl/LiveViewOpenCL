@@ -349,8 +349,6 @@ void FrameWorker::captureFrames()
     {
         uint16_t* temp_frame = Camera->getFrame();
 
-        // qDebug() << "PK Debug - FrameWorker::captureFrames() after Camera->getFrame()";
-        
         if( temp_frame != NULL )       // PK 2-3-21 image-line-debug
         {                              // PK 2-3-21 image-line-debug
  
@@ -360,39 +358,14 @@ void FrameWorker::captureFrames()
                 dumpFrameFileData( fData );
 
             //
-            // add the newly acquired frame line data record to the list,
-            // LVDataFileList
+            // Lock up LVDataFileList 
             LVDataMutex.lock();
-            LVDataFileList.emplace_back( *fData );
-
-
-            //
-            // 2-25-21 data size mistmatch ??
-            //
-            // XIOCamera::readFile() read 'framesize' number of bytes from
-            // the image frame file.
-            //
-            // But pixels are 2-byte unit.  Thus, temp_frame obtained
-            // a unit16_t* data stream that is in pixel unit.
-            //
-            // Therefore, the line below using counter 'frSize' is correct
-            //
-            //  for (int pix = 0; pix < int(frSize); pix++) {
-            //     lvframe_buffer->current()->raw_data[pix] = temp_frame[pix];
-            //  }
-            //
-            // because frSize = size_t(frWidth * dataHeight) is in pixel unit
-            // and temp_frame is a pointer that points to uint16_t data
-            // stream.
-            //
-            // Therefore, NO data size mismatch issue.
 
             //
             // It's no longer a SINGLE write to the lvframe_buffer because 
             // now we have a full collection of 32 frame lines of an image
             // frame to process !!
-            frameLines = fData->lineData;
-            for( frameLineData l : frameLines )
+            for( frameLineData& l : fData->lineData )
             {
                 beg = high_resolution_clock::now();
                 for (int pix = 0; pix < int(frSize); pix++) {
@@ -401,6 +374,14 @@ void FrameWorker::captureFrames()
 
                 if (pixRemap) {// if (Camera->isRunning() && pixRemap) {
                     TwosFilter->apply_filter(lvframe_buffer->current()->raw_data, is16bit);
+                    //
+                    // 5-30-21 PK
+                    // This is why LiveView 5.0 Computation/Remap/16-bit fails.  We
+                    // forgot to apply filter to the frame line data used in the 
+                    // NEW frame line control feature.
+                    qDebug() << "PK Debug 5-30-21 FrameWorker::captureFrames() pixRemap, is16bit: " << is16bit;
+                    TwosFilter->apply_filter( l.data.data(), is16bit );
+
                 }
                 if (interlace) {
                     IlaceFilter->apply_filter(lvframe_buffer->current()->raw_data);
@@ -427,11 +408,15 @@ void FrameWorker::captureFrames()
 
             } // bottom of for loop to load frame lines into LV buffer.
 
+
+            //
+            // Now add the element to the list 
+            LVDataFileList.emplace_back( *fData );  // 5-30-21 PK 2's comp testing
+
             //
             // Release the mutex so that the other thread can access
             // the LVDataFileList 
             LVDataMutex.unlock();
-
 
         }  // PK 2-3-21 image-line-debug ...
         else
