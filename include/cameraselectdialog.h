@@ -67,6 +67,11 @@ public:
         vertical = new QLineEdit;
         vertical->setText(s->value(QString("ssd_height"), "").toString());
 
+        //
+        // PK 6-9-21 added 'lines per frame' input box widget.
+        linesPerFrame = new QLineEdit;
+        linesPerFrame->setText(s->value(QString("ssd_lines_per_frame"), "").toString());
+
         QPushButton *okDimButton = new QPushButton("&Ok", dim_dialog);
         connect(okDimButton, &QPushButton::clicked,
                 dim_dialog, &QDialog::accept);
@@ -81,10 +86,16 @@ public:
         dimButtonLayout->addWidget(cancelDimButton);
 
         QGridLayout *dimmaDialogLayout = new QGridLayout;
-        dimmaDialogLayout->addWidget(new QLabel("Height (px):"), 1, 1, 1, 1);
+        dimmaDialogLayout->addWidget(new QLabel("Line Height (px):"), 1, 1, 1, 1);
         dimmaDialogLayout->addWidget(vertical, 1, 2, 1, 1);
-        dimmaDialogLayout->addWidget(new QLabel("Width (px):"), 2, 1, 1, 1);
+        dimmaDialogLayout->addWidget(new QLabel("Line Width (px):"), 2, 1, 1, 1);
         dimmaDialogLayout->addWidget(horizontal, 2, 2, 1, 1);
+
+        //
+        // PK 6-9-21 added 'lines per frame' input box widget.
+        dimmaDialogLayout->addWidget(new QLabel("Frame Lines Total:"), 3, 1, 1, 1);
+        dimmaDialogLayout->addWidget(linesPerFrame, 3, 2, 1, 1);
+
 
         // you have to say the variable names out loud (^_^)
         QVBoxLayout *dimDamDimmaDialogLayout = new QVBoxLayout(dim_dialog);
@@ -112,6 +123,7 @@ private slots:
     {
         s->setValue(QString("ssd_width"), horizontal->text());
         s->setValue(QString("ssd_height"), vertical->text());
+        s->setValue(QString("ssd_lines_per_frame"), linesPerFrame->text());
         this->accept();
     }
 
@@ -126,6 +138,9 @@ private:
     QDialog *dim_dialog;
     QLineEdit *horizontal;
     QLineEdit *vertical;
+
+    // PK 6-9-21 added 'lines per frame' input box widget.
+    QLineEdit *linesPerFrame;  
 };
 
 #endif // CAMERASELECTDIALOG_H

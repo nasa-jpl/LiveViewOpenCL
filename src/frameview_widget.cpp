@@ -392,6 +392,7 @@ void frameview_widget::handleNewFrame()
                 //
                 // Display the frame lines ...
                 displayFrameLines( LVData );
+                qDebug() << "PK Debug frameview_widget::displayFrameLines() is done.";   // PK 6-14-21 debug
 
             }
         }
@@ -641,6 +642,10 @@ void frameview_widget::mouse_up(QMouseEvent *event) {
  ****************************************************************/
 void frameview_widget::displayFrameLines( frameDataFile *LVData )
 {
+
+    if( LVData == NULL )
+        qDebug() << "PK Debug frameview_widget::displayFrameLines() LVData is NULL";
+
     //
     // It's no longer a SINGLE write to the lvframe_buffer because 
     // now we have a full collection of 32 frame lines of an image
@@ -648,21 +653,46 @@ void frameview_widget::displayFrameLines( frameDataFile *LVData )
     std::vector <frameLineData> frameLines = LVData->lineData;
     size_t frameSizeInPixel = (LVData->frameSize)/2;
  
+#ifdef DEBUG_LOG  // PK 6-14-21 debug
+    qDebug() << "PK Debug frameview_widget::displayFrameLines() starts ...";   // PK 6-14-21 debug
+    qDebug() << "PK Debug frameview_widget::displayFrameLines() frameLines size:" << frameLines.size();   // PK 6-14-21 debug
+#endif // DEBUG_LOG  // PK 6-14-21 debug
+
     int lineNo = 0;
     for( frameLineData line : frameLines )
     {
+
+#ifdef DEBUG_LOG  // PK 6-14-21 debug
+        qDebug() << "PK Debug frameview_widget::displayFrameLines() current line#:" << lineNo; 
+        qDebug() << "PK Debug frameview_widget::displayFrameLines() line data size:" << line.data.size();
+        qDebug() << "PK Debug frameview_widget::displayFrameLines() frameSizeInPixel:" << frameSizeInPixel; 
+#endif // DEBUG_LOG  // PK 6-14-21 debug
+
         std::vector<float> image_data(size_t(frameSizeInPixel), 0);
         for( unsigned int i = 0; i < frameSizeInPixel; i++ )
         {
             image_data[i] = float (line.data[i]);
         }
-                
+
+        // qDebug() << "PK Debug frameview_widget::displayFrameLines() image_data[] loaded." ;   // PK 6-14-21 debug
+
+        int element_id = 0;   // PK 6-14-21 debug
         for (int col = 0; col < frWidth; col++) {
             for (int row = 0; row < frHeight; row++ ) {
+
+#ifdef DEBUG_LOG        // PK 6-14-21 debug
+                element_id = row * frWidth + col;
+                if( element_id < (frHeight * frWidth) )
+                    qDebug() << "PK Debug frameview_widget::displayFrameLines() image_data element id:" << element_id;   // PK 6-14-21 debug
+                else
+                    qDebug() << "PK Debug frameview_widget::displayFrameLines() image_data access error:";   // PK 6-14-21 debug
+#endif // DEBUG_LOG   // PK 6-14-21 debug
+
                 colorMap->data()->setCell(col, row,
                                           double(image_data[size_t(row * frWidth + col)])); // y-axis NOT reversed
             }
         }
+
         qcp->replot();
 
         if( frameLineDebugLog )  // PK 3-2-21 image-line-debug
@@ -671,7 +701,11 @@ void frameview_widget::displayFrameLines( frameDataFile *LVData )
         count++;
         lineNo++;
 
+
     } // bottom of the frame line loop
+
+    qDebug() << "PK Debug frameview_widget::displayFrameLines() ends - all lines displayed ...";   // PK 6-14-21 debug
+
 
 } // end of frameview_widget::displayFrameLines()
 

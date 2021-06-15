@@ -15,16 +15,21 @@ bool timeToExit_readLoop = false;
 XIOCamera::XIOCamera(int frWidth,
         int frHeight, int dataHeight,
         QObject *parent
-) : CameraModel(parent), nFrames(32), framesize(0),
+) : CameraModel(parent), nFrames(dataHeight), framesize(0),
     headsize(EMIT_FRAME_HEADER_SIZE), image_no(0),
     tmoutPeriod(100) // milliseconds
 {
-    source_type = XIO;
-    camera_type = SSD_XIO;
-    frame_width = frWidth;
-    frame_height = frHeight;
-    data_height = dataHeight;
-    is_reading = false;
+    source_type  = XIO;
+    camera_type  = SSD_XIO;
+    frame_width  = frWidth;     // frame_width  is to set up the LiveView Window x-axis
+    frame_height = frHeight;    // frame_height is to set up the LiveView Window y-axis 
+    data_height  = dataHeight;  // data_height is lines total per frame
+    is_reading   = false;
+
+    qDebug() << "PK 6-10-21 XIOCamera Constructor() data_height (lines per frame):" << data_height;
+    qDebug() << "PK 6-10-21 XIOCamera Constructor() nFrames:" << nFrames;
+
+
 
     // EMITFPIED-331
     frameAcquisitionSuspended = false;
@@ -367,6 +372,11 @@ bool XIOCamera::readFile()
         std::string ext = os::getext(ifname);
         std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
+
+        //
+        // 6-14-21 PK
+        // Variable 'filesize' actually means frame data size that is extracted
+        // from the frame header.
         // 
         // The filesize should always comes from the header regardless
         if( !std::strcmp(ext.data(), "decomp") || !std::strcmp(ext.data(), "xio") )
@@ -378,11 +388,35 @@ bool XIOCamera::readFile()
 
         //
         // framesize is actually the size of frame line in bytes.
+        //
+        // 5-2-21 existing LiveView support is 32 lines per frame
         framesize = static_cast<size_t>(filesize / nFrames);
-        if (framesize == 0)
+
+        if( framesize == 0 )
         { //If header reports a 0 filesize (invalid data), then skip this file.
             dev_p.close();
             qDebug().nospace() << "Skipped file \"" << ifname.data() << "\" due to invalid data.";
+        }
+
+        //
+        // PK 6-14-21
+        //
+        // Let's make sure the Actual file size matches the sum of frame data size
+        // and frame header size.
+        struct stat st;
+        if( stat(ifname.data(), &st) == -1 )
+        {
+            dev_p.close();
+            qDebug() << "Skipped file \"" << ifname.data() << "\" file size info. not available.";
+        }
+
+        int expected_Filesize = 1280 + (frame_width * frame_height * data_height * 2);
+        qDebug() << "Filename:" << ifname.data() << "actual filesize:" << st.st_size << ", expected:" << expected_Filesize;
+        
+        if( st.st_size != expected_Filesize )
+        {
+            dev_p.close();
+            qDebug() << "Skipped file \"" << ifname.data() << "\" invalid filesize, not equal sum of frame header and data size.";
         }
         else
         { //otherwise we load it
@@ -390,6 +424,8 @@ bool XIOCamera::readFile()
             qDebug() << "4-16-21 PK Debug - XIOCamera::readFile() - headsize:" << headsize;
             qDebug() << "4-16-21 PK Debug - XIOCamera::readFile() - filesize:" << filesize;
             qDebug() << "4-16-21 PK Debug - XIOCamera::readFile() - framesize:" << framesize;
+            qDebug() << "4-16-21 PK Debug - XIOCamera::readFile() - nFrames:" << nFrames;
+
 
             uint32_t collectionID;
             memcpy( (void *) &collectionID, (void *) &header[28], sizeof(uint32_t) );
@@ -401,14 +437,11 @@ bool XIOCamera::readFile()
 
             // qDebug() << "File size is" << filesize << "bytes, which corresponds to a framesize of" << framesize << "bytes.";
 
-            std::vector<uint16_t> zero_vec(size_t(frame_width * data_height) - (size_t(framesize) / sizeof(uint16_t)));
-            std::fill(zero_vec.begin(), zero_vec.end(), 0);
-
-
             std::vector<uint16_t> copy_vec(size_t(framesize), 0);
 
             frameDataFile newFrame;     // PK 2-15-21 image-line-debug
             struct frameLineData lineData;
+
             for (int n = 0; n < nFrames; ++n)
             {
                 dev_p.read(reinterpret_cast<char*>(copy_vec.data()), std::streamsize(framesize));

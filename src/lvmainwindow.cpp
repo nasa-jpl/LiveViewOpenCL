@@ -17,7 +17,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     
     QPixmap icon_pixmap(":images/icon.png");
     this->setWindowIcon(QIcon(icon_pixmap));
-    this->setWindowTitle("LiveView 5.0.1");  // 5-30-21 PK Computation/Remap testing
+    this->setWindowTitle("LiveView 5.0.2");  // 6-14-21 PK added 64 frame lines support
 
     source_type = static_cast<source_t>(settings->value(QString("cam_model")).toInt());
 

@@ -22,7 +22,7 @@ public:
         for (int f = 0; f < num_frames; ++f) {
             auto pFrame = new LVFrame(frame_width, frame_height);
             if( f == 0 )
-                qDebug() << "PK Debug LVFrameBuffer Constructor: frSize:" << pFrame->frSize;
+                qDebug() << "PK Debug LVFrameBuffer Constructor: frSize (line size in pixels):" << pFrame->frSize;
             frame_vec.push_back(pFrame);
         }
 
@@ -96,7 +96,7 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
     case XIO:
         Camera = new XIOCamera(settings->value(QString("ssd_width"), 640).toInt(),
                                settings->value(QString("ssd_height"), 480).toInt(),
-                               settings->value(QString("ssd_height"), 480).toInt());
+                               settings->value(QString("ssd_lines_per_frame"), 32).toInt()); // PK 6-10-21 set lines per frame
         break;
     case ENVI:
         Camera = new ENVICamera(settings->value(QString("ssd_width"), 640).toInt(),
@@ -125,10 +125,14 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         isRunning = false;    // want to make sure that we don't enter the event loop
         return;
     } else {
-        frWidth = Camera->getFrameWidth();
-        frHeight = Camera->getFrameHeight();
-        dataHeight = Camera->getDataHeight();
+        frWidth = Camera->getFrameWidth();     // 6-10-21 this is line width
+        frHeight = Camera->getFrameHeight();   // 6-10-21 this is line height
+        dataHeight = Camera->getDataHeight();  // 6-10-21 this is "lines per frame"
         cam_type = Camera->getCameraType();
+
+        qDebug() << "LiveView 5.0.2 PK 6-14-21 debug - frWidth:" << frWidth ;
+        qDebug() << "LiveView 5.0.2 PK 6-14-21 debug - frHeight:" << frHeight ;
+        qDebug() << "LiveView 5.0.2 PK 6-14-21 debug - dataHeight:" << dataHeight  ;
 
         if (frWidth == 0 || frHeight == 0) {
             // In general, software camera models will always start, but some hardware camera models can fail
@@ -146,14 +150,32 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
         }
     }
 
-    frSize = size_t(frWidth * dataHeight);
-    lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frWidth, dataHeight);
+
+    //
+    // PK 6-14-21 debug LiveView crashes on Carbo
+    // original - frSize = size_t(frWidth * dataHeight);
+    // original - lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frWidth, dataHeight);
+
+
+    //
+    // Note, frHeight used to be the same value as dataHeight.  However, in
+    // LiveView 5.0.2, dataHeight is the total # of frame lines in a frame,
+    // which is a lot smaller than frHeight (328, 480 ... etc).
+    frSize = size_t(frWidth * frHeight);                   // PK 6-14-21 debug LiveView crashes on Carbo
+    qDebug() << "LiveView 5.0.2 PK 6-14-21 frSize (frWidth * frHeight) =" << frSize;
+
+    
+    // original - lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frWidth, dataHeight);
+    lvframe_buffer = new LVFrameBuffer(CPU_FRAME_BUFFER_SIZE, frWidth, frHeight);      // PK 6-14-21 debug LiveView crashes on Carbo
+
     TwosFilter = new TwosComplimentFilter(size_t(frSize));
     IlaceFilter = new InterlaceFilter(size_t(frHeight), size_t(frWidth));
     DSFilter = new DarkSubFilter(size_t(frSize));
     stddev_N = MAX_N; // arbitrary starting point
-    STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
-    MEFilter = new MeanFilter(frWidth, dataHeight);
+    // original - STDFilter = new StdDevFilter(frWidth, dataHeight, stddev_N);
+    // original - MEFilter = new MeanFilter(frWidth, dataHeight);
+    STDFilter = new StdDevFilter(frWidth, frHeight, stddev_N);      // PK 6-14-21 debug LiveView crashes on Carbo
+    MEFilter = new MeanFilter(frWidth, frHeight);                   // PK 6-14-21 debug LiveView crashes on Carbo
     if (!STDFilter->start()) {
         qWarning("Unable to start OpenCL kernel.");
         qWarning("Standard Deviation and Histogram computation will be disabled.");
@@ -554,7 +576,8 @@ void FrameWorker::saveFrames(save_req_t req)
             std::to_string(req.nFrames) + " frame mean per acquisition}\n";
     hdr_text += "samples = " + std::to_string(frWidth) + "\n";
     hdr_text += "lines   = " + std::to_string(req.nFrames / req.nAvgs) + "\n";
-    hdr_text += "bands   = " + std::to_string(dataHeight) + "\n";
+    // original - hdr_text += "bands   = " + std::to_string(dataHeight) + "\n";   
+    hdr_text += "bands   = " + std::to_string(frHeight) + "\n";       // PK 6-14-21 debug LiveView crashes on Carbo
     hdr_text += "header offset = 0\nfile type = ENVI Standard\ndata type = 12\n";
     hdr_text += "interleave = " + std::to_string(req.bit_org) + "\n";
     hdr_text += "sensor type = Unknown\nbyte order = 0\nwavelength units = Unknown\n";
