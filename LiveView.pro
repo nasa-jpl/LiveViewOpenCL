@@ -26,7 +26,20 @@ TEMPLATE = app
 
 # You can compile LiveView with EDTpdv. In order to do so, uncomment the following line and make sure
 # EDT is in your working directory
-# DEFINES += USE_EDT
+DEFINES += USE_EDT
+
+contains(DEFINES, USE_EDT) {
+    message("Using EDT libraries.")
+    VPATH += /opt/EDTpdv
+    INCLUDEPATH += /opt/EDTpdv
+    SOURCES += clcamera.cpp
+    HEADERS += clcamera.h
+    #unix:!macx: LIBS += -L/opt/EDTpdv -lpdv
+    unix:!macx: LIBS += -L$$PWD/lib -L/opt/EDTpdv -lm -lpdv -ldl -lOpenCL
+} else {
+    message("Not using EDT libraries.")
+    unix:!macx: LIBS += -L$$PWD/lib -lm -ldl -lOpenCL
+}
 
 QMAKE_CXXFLAGS -= -std=gnu++11
 QMAKE_CXXFLAGS += -O3 -std=c++0x -Wno-inconsistent-missing-override -Wno-ignored-attributes -Wno-date-time
@@ -47,8 +60,7 @@ INCLUDEPATH += ./include \
 VPATH += ./include \
          ./src \
          ./kernel \
-         ./util \
-exists(EDT_include/edtinc.h): VPATH += ./EDT_include
+         ./util
 
 SOURCES += \
         main.cpp \
@@ -70,7 +82,6 @@ SOURCES += \
         saveserver.cpp \
         twoscomplimentfilter.cpp \
         saveclient.cpp
-exists(EDT_include/edtinc.h):SOURCES += clcamera.cpp
 
 HEADERS += \
         lvmainwindow.h \
@@ -104,7 +115,6 @@ HEADERS += \
         cameraviewdialog.h \
         frameratedialog.h \
     include/interlacefilter.h
-exists(EDT_include/edtinc.h):HEADERS += clcamera.h
 
 RESOURCES += \
     images/images.qrc \
@@ -115,5 +125,6 @@ DISTFILES += \
     kernel/stddev.cl
 
 macx: LIBS += -framework OpenCL
-else:unix|win32: LIBS += -lOpenCL
-exists(EDT_include/edtinc.h): unix:!macx: LIBS += -L$$PWD/lib -lm -lpdv -ldl
+#unix:!macx: LIBS += -L$$PWD/lib -lm -ldl -lOpenCL
+#unix:!macx: LIBS += -L$$PWD/lib -L/opt/EDTpdv -lm -lpdv -ldl
+

@@ -9,7 +9,7 @@
 
 #include "image_type.h"
 #include "cameramodel.h"
-#include "EDT_include/edtinc.h"
+#include "edtinc.h"
 
 class CLCamera : public CameraModel
 {
