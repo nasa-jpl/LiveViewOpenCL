@@ -14,6 +14,10 @@ frameview_widget::frameview_widget(FrameWorker *fw,
         ceiling = UINT16_MAX;
         p_getFrame = &FrameWorker::getFrame;
         break;
+    case WFL:
+        ceiling = UINT16_MAX;
+        p_getFrame = &FrameWorker::getWFLFrame;
+        break;
     case DSF:
         ceiling = 100.0;
         p_getFrame = &FrameWorker::getDSFrame;
@@ -181,8 +185,11 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     qvbl->addLayout(bottomControls, 1);
 
     this->setLayout(qvbl);
-
+    if (image_type == WFL) {
+        connect(&renderTimer, &QTimer::timeout, this, &frameview_widget::handleNewWFLFrame);
+    } else {
     connect(&renderTimer, &QTimer::timeout, this, &frameview_widget::handleNewFrame);
+    }
     connect(&fpsclock, &QTimer::timeout, this, &frameview_widget::reportFPS);
     connect(qcp->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledY(QCPRange)));
     connect(qcp->xAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(graphScrolledX(QCPRange)));
@@ -190,9 +197,28 @@ frameview_widget::frameview_widget(FrameWorker *fw,
     connect(qcp, &QCustomPlot::mousePress, this, &frameview_widget::mouse_down);
     connect(qcp, &QCustomPlot::mouseMove, this, &frameview_widget::mouse_move);
     connect(qcp, &QCustomPlot::mouseRelease, this, &frameview_widget::mouse_up);
+
+    if (image_type == WFL) {
+        connect(qcp, &QCustomPlot::plottableDoubleClick, this, &frameview_widget::drawCrosshair);
+        // do things (thanks E)
+        wfLength = 1000; // for now just to keep consistent with the frame view
+        //QByteArray empty((int)1280, '\x01');
+        wfline.resize(1280); //this should be taken from the sensor dimensions
+        // I'm not sure why we set this value here but it took me an hour to find this
+        // We need to set a correct value here that represents either the sensor x-dim or the CL simulation x-dim
+        wfimage.resize(wfLength);
+        for(int i=0; i < wfLength; i++)
+        {
+            //wfimage.append(empty);
+            wfimage[i] = wfline;
+        }
+        //wfline.append(empty);
+    }
+
     if (image_type == BASE) {
         connect(qcp, &QCustomPlot::plottableDoubleClick, this, &frameview_widget::drawCrosshair);
     }
+
     colorMapData = new QCPColorMapData(frWidth, frHeight, QCPRange(0, frWidth-1), QCPRange(0, frHeight-1));
     colorMap->setData(colorMapData);
 
@@ -205,6 +231,9 @@ frameview_widget::frameview_widget(FrameWorker *fw,
         qcp->replot();
         // renderTimer.stop();
     });
+
+
+
 
     if (frame_handler->running()) {
         renderTimer.start(FRAME_DISPLAY_PERIOD_MSECS);
@@ -221,6 +250,51 @@ void frameview_widget::handleNewFrame()
             for (int row = 0; row < frHeight; row++ ) {
                 colorMap->data()->setCell(col, row,
                                           double(image_data[size_t(row * frWidth + col)])); // y-axis NOT reversed
+            }
+        }
+        qcp->replot();
+        count++;
+    } else {
+        if (timeout_display) {
+
+            timeout_display = false;
+        }
+    }
+
+    // count-based FPS counter, gets slower to update the lower the fps,
+    // but can provide fractional fps values.
+    /* if (count % 50 == 0 && count != 0) {
+        fps = 50.0 / fpsclock.restart() * 1000.0;
+        fps_string = QString::number(fps, 'f', 1);
+        fpsLabel->setText(QString("Display: %1 fps").arg(fps_string));
+    } */
+}
+
+void frameview_widget::handleNewWFLFrame()
+{
+    if (!this->isHidden() && frame_handler->Camera->isRunning()) {
+        timeout_display = true;
+        std::vector<float>image_data{(frame_handler->*p_getFrame)()};
+
+        for (int col=0; col < frWidth; col++) {
+            //wfline[col] = image_data[size_t(col)];
+        //for (int col=frWidth*50; col < frWidth*51; col++) {
+            wfline[col] = image_data[size_t(frWidth*200+col)]; // this one works with envi files
+            //wfline[col] = (unsigned char)(((double)image_data[size_t(col)]/65535) * 256);
+
+        }
+
+        wfimage.prepend(wfline);
+        if(wfimage.size() > wfLength) {
+        wfimage.resize(wfLength);
+        wfimage.squeeze();
+        }
+
+
+        for (int col = 0; col < frWidth; col++) {
+            for (int row = 0; row < frHeight; row++ ) {
+                colorMap->data()->setCell(col, row, float(wfimage.at(row).at(col)));
+                                          //double(image_data[size_t(50 * frWidth + col)])); // y-axis NOT reversed
             }
         }
         qcp->replot();

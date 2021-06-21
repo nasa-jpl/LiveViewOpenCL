@@ -146,7 +146,7 @@ void ENVICamera::readLoop()
     QTime remTime;
     std::vector<uint16_t> copy_vec(size_t(framesize), 0);
     do {
-        // Yeah yeah whatever it's a magic number/buffer size recommendation
+        // Yeah yeah whatever it's a magic number/buffer size recommendation 96
         if (frame_buf.size() <= 96) {
             if (framesRead >= nFrames) {
                 // drops out of the loop

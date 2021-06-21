@@ -51,6 +51,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     tab_widget = new QTabWidget(this);
 
     raw_display = new frameview_widget(fw, BASE, settings);
+    wfl_display = new frameview_widget(fw, WFL, settings);
     dsf_display = new frameview_widget(fw, DSF, settings);
     sdv_display = new frameview_widget(fw, STD_DEV, settings);
     hst_display = new histogram_widget(fw);
@@ -65,6 +66,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     sdv_display->setPrecision(true);
 
     tab_widget->addTab(raw_display, QString("Live View"));
+    tab_widget->addTab(wfl_display, QString("Waterfall"));
     tab_widget->addTab(dsf_display, QString("Dark Subtraction"));
     tab_widget->addTab(sdv_display, QString("Standard Deviation"));
     tab_widget->addTab(hst_display, QString("Histogram"));
@@ -127,6 +129,7 @@ LVMainWindow::~LVMainWindow()
     }
     delete cbox;
     delete raw_display;
+    delete wfl_display;
     delete dsf_display;
     delete sdv_display;
     delete hst_display;

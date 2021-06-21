@@ -297,6 +297,7 @@ void FrameWorker::saveFrames(save_req_t req)
     int64_t new_count = 0;
     std::vector<uint16_t> p_frame;
     std::string hdr_fname;
+    std::string interleave;
     save_count.store(0);
 
     std::vector<float> frame_accum;
@@ -314,12 +315,15 @@ void FrameWorker::saveFrames(save_req_t req)
     switch(req.bit_org) {
     case fwBIL:
         p_getSaveFrame = &FrameWorker::getBILSaveFrame;
+        interleave = "bil";
         break;
     case fwBIP:
         p_getSaveFrame = &FrameWorker::getBIPSaveFrame;
+        interleave = "bip";
         break;
     case fwBSQ:
         p_getSaveFrame = &FrameWorker::getBILSaveFrame; // BSQ conversion is done at the end.
+        interleave = "bsq";
     }
 
     std::ofstream p_file;
@@ -360,12 +364,13 @@ void FrameWorker::saveFrames(save_req_t req)
     }
 
     std::string hdr_text = "ENVI\ndescription = {LIVEVIEW raw export file, " +
-            std::to_string(req.nFrames) + " frame mean per acquisition}\n";
+            std::to_string(req.nAvgs) + " frame mean per acquisition}\n";
     hdr_text += "samples = " + std::to_string(frWidth) + "\n";
     hdr_text += "lines   = " + std::to_string(req.nFrames / req.nAvgs) + "\n";
     hdr_text += "bands   = " + std::to_string(dataHeight) + "\n";
     hdr_text += "header offset = 0\nfile type = ENVI Standard\ndata type = 12\n";
-    hdr_text += "interleave = " + std::to_string(req.bit_org) + "\n";
+    hdr_text += "interleave = " + interleave + "\n";
+    //hdr_text += "interleave = " + std::to_string(req.bit_org) + "\n";
     hdr_text += "sensor type = Unknown\nbyte order = 0\nwavelength units = Unknown\n";
 
     std::ofstream hdr_out(hdr_fname);
@@ -458,6 +463,22 @@ std::vector<float> FrameWorker::getFrame()
     // }
     for (unsigned int i = 0; i < frSize; i++) {
         raw_data[i] = float(lvframe_buffer->frame(last_ndx)->raw_data[i]);
+    }
+    return raw_data;
+}
+
+std::vector<float> FrameWorker::getWFLFrame()
+{
+    //Maintains reference to data by using vector for memory management
+
+    uint16_t last_ndx = lvframe_buffer->dsfIndex.load();
+    // int prev_ndx = (lvframe_buffer->lastIndex.load() - 1) % 200;
+    std::vector<float> raw_data(frSize);
+    // if (lvframe_buffer->frame(last_ndx)->raw_data[1000] > 35000) {
+    //     qDebug() << lvframe_buffer->fbIndex << lvframe_buffer->lastSTD()->raw_data[1000] << last_ndx << lvframe_buffer->frame(last_ndx)->raw_data[1000];
+    // }
+    for (unsigned int i = 0; i < frSize; i++) {
+        raw_data[i] = float(lvframe_buffer->frame(last_ndx)->raw_data[i]);//5; //why are we dividing here?
     }
     return raw_data;
 }

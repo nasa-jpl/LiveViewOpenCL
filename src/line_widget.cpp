@@ -177,7 +177,8 @@ void line_widget::handleNewFrame()
 {
     if (!this->isHidden() && frame_handler->running()) {
         QPointF *center = frame_handler->getCenter();
-        if (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN || center->x() > -0.1) {
+        qDebug() << __func__ << ": center: " << center->x();
+        if ( (image_type == SPECTRAL_MEAN || image_type == SPATIAL_MEAN) && (center->x() >= 0) && (center->x() < frWidth) ) {
             y = (this->*p_getLine)(*center);
             qcp->graph(0)->setData(x, y);
             // replotting is slow when the data set is chaotic... TODO: develop an optimization here
