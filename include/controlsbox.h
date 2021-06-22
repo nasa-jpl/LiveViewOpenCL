@@ -29,10 +29,14 @@ public:
     QLineEdit *saveFileNameEdit;
     org_t bit_org;
 
+signals:
+    void stopSavingFrames();
+
 public slots:
     void collectDSFMask();
     void tabChanged(int);
     void acceptSave();
+    void stopSaveButton();
 
 private slots:
     void updateFPS(double frameRate);

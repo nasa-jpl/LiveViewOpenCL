@@ -112,6 +112,7 @@ public slots:
     void applyMask(const QString &fileName);
     void setStdDevN(int new_N);
     void setFramePeriod(double period);
+    void stopFrameSaving();
 
 private:
     QThread *thread;
@@ -124,6 +125,7 @@ private:
 
     volatile LV::PlotMode plotMode;
     bool saving;
+    bool continueSavingFrames;
     volatile bool isRunning;
     bool isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
     std::atomic<int64_t> count;

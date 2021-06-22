@@ -76,15 +76,9 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     QPushButton *stopAcquisitionButton = new QPushButton("STOP Acquisition", this);
     stopAcquisitionButton->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
     connect(stopAcquisitionButton, &QPushButton::clicked,
-            this, &ControlsBox::acceptSave);
-    connect(saveFileNameEdit, &QLineEdit::textChanged, stopAcquisitionButton,
-            [this]() {
-        saveFileNameEdit->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
-    });
-    connect(stopAcquisitionButton, &QPushButton::clicked, stopAcquisitionButton,
-            [this]() {
-        saveFileNameEdit->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
-    });
+            this, &ControlsBox::stopSaveButton);
+
+    // end stop button
 
     browseButton = new QPushButton("...", this);
     // calls a function of the parent, so this button is connected to a function in the parent.
@@ -212,6 +206,12 @@ void ControlsBox::acceptSave()
         frame_handler->saveFrames(new_req);
     }
 }
+
+void ControlsBox::stopSaveButton()
+{
+    emit stopSavingFrames();
+}
+
 
 void ControlsBox::setMinSpin(int new_min) {
     min_box->blockSignals(true);

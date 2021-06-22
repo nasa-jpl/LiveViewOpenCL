@@ -289,12 +289,25 @@ void FrameWorker::captureSDFrames()
     }
 }
 
+void FrameWorker::stopFrameSaving()
+{
+    if(saving)
+    {
+        continueSavingFrames = false;
+    } else {
+        return;
+    }
+}
+
 void FrameWorker::saveFrames(save_req_t req)
 {
     emit startSaving();
     saving = true;
+    continueSavingFrames = true;
     int64_t next_frame = count.load();
     int64_t new_count = 0;
+    uint64_t frames_recorded = 0;
+    bool continuousRecordingMode = (bool)(req.nFrames==0); // TODO: grab from a UI checkbox
     std::vector<uint16_t> p_frame;
     std::string hdr_fname;
     std::string interleave;
@@ -328,12 +341,17 @@ void FrameWorker::saveFrames(save_req_t req)
 
     std::ofstream p_file;
     p_file.open(req.file_name, std::ofstream::binary);
-    while (save_count.load() < req.nFrames) {
+    while ((continuousRecordingMode || (save_count.load() < req.nFrames)) && continueSavingFrames) {
         new_count = count.load();
+
+        // Copy from lvframe buffer to frame_fifo buffer:
         for (int f = 0; f < new_count - next_frame; f++) {
             frame_fifo.push(lvframe_buffer->frame((next_frame + f) % CPU_FRAME_BUFFER_SIZE)->raw_data);
+            frames_recorded++;
         }
         next_frame = new_count;
+
+        // Copy from fifo to file, optionally with average:
         if (!frame_fifo.empty()) {
             p_frame = (this->*p_getSaveFrame)(); // frame_fifo.front();
             if (req.nAvgs <= 1) {
@@ -352,11 +370,12 @@ void FrameWorker::saveFrames(save_req_t req)
                     frame_accum[p] += p_frame[p];
                 }
             }
-
             frame_fifo.pop();
             save_count++;
         }
     }
+
+    // Done with all data, close file.
     p_file.close();
 
     if (req.bit_org == fwBSQ) {
@@ -366,7 +385,7 @@ void FrameWorker::saveFrames(save_req_t req)
     std::string hdr_text = "ENVI\ndescription = {LIVEVIEW raw export file, " +
             std::to_string(req.nAvgs) + " frame mean per acquisition}\n";
     hdr_text += "samples = " + std::to_string(frWidth) + "\n";
-    hdr_text += "lines   = " + std::to_string(req.nFrames / req.nAvgs) + "\n";
+    hdr_text += "lines   = " + std::to_string(frames_recorded / req.nAvgs) + "\n"; //TODO: actual count of saved frames
     hdr_text += "bands   = " + std::to_string(dataHeight) + "\n";
     hdr_text += "header offset = 0\nfile type = ENVI Standard\ndata type = 12\n";
     hdr_text += "interleave = " + interleave + "\n";

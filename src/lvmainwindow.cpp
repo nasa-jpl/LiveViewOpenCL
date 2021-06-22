@@ -90,6 +90,8 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     connect(cbox->browseButton, &QPushButton::clicked, this, &LVMainWindow::saveAs);
     connect(this, &LVMainWindow::saveRequest, cbox, &ControlsBox::acceptSave);
 
+    connect(cbox, &ControlsBox::stopSavingFrames, fw, &FrameWorker::stopFrameSaving);
+
     auto mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->addWidget(tab_widget);
     mainLayout->addWidget(cbox);
