@@ -69,6 +69,7 @@ SOURCES += \
         frameworker.cpp \
         qcustomplot.cpp \
         envicamera.cpp \
+        src/filenamegenerator.cpp \
         xiocamera.cpp \
         controlsbox.cpp \
         darksubfilter.cpp \
@@ -93,6 +94,7 @@ HEADERS += \
         cameramodel.h \
         envicamera.h \
         constants.h \
+        filenamegenerator.h \
         xiocamera.h \
         osutils.h \
         controlsbox.h \

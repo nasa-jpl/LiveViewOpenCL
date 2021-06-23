@@ -198,13 +198,14 @@ void ControlsBox::tabChanged(int index)
 
 void ControlsBox::acceptSave()
 {
-    if (!saveFileNameEdit->text().isEmpty() && numFramesEdit->value() != 0) {
-        save_req_t new_req = {bit_org,
-                              findAndReplaceFileName(saveFileNameEdit->text()).toStdString(),
-                              static_cast<int64_t>(numFramesEdit->value()),
-                              static_cast<int64_t>(numAvgsEdit->value())};
-        frame_handler->saveFrames(new_req);
-    }
+    //if (!saveFileNameEdit->text().isEmpty() && numFramesEdit->value() != 0)
+
+    save_req_t new_req = {bit_org,
+                          findAndReplaceFileName(saveFileNameEdit->text()).toStdString(),
+                          static_cast<int64_t>(numFramesEdit->value()),
+                          static_cast<int64_t>(numAvgsEdit->value())};
+    frame_handler->saveFrames(new_req);
+
 }
 
 void ControlsBox::stopSaveButton()

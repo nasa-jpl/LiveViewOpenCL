@@ -158,6 +158,9 @@ FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *pare
             saving = false;
         }
     });
+
+    fng.setFilenameExtension("hdr");
+    fng.setMainDirectory("/tmp");
 }
 
 FrameWorker::~FrameWorker()
@@ -301,6 +304,14 @@ void FrameWorker::stopFrameSaving()
 
 void FrameWorker::saveFrames(save_req_t req)
 {
+    qDebug() << __PRETTY_FUNCTION__ << ": filename: " << QString::fromStdString(req.file_name);
+
+
+    if(req.file_name.empty())
+    {
+        req.file_name = fng.getNewFullFilename().toStdString();
+        qDebug() << __PRETTY_FUNCTION__ << ": filename: " << QString::fromStdString(req.file_name);
+    }
     emit startSaving();
     saving = true;
     continueSavingFrames = true;

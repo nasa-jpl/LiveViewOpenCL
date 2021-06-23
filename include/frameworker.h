@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <queue>
+#include <string>
 
 #include <QMessageBox>
 #include <QPointF>
@@ -29,6 +30,7 @@
 #include "stddevfilter.h"
 #include "meanfilter.h"
 #include "constants.h"
+#include "filenamegenerator.h"
 
 // constexpr int FPS_FRAME_WIDTH = 10;
 constexpr int MAXSAMPLES = 10;
@@ -126,6 +128,7 @@ private:
     volatile LV::PlotMode plotMode;
     bool saving;
     bool continueSavingFrames;
+    fileNameGenerator fng;
     volatile bool isRunning;
     bool isTimeout; // confusingly, isRunning is the acqusition state, isTimeout just says whether frames are currently coming across the bus.
     std::atomic<int64_t> count;
