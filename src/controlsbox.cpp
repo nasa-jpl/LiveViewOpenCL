@@ -70,6 +70,7 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
             [this]() {
         saveFileNameEdit->setToolTip(findAndReplaceFileName(saveFileNameEdit->text()));
     });
+    connect(this, SIGNAL(startSavingFrames(save_req_t)), frame_handler, SLOT(saveFrames(save_req_t)));
 
     //THE STOP BUTTON
     //TODO - make it stop when pushing this button. Nimrod Jun 2nd 2021
@@ -88,6 +89,16 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     connect(frame_handler->DSFilter, &DarkSubFilter::mask_frames_collected, this, [this](){
         this->collectDSFMask();
     });
+
+#ifdef QT_DEBUG
+    debugButton = new QPushButton("Debug", this);
+    debugButton->setMaximumWidth(60);
+    debugButton->setMaximumHeight(24);
+
+    connect(debugButton, &QPushButton::clicked, this, [=](){
+        emit getDebug();
+    } );
+#endif
 
     auto stdDevNSlider = new QSlider(this);
     stdDevNSlider->setOrientation(Qt::Horizontal);
@@ -119,6 +130,9 @@ ControlsBox::ControlsBox(FrameWorker *fw, QTabWidget *tw,
     cboxLayout->addWidget(browseButton, 1, 4, 1, 1);
     cboxLayout->addWidget(startAcquisitionButton, 1, 5, 2, 2);
     cboxLayout->addWidget(stopAcquisitionButton, 3, 5, 2, 2);
+#ifdef QT_DEBUG
+    cboxLayout->addWidget(debugButton, 4,9,3,3);
+#endif
     cboxLayout->addWidget(new QLabel("Num. Frames:", this), 1, 9, 1, 1);
     cboxLayout->addWidget(numFramesEdit, 1, 10, 1, 1);
     cboxLayout->addWidget(portLabel, 2, 0, 1, 1);
@@ -204,7 +218,10 @@ void ControlsBox::acceptSave()
                           findAndReplaceFileName(saveFileNameEdit->text()).toStdString(),
                           static_cast<int64_t>(numFramesEdit->value()),
                           static_cast<int64_t>(numAvgsEdit->value())};
-    frame_handler->saveFrames(new_req);
+
+    // TODO: emit a signal, do not call directly
+    //frame_handler->saveFrames(new_req);
+    emit startSavingFrames(new_req);
 
 }
 

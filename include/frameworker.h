@@ -44,7 +44,7 @@ class FrameWorker : public QObject
     Q_OBJECT
 
 public:
-    explicit FrameWorker(QSettings *settings, QThread *worker, QObject *parent = nullptr);
+    explicit FrameWorker(QSettings *settings, QObject *parent = nullptr);
     ~FrameWorker();
     void stop();
     bool running();
@@ -68,8 +68,6 @@ public:
     float* getSpectralMean();
     float* getSpatialMean();
     float* getFrameFFT();
-
-    void saveFrames(save_req_t req);
 
     void setCenter(double Xcoord, double Ycoord);
     QPointF* getCenter();
@@ -110,11 +108,13 @@ public slots:
     void captureDSFrames();
     void captureSDFrames();
     void reportFPS();
+    void saveFrames(save_req_t req);
     void captureFramesRemote(const save_req_t &new_req);
     void applyMask(const QString &fileName);
     void setStdDevN(int new_N);
     void setFramePeriod(double period);
     void stopFrameSaving();
+    void debugThis();
 
 private:
     QThread *thread;

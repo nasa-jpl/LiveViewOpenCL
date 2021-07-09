@@ -31,6 +31,8 @@ public:
 
 signals:
     void stopSavingFrames();
+    void startSavingFrames(save_req_t new_req);
+    void getDebug();
 
 public slots:
     void collectDSFMask();
@@ -70,6 +72,8 @@ private:
 
     QPushButton *maskButton;
     bool collecting_mask;
+
+    QPushButton *debugButton;
 };
 
 #endif // CONTROLSBOX_H

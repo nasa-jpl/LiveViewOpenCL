@@ -17,11 +17,13 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
 
     source_type = static_cast<source_t>(settings->value(QString("cam_model")).toInt());
 
+    //qDebug() << __PRETTY_FUNCTION__ << "Thread ID: " << QThread::currentThreadId();
     // Load the worker thread
-    workerThread = new QThread;
-    fw = new FrameWorker(settings, workerThread);
+    workerThread = new QThread(this);
+    fw = new FrameWorker(settings);
     fw->moveToThread(workerThread);
-    QFutureWatcher<void> fwWatcher;
+    workerThread->start();
+
     connect(workerThread, &QThread::started, fw, &FrameWorker::captureFrames);
     connect(fw, &FrameWorker::finished, workerThread, &QThread::quit);
     connect(workerThread, &QThread::finished, workerThread, &QThread::deleteLater);
@@ -35,15 +37,17 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
         saveAsAct->setEnabled(true);
     });
 
+    QFutureWatcher<void> fwWatcher;
+
     if (fw->running()) {
-        workerThread->start();
+        //workerThread->start();
         DSLoop = QtConcurrent::run(fw, &FrameWorker::captureDSFrames);
         SDLoop = QtConcurrent::run(fw, &FrameWorker::captureSDFrames);
         fwWatcher.setFuture(SDLoop);
         // connect(&fwWatcher, &QFutureWatcher<void>::finished, fw, &FrameWorker::deleteLater);
-        connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
+        //connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
     } else {
-        connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
+        //connect(fw, &FrameWorker::finished, fw, &FrameWorker::deleteLater);
         return;
     }
 
@@ -91,6 +95,7 @@ LVMainWindow::LVMainWindow(QSettings *settings, QWidget *parent)
     connect(this, &LVMainWindow::saveRequest, cbox, &ControlsBox::acceptSave);
 
     connect(cbox, &ControlsBox::stopSavingFrames, fw, &FrameWorker::stopFrameSaving);
+    connect(cbox, SIGNAL(getDebug()), fw, SLOT(debugThis()));
 
     auto mainLayout = new QVBoxLayout(mainWidget);
     mainLayout->addWidget(tab_widget);
@@ -145,6 +150,7 @@ LVMainWindow::~LVMainWindow()
     delete dsfDialog;
     delete fpsDialog;
     fw->stop();
+    //workerThread->quit();
     if (DSLoop.isStarted())
         DSLoop.waitForFinished();
     if (SDLoop.isStarted())

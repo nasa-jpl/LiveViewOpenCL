@@ -65,11 +65,12 @@ private:
     std::vector<LVFrame*> frame_vec;
 };
 
-FrameWorker::FrameWorker(QSettings *settings_arg, QThread *worker, QObject *parent)
+FrameWorker::FrameWorker(QSettings *settings_arg, QObject *parent)
     : QObject(parent), settings(settings_arg),
-      thread(worker), plotMode(LV::pmRAW), saving(false),
+      plotMode(LV::pmRAW), saving(false),
       count(0), count_prev(0), frame_period_ms(25.0)
 {
+    qDebug() << __PRETTY_FUNCTION__ << "Thread ID: " << QThread::currentThreadId();
     pixRemap = settings->value(QString("pix_remap"), false).toBool();
     is16bit = settings->value(QString("remap16"), false).toBool();
     interlace = settings->value(QString("interlace"), false).toBool();
@@ -183,6 +184,7 @@ void FrameWorker::stop()
 
 bool FrameWorker::running()
 {
+    qDebug() << __PRETTY_FUNCTION__ << "Thread ID: " << QThread::currentThreadId();
     return isRunning;
 }
 
@@ -200,6 +202,7 @@ void FrameWorker::reportTimeout()
 void FrameWorker::captureFrames()
 {
     qDebug("About to start capturing frames");
+    qDebug() << __PRETTY_FUNCTION__ << "Thread ID: " << QThread::currentThreadId();
     high_resolution_clock::time_point beg, end;
     high_resolution_clock::time_point last_frame;
     int64_t duration;
@@ -306,7 +309,7 @@ void FrameWorker::saveFrames(save_req_t req)
 {
     qDebug() << __PRETTY_FUNCTION__ << ": filename: " << QString::fromStdString(req.file_name);
 
-
+    qDebug() << __PRETTY_FUNCTION__ << "Thread ID: " << QThread::currentThreadId();
     if(req.file_name.empty())
     {
         req.file_name = fng.getNewFullFilename().toStdString();
@@ -675,4 +678,10 @@ void FrameWorker::setFramePeriod(double period) {
 
 double FrameWorker::getFramePeriod() {
     return frame_period_ms;
+}
+
+void FrameWorker::debugThis()
+{
+    qDebug() << __PRETTY_FUNCTION__ << "DEBUG in FrameWorker:";
+    qDebug() << __PRETTY_FUNCTION__ << "Thread ID: " << QThread::currentThreadId();
 }
