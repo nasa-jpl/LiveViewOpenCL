@@ -401,7 +401,7 @@ void FrameWorker::captureFrames()
                     // This is why LiveView 5.0 Computation/Remap/16-bit fails.  We
                     // forgot to apply filter to the frame line data used in the 
                     // NEW frame line control feature.
-                    qDebug() << "PK Debug 5-30-21 FrameWorker::captureFrames() pixRemap, is16bit: " << is16bit;
+                    // qDebug() << "PK Debug 5-30-21 FrameWorker::captureFrames() pixRemap, is16bit: " << is16bit;
                     TwosFilter->apply_filter( l.data.data(), is16bit );
 
                 }
@@ -428,6 +428,15 @@ void FrameWorker::captureFrames()
                 }
                 count++;
 
+                //
+                // ... 7-21-21 hist_debug
+                if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI)) {
+                    delay(int64_t(frame_period_ms) - duration);
+                } else {
+                    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+                }
+                // 7-21-21 hist_debug ...
+
             } // bottom of for loop to load frame lines into LV buffer.
 
 
@@ -449,11 +458,6 @@ void FrameWorker::captureFrames()
             frame_read_count = 0;
         }
         
-        if (duration < frame_period_ms && (cam_type == SSD_XIO || cam_type == SSD_ENVI)) {
-            delay(int64_t(frame_period_ms) - duration);
-        } else {
-            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-        }
     } // bottom of while (isRunning) loop
     
 } // end of FrameWorker::captureFrames() 
@@ -749,6 +753,9 @@ std::vector<float> FrameWorker::getSNRFrame()
 
 uint32_t* FrameWorker::getHistData()
 {
+    //
+    // PK 7-21-21 hist_debug
+    // qDebug() << "PK Debug FrameWorker::getHistData() - lastSTD 0x%x" <<  lvframe_buffer->lastSTD();
     return lvframe_buffer->lastSTD()->hist_data;
 }
 

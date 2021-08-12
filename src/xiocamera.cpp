@@ -476,11 +476,17 @@ bool XIOCamera::readFile()
             // PK 2-15-21 image-line-control ...
             //
             // All image lines in the file are read and loaded. Add the
-            // new image frame to the list beginning
+            // new image frame to the end of the list
             frameDataMutex.lock();
+
             frameDataFileList.emplace_back( newFrame );
             frameDataMutex.unlock();
             qDebug() << "PK Debug - XIOCamera::readFile() newFrame added, release frameDataMutex";
+
+            //
+            // PK Debug 7-15-21 sleep 1 msec to give the frameworker to getFrame()
+            QThread::usleep( 1000 );
+
 
             validFileCount++;
             qDebug() << "PK Debug - XIOCamera::readFile() file#" << validFileCount << ": " << ifname.data() << " is loaded";

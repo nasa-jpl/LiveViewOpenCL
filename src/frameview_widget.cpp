@@ -1,5 +1,7 @@
 #include <QMutex>         // 3-8-21 frame-line-control
 #include <atomic>         // 3-15-21 frame-line-control enhancement
+#include <QTime>        // PK Debug 7-15-21 Performance test
+
 #include "frameview_widget.h"
 #include "lvframe.h"      // 3-8-21 frame-line-control
 
@@ -348,7 +350,7 @@ void frameview_widget::handleNewFrame()
         // gives the thread a chance to fill the lvframe_buf
         // sleep for 800 msec
         qDebug() << "PK Debug frameview_widget::handleNewFrame() - frameControlIsOn with NEXT button clicked, sleeps for 800 ms. \n";
-        QThread::usleep( 800000 );   
+
     }
 
     frameDataFile *LVData;
@@ -369,6 +371,10 @@ void frameview_widget::handleNewFrame()
     {
         timeout_display = true;
 
+        // PK Debug 7-15-21 Performance test
+        QTime t;
+        t.start();
+
         //
         // image-line-control new feature
         // 
@@ -386,12 +392,14 @@ void frameview_widget::handleNewFrame()
                 //
                 // PK 3-20-21 attempts to fix Linux filename update issue !!
                 displayFrameFilename( LVData->filename );
+                qDebug() << "PK Debug after " << t.elapsed() << "(mSec.)";   // PK Debug 7-15-21 Performance test
                 qDebug() << "PK Debug frameview_widget::displayFrameFilename() filename:" << LVData->filename.data() << " is done.";
                 
 
                 //
                 // Display the frame lines ...
                 displayFrameLines( LVData );
+                qDebug() << "PK Debug after " << t.elapsed() << "(mSec.)";   // PK Debug 7-15-21 Performance test
                 qDebug() << "PK Debug frameview_widget::displayFrameLines() is done.";   // PK 6-14-21 debug
 
             }
@@ -653,21 +661,9 @@ void frameview_widget::displayFrameLines( frameDataFile *LVData )
     std::vector <frameLineData> frameLines = LVData->lineData;
     size_t frameSizeInPixel = (LVData->frameSize)/2;
  
-#ifdef DEBUG_LOG  // PK 6-14-21 debug
-    qDebug() << "PK Debug frameview_widget::displayFrameLines() starts ...";   // PK 6-14-21 debug
-    qDebug() << "PK Debug frameview_widget::displayFrameLines() frameLines size:" << frameLines.size();   // PK 6-14-21 debug
-#endif // DEBUG_LOG  // PK 6-14-21 debug
-
     int lineNo = 0;
     for( frameLineData line : frameLines )
     {
-
-#ifdef DEBUG_LOG  // PK 6-14-21 debug
-        qDebug() << "PK Debug frameview_widget::displayFrameLines() current line#:" << lineNo; 
-        qDebug() << "PK Debug frameview_widget::displayFrameLines() line data size:" << line.data.size();
-        qDebug() << "PK Debug frameview_widget::displayFrameLines() frameSizeInPixel:" << frameSizeInPixel; 
-#endif // DEBUG_LOG  // PK 6-14-21 debug
-
         std::vector<float> image_data(size_t(frameSizeInPixel), 0);
         for( unsigned int i = 0; i < frameSizeInPixel; i++ )
         {
@@ -701,6 +697,9 @@ void frameview_widget::displayFrameLines( frameDataFile *LVData )
         count++;
         lineNo++;
 
+        // PK Debug 7-15-21 Performance test
+        if( lineNo > 1 )
+            break;
 
     } // bottom of the frame line loop
 

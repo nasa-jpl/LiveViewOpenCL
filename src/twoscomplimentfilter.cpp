@@ -10,7 +10,7 @@ TwosComplimentFilter::TwosComplimentFilter(size_t frame_size) :
 
 void TwosComplimentFilter::apply_filter(uint16_t *pic_in, bool is16bit)
 {
-    qDebug() << "PK Debug 5-30-21 TwosComplimentFilter::apply_filter is16bit: " << is16bit;
+    // qDebug() << "PK Debug 5-30-21 TwosComplimentFilter::apply_filter is16bit: " << is16bit;
 
     uint16_t offset = is16bit ? 0x8000 : 0x2000; //16 or 14 bits
     size_t ndx;
